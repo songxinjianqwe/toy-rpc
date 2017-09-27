@@ -83,20 +83,19 @@ public class RPCServer {
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             ChannelFuture future = bootstrap.bind(host, port).sync();
             log.info("服务器启动");
-            register(address);
+            
+            registry = new ServiceRegistry();
+            registry.register(address);
+            log.info("服务器向Zookeeper注册完毕");
+            
             //应用程序会一直等待，直到channel关闭
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
+            registry.close();
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
-    }
-
-    private void register(String address) {
-        registry = new ServiceRegistry();
-        registry.register(address);
-        log.info("服务器向Zookeeper注册完毕");
     }
 }

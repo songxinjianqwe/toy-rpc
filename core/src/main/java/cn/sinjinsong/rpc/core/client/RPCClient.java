@@ -6,7 +6,7 @@ import cn.sinjinsong.rpc.core.domain.RPCRequest;
 import cn.sinjinsong.rpc.core.domain.RPCResponse;
 import cn.sinjinsong.rpc.core.domain.RPCResponseFuture;
 import cn.sinjinsong.rpc.core.enumeration.MessageType;
-import cn.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
+import cn.sinjinsong.rpc.core.zookeeper.ServiceDiscovery;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -27,16 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class RPCClient {
+    private String registryAddress;
     private EventLoopGroup group;
     private Bootstrap bootstrap;
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
-    private ServiceRegistry registry;
-
+    private ServiceDiscovery discovery;
     public RPCClient() {
         log.info("初始化RPC客户端");
+        this.discovery = new ServiceDiscovery();
         this.responses = new ConcurrentHashMap<>();
-        this.registry = new ServiceRegistry();
         this.group = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
         this.bootstrap.group(group).channel(NioSocketChannel.class)
@@ -51,24 +51,25 @@ public class RPCClient {
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
-        this.connect();
+        
+        String serverAddress = discovery.discover();
+        log.info("客户端向Zookeeper注册完毕");
+        this.connect(serverAddress);
         log.info("客户端初始化完毕");
     }
 
 
-    private void connect() {
+    private void connect(String serverAddress) {
+        String host = serverAddress.split(":")[0];
+        Integer port = Integer.parseInt(serverAddress.split(":")[1]);
         try {
-            ChannelFuture future = bootstrap.connect("127.0.0.1", 8080).sync();
+            ChannelFuture future = bootstrap.connect(host, port).sync();
             this.futureChannel = future.channel();
             log.info("客户端已连接");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    private void register(String address) {
-        log.info("客户端向Zookeeper注册完毕");
-    }
+    }   
     
     /**
      * 关闭连接
@@ -85,7 +86,7 @@ public class RPCClient {
 
     public RPCResponseFuture execute(RPCRequest request) throws Exception {
         if (!futureChannel.isActive()) {
-            connect();
+            connect(discovery.discover());
         }
         log.info("客户端发起请求: {}", request);
         RPCResponseFuture responseFuture = new RPCResponseFuture();
