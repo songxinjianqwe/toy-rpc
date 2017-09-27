@@ -6,7 +6,7 @@ import cn.sinjinsong.rpc.core.domain.RPCRequest;
 import cn.sinjinsong.rpc.core.domain.RPCResponse;
 import cn.sinjinsong.rpc.core.domain.RPCResponseFuture;
 import cn.sinjinsong.rpc.core.enumeration.MessageType;
-import cn.sinjinsong.rpc.core.registry.ServiceRegistry;
+import cn.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;

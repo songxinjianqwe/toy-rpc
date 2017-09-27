@@ -1,4 +1,4 @@
-package cn.sinjinsong.rpc.core.registry;
+package cn.sinjinsong.rpc.core.zookeeper;
 
 import cn.sinjinsong.rpc.core.constant.CharsetConst;
 import cn.sinjinsong.rpc.core.constant.ZookeeperConstant;

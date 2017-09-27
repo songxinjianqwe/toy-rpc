@@ -4,7 +4,7 @@ import cn.sinjinsong.rpc.core.coder.RPCDecoder;
 import cn.sinjinsong.rpc.core.coder.RPCEncoder;
 import cn.sinjinsong.rpc.core.domain.RPCRequest;
 import cn.sinjinsong.rpc.core.domain.RPCResponse;
-import cn.sinjinsong.rpc.core.registry.ServiceRegistry;
+import cn.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
 import cn.sinjinsong.rpc.core.server.RPCServerHandler;
 import cn.sinjinsong.rpc.core.util.PropertyUtil;
 import io.netty.bootstrap.ServerBootstrap;

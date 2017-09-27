@@ -5,20 +5,20 @@
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/client/src/main/resources/rpc.properties" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/CharsetConst.java" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/util/PropertyUtil.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceDiscovery.java" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/client/RPCProxy.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ZookeeperConstant.java" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/core/src/test/java/cn/sinjinsong/rpc/core/client/RPCProxyTest.java" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/core/src/test/java/cn/sinjinsong/rpc/core/util/AnnotationUtilTest.java" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/client/pom.xml" afterPath="$PROJECT_DIR$/client/pom.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/RPCServer.java" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/RPCServer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/client/RPCClient.java" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/client/RPCClient.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ServiceRegistry.java" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ServiceRegistry.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/util/AnnotationUtil.java" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/util/AnnotationUtil.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server/pom.xml" afterPath="$PROJECT_DIR$/server/pom.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/server/src/main/resources/rpc.properties" afterPath="$PROJECT_DIR$/server/src/main/resources/rpc.properties" />
       <change type="MOVED" beforePath="$PROJECT_DIR$/client/src/main/java/cn/sinjinsong/rpc/sample/client/RPCProxyTest.java" afterPath="$PROJECT_DIR$/client/src/main/java/cn/sinjinsong/rpc/sample/client/Application.java" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ServiceRegistry.java" afterPath="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceRegistry.java" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -46,10 +46,10 @@
         </entry>
       </file>
       <file leaf-file-name="ServiceRegistry.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ServiceRegistry.java">
+        <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceRegistry.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-245">
-              <caret line="46" column="17" lean-forward="true" selection-start-line="46" selection-start-column="17" selection-end-line="46" selection-end-column="17" />
+            <state relative-caret-position="192">
+              <caret line="15" column="13" lean-forward="false" selection-start-line="15" selection-start-column="13" selection-end-line="15" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -65,11 +65,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RPCClient.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="RPCClient.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/client/RPCClient.java">
           <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="504">
+              <caret line="68" column="8" lean-forward="false" selection-start-line="68" selection-start-column="8" selection-end-line="68" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CharsetConst.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/CharsetConst.java">
+          <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="192">
-              <caret line="55" column="5" lean-forward="true" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
+              <caret line="8" column="31" lean-forward="false" selection-start-line="8" selection-start-column="26" selection-end-line="8" selection-end-column="31" />
               <folding />
             </state>
           </provider>
@@ -88,9 +98,21 @@
       <file leaf-file-name="ZookeeperConstant.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/ZookeeperConstant.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="72">
-              <caret line="3" column="30" lean-forward="false" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="30" />
+            <state relative-caret-position="192">
+              <caret line="8" column="0" lean-forward="true" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ServiceDiscovery.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceDiscovery.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="408">
+              <caret line="68" column="4" lean-forward="false" selection-start-line="68" selection-start-column="4" selection-end-line="68" selection-end-column="4" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -116,9 +138,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/service/HelloService.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/coder/RPCEncoder.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/client/RPCClientHandler.java" />
         <option value="$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/domain/Message.java" />
         <option value="$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/coder/RPCDecoder.java" />
         <option value="$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/server/RequestExecutor.java" />
@@ -167,6 +186,9 @@
         <option value="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ServiceRegistry.java" />
         <option value="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/RPCServer.java" />
         <option value="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/client/RPCClient.java" />
+        <option value="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/discover/ServiceDiscovery.java" />
+        <option value="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceRegistry.java" />
+        <option value="$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceDiscovery.java" />
       </list>
     </option>
   </component>
@@ -309,6 +331,26 @@
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="core" type="462c0819:PsiDirectoryNode" />
               <item name="client" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="distributed-rpc" type="b2602c69:ProjectViewProjectNode" />
+              <item name="distributed-rpc" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="constant" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="distributed-rpc" type="b2602c69:ProjectViewProjectNode" />
+              <item name="distributed-rpc" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+              <item name="zookeeper" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="distributed-rpc" type="b2602c69:ProjectViewProjectNode" />
@@ -542,7 +584,7 @@
       <option name="presentableId" value="Default" />
       <updated>1506492680277</updated>
       <workItem from="1506492683193" duration="5550000" />
-      <workItem from="1506499018344" duration="9451000" />
+      <workItem from="1506499018344" duration="10034000" />
     </task>
     <servers />
   </component>
@@ -558,7 +600,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15001000" />
+    <option name="totallyTimeSpent" value="15584000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-11" y="-11" width="1942" height="1042" extended-state="6" />
@@ -605,14 +647,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/test/java/cn/sinjinsong/rpc/util/AnnotationUtilTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="312">
-          <caret line="13" column="13" lean-forward="false" selection-start-line="13" selection-start-column="13" selection-end-line="13" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cn/sinjinsong/rpc/server/RPCServerHandler.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-190">
@@ -971,30 +1005,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/CharsetConst.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="8" column="31" lean-forward="false" selection-start-line="8" selection-start-column="26" selection-end-line="8" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/ZookeeperConstant.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="3" column="30" lean-forward="false" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/registry/ServiceRegistry.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-245">
-          <caret line="46" column="17" lean-forward="true" selection-start-line="46" selection-start-column="17" selection-end-line="46" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/client/src/main/java/cn/sinjinsong/rpc/sample/client/Application.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="240">
@@ -1013,9 +1023,43 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/client/RPCClient.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="55" column="5" lean-forward="true" selection-start-line="55" selection-start-column="5" selection-end-line="55" selection-end-column="5" />
+        <state relative-caret-position="504">
+          <caret line="68" column="8" lean-forward="false" selection-start-line="68" selection-start-column="8" selection-end-line="68" selection-end-column="8" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/CharsetConst.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="8" column="31" lean-forward="false" selection-start-line="8" selection-start-column="26" selection-end-line="8" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/constant/ZookeeperConstant.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="8" column="0" lean-forward="true" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceRegistry.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="15" column="13" lean-forward="false" selection-start-line="15" selection-start-column="13" selection-end-line="15" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/src/main/java/cn/sinjinsong/rpc/core/zookeeper/ServiceDiscovery.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="408">
+          <caret line="68" column="4" lean-forward="false" selection-start-line="68" selection-start-column="4" selection-end-line="68" selection-end-column="4" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
