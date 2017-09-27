@@ -1,9 +1,11 @@
 package cn.sinjinsong.rpc.core.registry;
 
+import cn.sinjinsong.rpc.core.constant.CharsetConst;
+import cn.sinjinsong.rpc.core.constant.ZookeeperConstant;
+import cn.sinjinsong.rpc.core.util.PropertyUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.Stat;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -20,15 +22,15 @@ public class ServiceRegistry {
      * 信号量设置，用于等待zookeeper连接建立之后 通知阻塞程序继续向下执行
      */
     private CountDownLatch connectedSemaphore = new CountDownLatch(1);
-    /**
-     * 定义session失效时间
-     */
-    private static final int SESSION_TIMEOUT = 10000;
    
-    public ServiceRegistry(String registryAddress){
-        this.close();
+
+    public ServiceRegistry() {
+        String address = PropertyUtil.getProperty("registry.address");
+        if (address == null) {
+            throw new IllegalStateException("registry.address未找到");
+        }
         try {
-            this.zk = new ZooKeeper(registryAddress, SESSION_TIMEOUT, new Watcher() {
+            this.zk = new ZooKeeper(address, ZookeeperConstant.ZK_SESSION_TIMEOUT, new Watcher() {
                 @Override
                 public void process(WatchedEvent event) {
                     //获取事件的状态
@@ -61,6 +63,32 @@ public class ServiceRegistry {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void register(String data) {
+        try {
+            Stat s = zk.exists(ZookeeperConstant.ZK_REGISTRY_PATH, false);
+            if (s == null) {
+                zk.create(ZookeeperConstant.ZK_REGISTRY_PATH, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            }
+            createNode(zk, data);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createNode(ZooKeeper zk, String data) {
+        try {
+            byte[] bytes = data.getBytes(CharsetConst.UTF_8);
+            String path = zk.create(ZookeeperConstant.ZK_DATA_PATH, bytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+            log.debug("create zookeeper node ({} => {})", path, data);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
         }
     }
 

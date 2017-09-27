@@ -1,8 +1,8 @@
 package cn.sinjinsong.rpc.core.util;
 
 
-import cn.sinjinsong.rpc.core.RPCServer;
 import cn.sinjinsong.rpc.core.annotation.RPCService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +16,16 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by SinjinSong on 2017/7/31.
  */
+@Slf4j
 public class AnnotationUtil {
 
     public static Map<String, Object> getServices() {
         Map<String, Object> handlerMap = new ConcurrentHashMap<>();
-        
-        for (Class<?> cls : getClassesWithAnnotation(RPCService.class, servicePackageName)) {
+        String basePackage = PropertyUtil.getProperty("server.basePackage");
+        if (basePackage == null) {
+            throw new IllegalStateException("server.basePackage未找到");
+        }
+        for (Class<?> cls : getClassesWithAnnotation(RPCService.class, basePackage)) {
             String key = cls.getAnnotation(RPCService.class).value().getName();
             try {
                 handlerMap.put(key, cls.newInstance());

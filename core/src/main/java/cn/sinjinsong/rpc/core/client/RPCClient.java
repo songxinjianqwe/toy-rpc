@@ -3,9 +3,10 @@ package cn.sinjinsong.rpc.core.client;
 import cn.sinjinsong.rpc.core.coder.RPCDecoder;
 import cn.sinjinsong.rpc.core.coder.RPCEncoder;
 import cn.sinjinsong.rpc.core.domain.RPCRequest;
-import cn.sinjinsong.rpc.core.domain.RPCResponseFuture;
-import cn.sinjinsong.rpc.core.registry.ServiceRegistry;
 import cn.sinjinsong.rpc.core.domain.RPCResponse;
+import cn.sinjinsong.rpc.core.domain.RPCResponseFuture;
+import cn.sinjinsong.rpc.core.enumeration.MessageType;
+import cn.sinjinsong.rpc.core.registry.ServiceRegistry;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -14,7 +15,11 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -27,17 +32,14 @@ public class RPCClient {
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
     private ServiceRegistry registry;
-    public RPCClient(String registryAddress) {
+
+    public RPCClient() {
         log.info("初始化RPC客户端");
-        responses = new ConcurrentHashMap<>();
-        registry = new ServiceRegistry(registryAddress);
-        
-    }
-    
-    public void run() {
+        this.responses = new ConcurrentHashMap<>();
+        this.registry = new ServiceRegistry();
         this.group = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
-        bootstrap.group(group).channel(NioSocketChannel.class)
+        this.bootstrap.group(group).channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {
@@ -49,11 +51,12 @@ public class RPCClient {
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
-        connect();
+        this.connect();
         log.info("客户端初始化完毕");
     }
-    
-    public void connect() {
+
+
+    private void connect() {
         try {
             ChannelFuture future = bootstrap.connect("127.0.0.1", 8080).sync();
             this.futureChannel = future.channel();
@@ -63,6 +66,10 @@ public class RPCClient {
         }
     }
 
+    private void register(String address) {
+        log.info("客户端向Zookeeper注册完毕");
+    }
+    
     /**
      * 关闭连接
      */
@@ -88,5 +95,32 @@ public class RPCClient {
         return responseFuture;
     }
 
-
+    @SuppressWarnings("unchecked")
+    public <T> T create(Class<?> interfaceClass) {
+        return (T) Proxy.newProxyInstance(
+                interfaceClass.getClassLoader(),
+                new Class<?>[]{interfaceClass},
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        RPCRequest request = new RPCRequest(); // 创建并初始化 RPC 请求
+                        log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
+                        request.setRequestId(UUID.randomUUID().toString());
+                        request.setClassName(method.getDeclaringClass().getName());
+                        request.setMethodName(method.getName());
+                        request.setParameterTypes(method.getParameterTypes());
+                        request.setParameters(args);
+                        request.setType(MessageType.NORMAL);
+                        RPCResponseFuture responseFuture = RPCClient.this.execute(request); // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
+                        RPCResponse response = responseFuture.getResponse();
+                        log.info("客户端读到响应");
+                        if (response.hasError()) {
+                            throw response.getCause();
+                        } else {
+                            return response.getResult();
+                        }
+                    }
+                }
+        );
+    }
 }
