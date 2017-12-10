@@ -46,9 +46,12 @@ public class RPCServer {
                             //而客户端是先把请求转为字节（编码)，再把响应转为POJO（解码）
                             ch.pipeline()
                                     .addLast(new IdleStateHandler(10, 0, 0))
-                                    .addLast(new RPCDecoder(RPCRequest.class)) // 将 RPC 请求进行解码（为了处理请求）
-                                    .addLast(new RPCEncoder(RPCResponse.class)) // 将 RPC 响应进行编码（为了返回响应）
-                                    .addLast(new RPCServerHandler()); // 处理 RPC 请求
+                                    // 将 RPC 请求进行解码（为了处理请求）
+                                    .addLast(new RPCDecoder(RPCRequest.class))
+                                    // 将 RPC 响应进行编码（为了返回响应）
+                                    .addLast(new RPCEncoder(RPCResponse.class))
+                                    // 处理 RPC 请求
+                                    .addLast(new RPCServerHandler());
                         }
                     })
                     //服务器配置项
@@ -83,11 +86,11 @@ public class RPCServer {
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             ChannelFuture future = bootstrap.bind(host, port).sync();
             log.info("服务器启动");
-            
+
             registry = new ServiceRegistry();
             registry.register(address);
             log.info("服务器向Zookeeper注册完毕");
-            
+
             //应用程序会一直等待，直到channel关闭
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {

@@ -20,22 +20,19 @@ public class ZookeeperController {
      * 信号量设置，用于等待zookeeper连接建立之后 通知阻塞程序继续向下执行
      */
     private CountDownLatch connectedSemaphore = new CountDownLatch(1);
-    
+
     public void connect(String address) {
         try {
-            this.zookeeper = new ZooKeeper(address, ZookeeperConstant.ZK_SESSION_TIMEOUT, new Watcher() {
-                @Override
-                public void process(WatchedEvent event) {
-                    //获取事件的状态
-                    Event.KeeperState keeperState = event.getState();
-                    Event.EventType eventType = event.getType();
-                    //如果是建立连接
-                    if (Event.KeeperState.SyncConnected == keeperState) {
-                        if (Event.EventType.None == eventType) {
-                            //如果建立连接成功，则发送信号量，让后续阻塞程序向下执行
-                            connectedSemaphore.countDown();
-                            log.info("ZK建立连接");
-                        }
+            this.zookeeper = new ZooKeeper(address, ZookeeperConstant.ZK_SESSION_TIMEOUT, (WatchedEvent event) -> {
+                //获取事件的状态
+                Watcher.Event.KeeperState keeperState = event.getState();
+                Watcher.Event.EventType eventType = event.getType();
+                //如果是建立连接
+                if (Watcher.Event.KeeperState.SyncConnected == keeperState) {
+                    if (Watcher.Event.EventType.None == eventType) {
+                        //如果建立连接成功，则发送信号量，让后续阻塞程序向下执行
+                        connectedSemaphore.countDown();
+                        log.info("ZK建立连接");
                     }
                 }
             });

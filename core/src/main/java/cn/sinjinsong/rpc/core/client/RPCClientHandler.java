@@ -63,7 +63,6 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
             log.info("超过指定时间未发送数据，发送心跳信息");
             ctx.writeAndFlush(Message.PING);
         } else {

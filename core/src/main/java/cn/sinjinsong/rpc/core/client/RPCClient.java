@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class RPCClient {
-    private String registryAddress;
     private EventLoopGroup group;
     private Bootstrap bootstrap;
     private Channel futureChannel;
@@ -45,9 +44,12 @@ public class RPCClient {
                     public void initChannel(SocketChannel channel) throws Exception {
                         channel.pipeline()
                                 .addLast(new IdleStateHandler(0, 0, 5))
-                                .addLast(new RPCEncoder(RPCRequest.class)) // 将 RPC 请求进行编码（为了发送请求）
-                                .addLast(new RPCDecoder(RPCResponse.class)) // 将 RPC 响应进行解码（为了处理响应）
-                                .addLast(new RPCClientHandler(responses)); // 使用 RpcClient 发送 RPC 请求
+                                // 将 RPC 请求进行编码（为了发送请求）
+                                .addLast(new RPCEncoder(RPCRequest.class)) 
+                                 // 将 RPC 响应进行解码（为了处理响应）
+                                .addLast(new RPCDecoder(RPCResponse.class))
+                                // 使用 RpcClient 发送 RPC 请求
+                                .addLast(new RPCClientHandler(responses)); 
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
@@ -104,7 +106,8 @@ public class RPCClient {
                 new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        RPCRequest request = new RPCRequest(); // 创建并初始化 RPC 请求
+                        // 创建并初始化 RPC 请求
+                        RPCRequest request = new RPCRequest(); 
                         log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
                         request.setRequestId(UUID.randomUUID().toString());
                         request.setClassName(method.getDeclaringClass().getName());
@@ -112,7 +115,8 @@ public class RPCClient {
                         request.setParameterTypes(method.getParameterTypes());
                         request.setParameters(args);
                         request.setType(MessageType.NORMAL);
-                        RPCResponseFuture responseFuture = RPCClient.this.execute(request); // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
+                        // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
+                        RPCResponseFuture responseFuture = RPCClient.this.execute(request); 
                         RPCResponse response = responseFuture.getResponse();
                         log.info("客户端读到响应");
                         if (response.hasError()) {

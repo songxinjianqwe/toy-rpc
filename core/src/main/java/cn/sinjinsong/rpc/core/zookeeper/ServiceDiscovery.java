@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by SinjinSong on 2017/9/27.
+ * 客户端进行发现
  */
 @Slf4j
 public class ServiceDiscovery extends ZookeeperController {

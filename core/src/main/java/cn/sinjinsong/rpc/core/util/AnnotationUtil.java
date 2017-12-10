@@ -42,7 +42,8 @@ public class AnnotationUtil {
         List<Class<?>> classes = new ArrayList<>();
         if (annotation.isAnnotation()) {
             try {
-                List<Class<?>> allClass = getClasses(packageName);//获得当前包以及子包下的所有类  
+                //获得当前包以及子包下的所有类  
+                List<Class<?>> allClass = getClasses(packageName);
                 for (Class<?> cls : allClass) {
                     if (cls.isAnnotationPresent(annotation)) {
                         classes.add(cls);

@@ -3,7 +3,8 @@ package cn.sinjinsong.sample.server;
 import cn.sinjinsong.rpc.core.RPCServer;
 
 /**
- * Created by SinjinSong on 2017/9/27.
+ * @author songx
+ * @date 2017/7/30
  */
 public class Application {
     public static void main(String[] args) {

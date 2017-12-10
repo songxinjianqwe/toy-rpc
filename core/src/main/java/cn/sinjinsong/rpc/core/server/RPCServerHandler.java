@@ -16,15 +16,16 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by SinjinSong on 2017/7/29.
- * 实际的业务处理器
+ * 实际的业务处理器，单例
  */
 @Slf4j
 public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     private Map<String, Object> handlerMap;
-    private ThreadPoolExecutor pool = new ThreadPoolExecutor(16, 16, 600L, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(100), new ThreadPoolExecutor.CallerRunsPolicy());
-
+    private ThreadPoolExecutor pool;
     public RPCServerHandler() {
-        handlerMap = AnnotationUtil.getServices();
+        this.handlerMap = AnnotationUtil.getServices();
+        int threads = Runtime.getRuntime().availableProcessors();
+        this.pool = new ThreadPoolExecutor(threads, threads, 600L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
         log.info("{}",handlerMap);
     }
 
@@ -51,7 +52,6 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
 
     /**
      * 当超过规定时间，服务器未读取到来自客户端的请求，则关闭连接
-     *
      * @param ctx
      * @param evt
      * @throws Exception
