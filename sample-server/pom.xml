@@ -34,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.sinjinsong.rpc.sample.server.Application</mainClass>
+                            <mainClass>com.sinjinsong.rpc.sample.server.ServerApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

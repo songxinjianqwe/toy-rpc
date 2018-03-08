@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
  * Created by SinjinSong on 2017/9/27.
  */
 @Slf4j
-public class ZookeeperController {
+public class ZookeeperClient {
     /**
      * zk变量
      */

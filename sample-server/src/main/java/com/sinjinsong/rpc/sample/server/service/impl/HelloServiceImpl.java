@@ -1,9 +1,9 @@
-package com.sinjinsong.sample.server.service.impl;
+package com.sinjinsong.rpc.sample.server.service.impl;
 
 
 import com.sinjinsong.rpc.core.annotation.RPCService;
-import com.sinjinsong.sample.api.domain.User;
-import com.sinjinsong.sample.api.service.HelloService;
+import com.sinjinsong.rpc.sample.api.domain.User;
+import com.sinjinsong.rpc.sample.api.service.HelloService;
 
 /**
  * Created by SinjinSong on 2017/7/30.

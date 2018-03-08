@@ -1,4 +1,4 @@
-package com.sinjinsong.sample.api.domain;
+package com.sinjinsong.rpc.sample.api.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

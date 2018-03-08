@@ -1,7 +1,7 @@
-package com.sinjinsong.sample.api.service;
+package com.sinjinsong.rpc.sample.api.service;
 
 
-import com.sinjinsong.sample.api.domain.User;
+import com.sinjinsong.rpc.sample.api.domain.User;
 
 /**
  * Created by SinjinSong on 2017/7/30.

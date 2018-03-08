@@ -26,19 +26,19 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     public RPCServerHandler() {
         this.handlerMap = AnnotationUtil.getServices();
         int threads = Runtime.getRuntime().availableProcessors();
-        this.pool = new ThreadPoolExecutor(threads, threads, 600L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
+        this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
         log.info("{}",handlerMap);
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
         log.info("服务器已接收请求 {}，请求类型 {}", message, message.getType());
-
+        
         if (message.getType() == MessageType.PING) {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG);
         } else if (message.getType() == MessageType.NORMAL) {
-            pool.submit(new RequestExecutor(ctx, (RPCRequest) message, handlerMap));
+            pool.submit(new Worker(ctx, (RPCRequest) message, handlerMap));
         }
     }
 
@@ -60,6 +60,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
+            log.info("超过规定时间服务器仍未收到客户端的心跳或正常信息，关闭连接");
             ctx.close();
         } else {
             super.userEventTriggered(ctx, evt);

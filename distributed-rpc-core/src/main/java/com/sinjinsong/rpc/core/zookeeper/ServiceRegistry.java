@@ -13,7 +13,7 @@ import org.apache.zookeeper.data.Stat;
  * 服务器进行注册
  */
 @Slf4j
-public class ServiceRegistry extends ZookeeperController{
+public class ServiceRegistry extends ZookeeperClient {
    
    
     public ServiceRegistry() {

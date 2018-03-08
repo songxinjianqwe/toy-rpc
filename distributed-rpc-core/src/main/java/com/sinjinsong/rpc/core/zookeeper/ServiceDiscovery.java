@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * 客户端进行发现
  */
 @Slf4j
-public class ServiceDiscovery extends ZookeeperController {
+public class ServiceDiscovery extends ZookeeperClient {
 
     private volatile List<String> dataList = new ArrayList<>();
 

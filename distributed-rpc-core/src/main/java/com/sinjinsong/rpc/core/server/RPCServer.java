@@ -1,12 +1,12 @@
-package com.sinjinsong.rpc.core;
+package com.sinjinsong.rpc.core.server;
 
 import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
+import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
-import com.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
-import com.sinjinsong.rpc.core.server.RPCServerHandler;
 import com.sinjinsong.rpc.core.util.PropertyUtil;
+import com.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -45,11 +45,11 @@ public class RPCServer {
                             //服务器是把先请求转为POJO（解码），再把响应转为字节（编码）
                             //而客户端是先把请求转为字节（编码)，再把响应转为POJO（解码）
                             ch.pipeline()
-                                    .addLast(new IdleStateHandler(10, 0, 0))
+                                    .addLast(new IdleStateHandler(10, 10, 0))
                                     // 将 RPC 请求进行解码（为了处理请求）
-                                    .addLast(new RPCDecoder(RPCRequest.class))
+                                    .addLast(new RPCDecoder(Message.class,RPCRequest.class))
                                     // 将 RPC 响应进行编码（为了返回响应）
-                                    .addLast(new RPCEncoder(RPCResponse.class))
+                                    .addLast(new RPCEncoder(Message.class,RPCResponse.class))
                                     // 处理 RPC 请求
                                     .addLast(new RPCServerHandler());
                         }

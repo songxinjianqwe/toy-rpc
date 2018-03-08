@@ -13,12 +13,12 @@ import java.util.Map;
  * Created by SinjinSong on 2017/7/31.
  */
 @Slf4j
-public class RequestExecutor implements Runnable {
+public class Worker implements Runnable {
     private ChannelHandlerContext ctx;
     private RPCRequest request;
     private Map<String, Object> handlerMap;
 
-    public RequestExecutor(ChannelHandlerContext ctx, RPCRequest request, Map<String, Object> handlerMap) {
+    public Worker(ChannelHandlerContext ctx, RPCRequest request, Map<String, Object> handlerMap) {
         this.ctx = ctx;
         this.request = request;
         this.handlerMap = handlerMap;

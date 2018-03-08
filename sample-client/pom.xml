@@ -64,7 +64,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.sinjinsong.rpc.sample.client.Application</mainClass>
+                            <mainClass>com.sinjinsong.rpc.sample.client.ClientApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

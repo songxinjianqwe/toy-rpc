@@ -1,11 +1,16 @@
 package com.sinjinsong.rpc.core.client;
 
+import com.github.rholder.retry.*;
 import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
+import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
+import com.sinjinsong.rpc.core.enumeration.ConnectionFailureStrategy;
 import com.sinjinsong.rpc.core.enumeration.MessageType;
+import com.sinjinsong.rpc.core.exception.ClientConnectionException;
+import com.sinjinsong.rpc.core.exception.ServerNotAvailableException;
 import com.sinjinsong.rpc.core.zookeeper.ServiceDiscovery;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -21,6 +26,8 @@ import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by SinjinSong on 2017/7/29.
@@ -32,6 +39,8 @@ public class RPCClient {
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
     private ServiceDiscovery discovery;
+    private ConnectionFailureStrategy connectionFailureStrategy = ConnectionFailureStrategy.RETRY;
+
     public RPCClient() {
         log.info("初始化RPC客户端");
         this.discovery = new ServiceDiscovery();
@@ -45,40 +54,87 @@ public class RPCClient {
                         channel.pipeline()
                                 .addLast(new IdleStateHandler(0, 0, 5))
                                 // 将 RPC 请求进行编码（为了发送请求）
-                                .addLast(new RPCEncoder(RPCRequest.class)) 
-                                 // 将 RPC 响应进行解码（为了处理响应）
-                                .addLast(new RPCDecoder(RPCResponse.class))
+                                .addLast(new RPCEncoder(Message.class, RPCRequest.class))
+                                // 将 RPC 响应进行解码（为了处理响应）
+                                .addLast(new RPCDecoder(Message.class, RPCResponse.class))
                                 // 使用 RpcClient 发送 RPC 请求
-                                .addLast(new RPCClientHandler(responses)); 
+                                .addLast(new RPCClientHandler(RPCClient.this,responses));
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
-        
-        String serverAddress = discovery.discover();
-        log.info("客户端向Zookeeper注册完毕");
-        this.connect(serverAddress);
-        log.info("客户端初始化完毕");
+
+        try {
+            this.futureChannel = connect();
+            log.info("客户端初始化完毕");
+        } catch (Exception e) {
+            log.error("与服务器的连接出现故障");
+            handleException();
+        }
     }
 
-
-    private void connect(String serverAddress) {
+    /**
+     * 连接失败或IO时失败均会调此方法处理异常
+     */
+    public void handleException() {
+        if (connectionFailureStrategy == ConnectionFailureStrategy.CLOSE) {
+            log.info("连接失败策略为直接关闭，关闭客户端");
+            this.close();
+        } else if (connectionFailureStrategy == ConnectionFailureStrategy.RETRY) {
+            log.info("连接失败策略为重新连接，开始重试");
+            try {
+                this.futureChannel = this.reconnect();
+            } catch (ExecutionException e1) {
+                e1.printStackTrace();
+                log.error("重试过程中抛出异常，关闭客户端");
+                this.close();
+            } catch (RetryException e) {
+                e.printStackTrace();
+                log.error("重试次数已达上限，关闭客户端"); 
+                this.close();
+            }
+        }
+    }
+    
+    private Channel connect() throws Exception {
+        log.info("向ZK查询服务器地址中...");
+        String serverAddress = discovery.discover();
+        if (serverAddress == null) {
+            throw new ServerNotAvailableException();
+        }
         String host = serverAddress.split(":")[0];
         Integer port = Integer.parseInt(serverAddress.split(":")[1]);
-        try {
-            ChannelFuture future = bootstrap.connect(host, port).sync();
-            this.futureChannel = future.channel();
-            log.info("客户端已连接");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }   
-    
+        ChannelFuture future = bootstrap.connect(host, port).sync();
+        log.info("客户端已连接");
+        return future.channel();
+    }
+
+    /**
+     * 实现重新连接的重试策略
+     * @return
+     * @throws ExecutionException
+     * @throws RetryException
+     */
+    private Channel reconnect() throws ExecutionException, RetryException {
+        Retryer<Channel> retryer = RetryerBuilder.<Channel>newBuilder()
+                .retryIfExceptionOfType(Exception.class) // 抛出IOException时重试 
+                .withWaitStrategy(WaitStrategies.incrementingWait(5, TimeUnit.SECONDS, 5, TimeUnit.SECONDS))
+                .withStopStrategy(StopStrategies.stopAfterAttempt(5)) // 重试5次后停止  
+                .build();
+        return retryer.call(() -> {
+            log.info("重新连接中...");
+            return connect();
+        });
+    }
+
     /**
      * 关闭连接
      */
     public void close() {
         try {
-            this.futureChannel.close().sync();
+            if(this.futureChannel != null) {
+                this.futureChannel.close().sync();
+            }
+            this.discovery.close();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -86,9 +142,15 @@ public class RPCClient {
         }
     }
 
+    /**
+     * 客户端发送RPC请求
+     * @param request
+     * @return
+     * @throws Exception
+     */
     public RPCResponseFuture execute(RPCRequest request) throws Exception {
-        if (!futureChannel.isActive()) {
-            connect(discovery.discover());
+        if(this.futureChannel == null) {
+            throw new ClientConnectionException();
         }
         log.info("客户端发起请求: {}", request);
         RPCResponseFuture responseFuture = new RPCResponseFuture();
@@ -98,8 +160,14 @@ public class RPCClient {
         return responseFuture;
     }
 
+    /**
+     * 创建service的RPC代理
+     * @param interfaceClass
+     * @param <T>
+     * @return
+     */
     @SuppressWarnings("unchecked")
-    public <T> T create(Class<?> interfaceClass) {
+    public <T> T createProxy(Class<?> interfaceClass) {
         return (T) Proxy.newProxyInstance(
                 interfaceClass.getClassLoader(),
                 new Class<?>[]{interfaceClass},
@@ -107,7 +175,7 @@ public class RPCClient {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                         // 创建并初始化 RPC 请求
-                        RPCRequest request = new RPCRequest(); 
+                        RPCRequest request = new RPCRequest();
                         log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
                         request.setRequestId(UUID.randomUUID().toString());
                         request.setClassName(method.getDeclaringClass().getName());
@@ -116,7 +184,7 @@ public class RPCClient {
                         request.setParameters(args);
                         request.setType(MessageType.NORMAL);
                         // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
-                        RPCResponseFuture responseFuture = RPCClient.this.execute(request); 
+                        RPCResponseFuture responseFuture = RPCClient.this.execute(request);
                         RPCResponse response = responseFuture.getResponse();
                         log.info("客户端读到响应");
                         if (response.hasError()) {
