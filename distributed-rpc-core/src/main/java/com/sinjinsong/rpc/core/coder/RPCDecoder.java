@@ -41,23 +41,21 @@ public class RPCDecoder extends ByteToMessageDecoder {
      */
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        in.markReaderIndex();
         log.info("接收到数据");
         if (in.readableBytes() < 4) {
             log.info("数据包没有包含长度字段，退出");
-            ctx.close();
             return;
         }
         in.markReaderIndex();
         int dataLength = in.readInt();
         if (dataLength <= 0) {
             log.info("数据包的长度字段小于等于0，退出");
-            ctx.close();
             return;
         }
         if (in.readableBytes() < dataLength) {
             in.resetReaderIndex();
-            ctx.close();
-            log.info("数据包的长度字段小于可读字节数，与事实不符，退出");
+            log.info("半包: 数据包的长度字段小于可读字节数，与事实不符，退出");
             return;
         }
         byte[] data = new byte[dataLength];
