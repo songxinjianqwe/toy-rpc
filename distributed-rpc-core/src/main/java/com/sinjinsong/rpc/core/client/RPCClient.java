@@ -8,7 +8,6 @@ import com.sinjinsong.rpc.core.domain.RPCRequest;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
 import com.sinjinsong.rpc.core.enumeration.ConnectionFailureStrategy;
-import com.sinjinsong.rpc.core.enumeration.MessageType;
 import com.sinjinsong.rpc.core.exception.ClientConnectionException;
 import com.sinjinsong.rpc.core.exception.ServerNotAvailableException;
 import com.sinjinsong.rpc.core.zookeeper.ServiceDiscovery;
@@ -17,6 +16,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +29,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
 
 /**
  * Created by SinjinSong on 2017/7/29.
@@ -52,13 +55,17 @@ public class RPCClient {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {
                         channel.pipeline()
-                                .addLast(new IdleStateHandler(0, 0, 5))
-                                // 将 RPC 请求进行编码（为了发送请求）
-                                .addLast(new RPCEncoder(Message.class, RPCRequest.class))
-                                // 将 RPC 响应进行解码（为了处理响应）
-                                .addLast(new RPCDecoder(Message.class, RPCResponse.class))
-                                // 使用 RpcClient 发送 RPC 请求
-                                .addLast(new RPCClientHandler(RPCClient.this,responses));
+                                .addLast("IdleStateHandler", new IdleStateHandler(0, 5, 0))
+                                // ByteBuf -> Message 
+                                .addLast("LengthFieldPrepender", new LengthFieldPrepender(LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT))
+                                // Message -> ByteBuf
+                                .addLast("RPCEncoder", new RPCEncoder())
+                                // ByteBuf -> Message
+                                .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP))
+                                // Message -> Message
+                                .addLast("RPCDecoder", new RPCDecoder())
+
+                                .addLast("RPCClientHandler", new RPCClientHandler(RPCClient.this, responses));
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
@@ -89,12 +96,12 @@ public class RPCClient {
                 this.close();
             } catch (RetryException e) {
                 e.printStackTrace();
-                log.error("重试次数已达上限，关闭客户端"); 
+                log.error("重试次数已达上限，关闭客户端");
                 this.close();
             }
         }
     }
-    
+
     private Channel connect() throws Exception {
         log.info("向ZK查询服务器地址中...");
         String serverAddress = discovery.discover();
@@ -110,6 +117,7 @@ public class RPCClient {
 
     /**
      * 实现重新连接的重试策略
+     *
      * @return
      * @throws ExecutionException
      * @throws RetryException
@@ -131,7 +139,7 @@ public class RPCClient {
      */
     public void close() {
         try {
-            if(this.futureChannel != null) {
+            if (this.futureChannel != null) {
                 this.futureChannel.close().sync();
             }
             this.discovery.close();
@@ -144,24 +152,26 @@ public class RPCClient {
 
     /**
      * 客户端发送RPC请求
+     *
      * @param request
      * @return
      * @throws Exception
      */
     public RPCResponseFuture execute(RPCRequest request) throws Exception {
-        if(this.futureChannel == null) {
+        if (this.futureChannel == null) {
             throw new ClientConnectionException();
         }
         log.info("客户端发起请求: {}", request);
         RPCResponseFuture responseFuture = new RPCResponseFuture();
         responses.put(request.getRequestId(), responseFuture);
-        this.futureChannel.writeAndFlush(request);
+        this.futureChannel.writeAndFlush(Message.buildRequest(request));
         log.info("请求已发送");
         return responseFuture;
     }
 
     /**
      * 创建service的RPC代理
+     *
      * @param interfaceClass
      * @param <T>
      * @return
@@ -182,7 +192,6 @@ public class RPCClient {
                         request.setMethodName(method.getName());
                         request.setParameterTypes(method.getParameterTypes());
                         request.setParameters(args);
-                        request.setType(MessageType.NORMAL);
                         // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
                         RPCResponseFuture responseFuture = RPCClient.this.execute(request);
                         RPCResponse response = responseFuture.getResponse();

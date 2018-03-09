@@ -1,13 +1,14 @@
 package com.sinjinsong.rpc.core.coder;
 
-import com.sinjinsong.rpc.core.enumeration.MessageType;
+import com.sinjinsong.rpc.core.domain.Message;
+import com.sinjinsong.rpc.core.domain.RPCRequest;
+import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.util.ProtostuffUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -15,60 +16,47 @@ import java.util.List;
  */
 @Slf4j
 public class RPCDecoder extends ByteToMessageDecoder {
-    /**
-     * 抽象对象。比如Message
-     */
-    private Class<?> genericClass;
-    /**
-     * 具体对象，比如RPCRequest/RPCResponse
-     */
-    private Class<?> concreteClass;
 
-    public RPCDecoder(Class<?> genericClass, Class<?> concreteClass) {
-        this.genericClass = genericClass;
-        this.concreteClass = concreteClass;
-    }
-
-    
-    /**
-     * 将ByteBuf转为List<Object>
-     * 先读一个长度，再按长度读取Body
-     *
-     * @param ctx
-     * @param in
-     * @param out
-     * @throws Exception
-     */
     @Override
-    public void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        in.markReaderIndex();
-        log.info("接收到数据");
-        if (in.readableBytes() < 4) {
-            log.info("数据包没有包含长度字段，退出");
-            return;
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        byte type = in.readByte();
+        log.info("解码消息，消息类型为:{}", type);
+        if (type == Message.PING) {
+            out.add(Message.PING_MSG);
+        } else if (type == Message.PONG) {
+            out.add(Message.PONG_MSG);
+        } else {
+            byte[] bytes = new byte[in.readableBytes()];
+            in.readBytes(bytes);
+            if (type == Message.REQUEST) {
+                out.add(Message.buildRequest(ProtostuffUtil.deserialize(bytes, RPCRequest.class)));
+            } else if (type == Message.RESPONSE) {
+                out.add(Message.buildResponse(ProtostuffUtil.deserialize(bytes, RPCResponse.class)));
+            }
         }
-        in.markReaderIndex();
-        int dataLength = in.readInt();
-        if (dataLength <= 0) {
-            log.info("数据包的长度字段小于等于0，退出");
-            return;
-        }
-        if (in.readableBytes() < dataLength) {
-            in.resetReaderIndex();
-            log.info("半包: 数据包的长度字段小于可读字节数，与事实不符，退出");
-            return;
-        }
-        byte[] data = new byte[dataLength];
-        in.readBytes(data);
-        
-        Object obj = ProtostuffUtil.deserialize(data, genericClass);
-        Field type = obj.getClass().getDeclaredField("type");
-        type.setAccessible(true);
-        if (type.get(obj) == MessageType.NORMAL) {
-            log.info("按更为具体的类型进行反序列化");
-            obj = ProtostuffUtil.deserialize(data,concreteClass);
-        }
-        log.info("解码结束");
-        out.add(obj);
     }
+
+//    @Override
+//    protected void decode(ChannelHandlerContext ctx, Object msg, List out) throws Exception {
+//        ByteBuf in = (ByteBuf) msg;
+//        byte type = in.readByte();
+//        if (type == Message.PING) {
+//            log.info("接收到PING消息");
+//            out.add(Message.PING_MSG);
+//        } else if (type == Message.PONG) {
+//            log.info("接收到PONG消息");
+//            out.add(Message.PONG_MSG);
+//        } else {
+//            byte[] bytes = new byte[in.readableBytes()];
+//            in.readBytes(bytes);
+//            if (type == Message.REQUEST) {
+//                log.info("接收到REQUEST消息");
+//                out.add(ProtostuffUtil.deserialize(bytes, RPCRequest.class));
+//            } else if (type == Message.RESPONSE) {
+//                log.info("接收到RESPONSE消息");
+//                out.add(ProtostuffUtil.deserialize(bytes, RPCResponse.class));
+//            }
+//        }
+//    }
+
 }

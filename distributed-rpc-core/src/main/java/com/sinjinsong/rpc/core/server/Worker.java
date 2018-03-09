@@ -1,8 +1,8 @@
 package com.sinjinsong.rpc.core.server;
 
+import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
-import com.sinjinsong.rpc.core.enumeration.MessageType;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,6 @@ public class Worker implements Runnable {
 
     @Override
     public void run() {
-        
         RPCResponse response = new RPCResponse();
         response.setRequestId(request.getRequestId());
         try {
@@ -37,9 +36,8 @@ public class Worker implements Runnable {
             response.setCause(t);
         }
         log.info("服务器已调用完毕服务，结果为: {}", response);
-        response.setType(MessageType.NORMAL);
         // 这里调用ctx的write方法并不是同步的，也是异步的，将该写入操作放入到pipeline中
-        ctx.writeAndFlush(response);
+        ctx.writeAndFlush(Message.buildResponse(response));
     }
 
     /**

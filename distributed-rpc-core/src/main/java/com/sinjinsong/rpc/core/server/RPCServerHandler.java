@@ -1,8 +1,6 @@
 package com.sinjinsong.rpc.core.server;
 
 import com.sinjinsong.rpc.core.domain.Message;
-import com.sinjinsong.rpc.core.domain.RPCRequest;
-import com.sinjinsong.rpc.core.enumeration.MessageType;
 import com.sinjinsong.rpc.core.util.AnnotationUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -13,6 +11,9 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static com.sinjinsong.rpc.core.domain.Message.PING;
+import static com.sinjinsong.rpc.core.domain.Message.REQUEST;
 
 /**
  * Created by SinjinSong on 2017/7/29.
@@ -31,14 +32,19 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     }
 
     @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        log.info("接收到客户端的连接");
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
         log.info("服务器已接收请求 {}，请求类型 {}", message, message.getType());
         
-        if (message.getType() == MessageType.PING) {
+        if (message.getType() == PING) {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
-            ctx.writeAndFlush(Message.PONG);
-        } else if (message.getType() == MessageType.NORMAL) {
-            pool.submit(new Worker(ctx, (RPCRequest) message, handlerMap));
+            ctx.writeAndFlush(Message.PONG_MSG);
+        } else if (message.getType() == REQUEST) {
+            pool.submit(new Worker(ctx, message.getRequest(), handlerMap));
         }
     }
 

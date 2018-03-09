@@ -3,7 +3,6 @@ package com.sinjinsong.rpc.core.client;
 import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
-import com.sinjinsong.rpc.core.enumeration.MessageType;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -11,6 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+
+import static com.sinjinsong.rpc.core.domain.Message.PONG;
+import static com.sinjinsong.rpc.core.domain.Message.RESPONSE;
 
 /**
  * Created by SinjinSong on 2017/7/31.
@@ -25,7 +27,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");
-//        cause.printStackTrace();
+        cause.printStackTrace();
         log.info("与服务器的连接断开");
         client.handleException();
     }
@@ -46,7 +48,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             log.info("超过指定时间未发送数据，客户端主动发送心跳信息");
-            ctx.writeAndFlush(Message.PING);
+            ctx.writeAndFlush(Message.PING_MSG);
         } else {
             super.userEventTriggered(ctx, evt);
         }
@@ -56,11 +58,11 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
         log.info("接收到服务器响应: {}", message);
         //服务器不会PING客户端
-        if (message.getType() == MessageType.PONG) {
+        if (message.getType() == PONG) {
             log.info("收到服务器的PONG心跳响应");
-        } else if (message.getType() == MessageType.NORMAL) {
+        } else if (message.getType() == RESPONSE) {
             log.info("{}", message.getClass().getName());
-            RPCResponse response = (RPCResponse) message;
+            RPCResponse response = message.getResponse();
             if (responses.containsKey(response.getRequestId())) {
                 RPCResponseFuture future = responses.remove(response.getRequestId());
                 future.setResponse(response);

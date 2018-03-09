@@ -2,9 +2,6 @@ package com.sinjinsong.rpc.core.server;
 
 import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
-import com.sinjinsong.rpc.core.domain.Message;
-import com.sinjinsong.rpc.core.domain.RPCRequest;
-import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.util.PropertyUtil;
 import com.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
 import io.netty.bootstrap.ServerBootstrap;
@@ -15,10 +12,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
 
 /**
  * Created by SinjinSong on 2017/7/29.
@@ -39,7 +38,6 @@ public class RPCServer {
             bootstrap.group(bossGroup, workerGroup)
                     //使用这种类型的NIO通道，现在是基于TCP协议的
                     .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
                     //对Channel进行初始化，绑定实际的事件处理器，要么实现ChannelHandler接口，要么继承ChannelHandlerAdapter类
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel ch) throws Exception {
@@ -47,14 +45,20 @@ public class RPCServer {
                             //解码是从字节转到其他格式
                             //服务器是把先请求转为POJO（解码），再把响应转为字节（编码）
                             //而客户端是先把请求转为字节（编码)，再把响应转为POJO（解码）
+                            // 在InboundHandler执行完成需要调用Outbound的时候，比如ChannelHandlerContext.write()方法，
+                            // Netty是直接从该InboundHandler返回逆序的查找该InboundHandler之前的OutboundHandler，并非从Pipeline的最后一项Handler开始查找
                             ch.pipeline()
-                                    .addLast(new IdleStateHandler(10, 10, 0))
-                                    // 将 RPC 请求进行解码（为了处理请求）
-                                    .addLast(new RPCDecoder(Message.class,RPCRequest.class))
-                                    // 将 RPC 响应进行编码（为了返回响应）
-                                    .addLast(new RPCEncoder(Message.class,RPCResponse.class))
-                                    // 处理 RPC 请求
-                                    .addLast(new RPCServerHandler());
+                                    .addLast("IdleStateHandler", new IdleStateHandler(10, 0, 0))
+                                    // ByteBuf -> Message 
+                                    .addLast("LengthFieldPrepender", new LengthFieldPrepender(LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT))
+                                    // Message -> ByteBuf
+                                    .addLast("RPCEncoder", new RPCEncoder())
+                                    // ByteBuf -> Message
+                                    .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP))
+                                    // Message -> Message
+                                    .addLast("RPCDecoder", new RPCDecoder())
+
+                                    .addLast("RPCServerHandler", new RPCServerHandler());
                         }
                     })
                     //服务器配置项
