@@ -1,0 +1,30 @@
+syntax = "proto3";
+import "google/protobuf/any.proto";
+option java_package = "com.sinjinsong.rpc.core.domain"; 
+
+message Message {
+    MessageType type = 1;
+    enum MessageType {
+        PING = 0;
+        PONG = 1;
+        REQUEST = 2;
+        RESPONSE = 3;
+    }
+    RPCRequest request = 2;
+    RPCResponse response = 3;
+}
+
+message RPCRequest {
+    string requestId = 1;
+    string className = 2;
+    string methodName = 3;
+    repeated google.protobuf.Any parameterTypes = 4;
+    repeated google.protobuf.Any parameters = 5;  
+}
+
+message RPCResponse {
+    string requestId = 1;
+    google.protobuf.Any cause = 2;
+    google.protobuf.Any result = 3;
+}
+    
