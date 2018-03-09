@@ -29,7 +29,7 @@ public class RPCDecoder extends ByteToMessageDecoder {
         this.concreteClass = concreteClass;
     }
 
-
+    
     /**
      * 将ByteBuf转为List<Object>
      * 先读一个长度，再按长度读取Body
@@ -62,7 +62,7 @@ public class RPCDecoder extends ByteToMessageDecoder {
         }
         byte[] data = new byte[dataLength];
         in.readBytes(data);
-
+        
         Object obj = ProtostuffUtil.deserialize(data, genericClass);
         Field type = obj.getClass().getDeclaredField("type");
         type.setAccessible(true);

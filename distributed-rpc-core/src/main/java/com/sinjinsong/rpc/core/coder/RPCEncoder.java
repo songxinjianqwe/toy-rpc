@@ -22,7 +22,7 @@ public class RPCEncoder extends MessageToByteEncoder {
         this.genericClass = genericClass;
         this.concreteClass = concreteClass;
     }
-
+    
     /**
      * 将Object转为ByteBuf
      * 先写一个长度，再写数据
