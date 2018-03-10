@@ -11,9 +11,7 @@
     
     <modules>
         <module>distributed-rpc-core</module>
-        <module>sample-server</module>
-        <module>sample-client</module>
-        <module>sample-api</module>
+        <module>sample</module>
     </modules>
 
     <build>
