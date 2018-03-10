@@ -16,6 +16,11 @@
             <artifactId>sample-spring-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.sinjinsong</groupId>
+            <artifactId>distributed-rpc-client-spring-boot-starter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     
     <build>
@@ -29,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.sinjinsong.rpc.sample.client.ClientApplication</mainClass>
+                            <mainClass>com.sinjinsong.rpc.sample.spring.client.ClientApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

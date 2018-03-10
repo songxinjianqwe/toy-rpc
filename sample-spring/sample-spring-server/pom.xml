@@ -8,7 +8,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    
     <artifactId>sample-spring-server</artifactId>
     <dependencies>
         <dependency>
@@ -16,7 +16,13 @@
             <artifactId>sample-spring-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.sinjinsong</groupId>
+            <artifactId>distributed-rpc-server-spring-boot-starter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
+    
     <build>
         <finalName>RPCServer</finalName>
         <plugins>
@@ -28,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.sinjinsong.rpc.sample.ServerApplication</mainClass>
+                            <mainClass>com.sinjinsong.rpc.sample.spring.server.ServerApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

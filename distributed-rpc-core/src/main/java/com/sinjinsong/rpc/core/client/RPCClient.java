@@ -5,7 +5,6 @@ import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
 import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
-import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
 import com.sinjinsong.rpc.core.enumeration.ConnectionFailureStrategy;
 import com.sinjinsong.rpc.core.exception.ClientConnectionException;
@@ -20,15 +19,8 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,17 +31,19 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-@Component
 public class RPCClient {
+    private ServiceDiscovery discovery;
     private EventLoopGroup group;
     private Bootstrap bootstrap;
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
-    @Autowired
-    private ServiceDiscovery discovery;
     private ConnectionFailureStrategy connectionFailureStrategy = ConnectionFailureStrategy.RETRY;
+
+    public RPCClient(ServiceDiscovery discovery) {
+        this.discovery = discovery;
+        init();
+    }
     
-    @PostConstruct
     public void init() {
         log.info("初始化RPC客户端");
         this.responses = new ConcurrentHashMap<>();
@@ -74,7 +68,6 @@ public class RPCClient {
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
-
         try {
             this.futureChannel = connect();
             log.info("客户端初始化完毕");
@@ -83,6 +76,7 @@ public class RPCClient {
             handleException();
         }
     }
+
 
     /**
      * 连接失败或IO时失败均会调此方法处理异常
@@ -110,6 +104,7 @@ public class RPCClient {
     private Channel connect() throws Exception {
         log.info("向ZK查询服务器地址中...");
         String serverAddress = discovery.discover();
+        log.info("本次连接的地址为{}",serverAddress);
         if (serverAddress == null) {
             throw new ServerNotAvailableException();
         }
@@ -174,40 +169,4 @@ public class RPCClient {
         return responseFuture;
     }
 
-    /**
-     * 创建service的RPC代理
-     *
-     * @param interfaceClass
-     * @param <T>
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T createProxy(Class<?> interfaceClass) {
-        return (T) Proxy.newProxyInstance(
-                interfaceClass.getClassLoader(),
-                new Class<?>[]{interfaceClass},
-                new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        // 创建并初始化 RPC 请求
-                        RPCRequest request = new RPCRequest();
-                        log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
-                        request.setRequestId(UUID.randomUUID().toString());
-                        request.setClassName(method.getDeclaringClass().getName());
-                        request.setMethodName(method.getName());
-                        request.setParameterTypes(method.getParameterTypes());
-                        request.setParameters(args);
-                        // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
-                        RPCResponseFuture responseFuture = RPCClient.this.execute(request);
-                        RPCResponse response = responseFuture.getResponse();
-                        log.info("客户端读到响应");
-                        if (response.hasError()) {
-                            throw response.getCause();
-                        } else {
-                            return response.getResult();
-                        }
-                    }
-                }
-        );
-    }
 }

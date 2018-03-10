@@ -17,14 +17,15 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
 
@@ -32,15 +33,18 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-@Component
 public class RPCServer implements ApplicationContextAware {
-    @Value("server.address")
-    private String address;
-    @Autowired
     private ServiceRegistry registry;
-    private Map<String, Object> handlerMap;
-    
-    public void run() {
+    private Map<String, Object> handlerMap = new HashMap<>();
+    private String serviceBasePackage;
+    private ApplicationContext applicationContext;
+
+    public RPCServer(String serviceBasePackage,ServiceRegistry registry) {
+        this.serviceBasePackage = serviceBasePackage;
+        this.registry = registry;
+    }
+
+    public void run(String serverAddress) {
         //两个事件循环器，第一个用于接收客户端连接，第二个用于处理客户端的读写请求
         //是线程组，持有一组线程
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -96,16 +100,16 @@ public class RPCServer implements ApplicationContextAware {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-            String host = address.split(":")[0];
-            Integer port = Integer.parseInt(address.split(":")[1]);
+            String host = serverAddress.split(":")[0];
+            Integer port = Integer.parseInt(serverAddress.split(":")[1]);
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             ChannelFuture future = bootstrap.bind(host, port).sync();
             log.info("服务器启动");
-
-            registry.register(address);
+            
+            registry.register(serverAddress);
             log.info("服务器向Zookeeper注册完毕");
-
+            initHandlerMap();
             //应用程序会一直等待，直到channel关闭
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
@@ -117,17 +121,29 @@ public class RPCServer implements ApplicationContextAware {
         }
     }
 
+    private void initHandlerMap() {
+        log.info("serviceBasePackage:{}", this.serviceBasePackage);
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.addIncludeFilter(new AnnotationTypeFilter(RPCService.class));
+        Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(serviceBasePackage);
+        beanDefinitions.forEach((beanDefinition -> {
+            try {
+                log.info("扫描到: {}", beanDefinition);
+                String beanClassName = beanDefinition.getBeanClassName();
+                Class<?> beanClass = Class.forName(beanClassName);
+                Class<?>[] interfaces = beanClass.getInterfaces();
+                if (interfaces.length >= 1) {
+                    this.handlerMap.put(interfaces[0].getName(), applicationContext.getBean(beanClass));
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }));
+        log.info("最终handlerMap为:{}", this.handlerMap);
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.handlerMap = new HashMap<>();
-        applicationContext.getBeansWithAnnotation(RPCService.class).forEach(
-                (k, v) -> {
-                    Class<?>[] interfaces = v.getClass().getInterfaces();
-                    if(interfaces.length == 0) {
-                        throw new IllegalStateException("带有RPCService注解的实例不可未实现接口");
-                    }
-                    this.handlerMap.put(interfaces[0].getName(),applicationContext.getBean(k));
-                }
-        );
+        this.applicationContext = applicationContext;
     }
 }

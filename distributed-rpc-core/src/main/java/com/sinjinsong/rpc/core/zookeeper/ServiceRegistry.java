@@ -6,19 +6,20 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by SinjinSong on 2017/9/27.
  * 服务器进行注册
  */
 @Slf4j
-@Component
 public class ServiceRegistry extends ZookeeperClient {
-    @Value("registry.address")
-    private String address;
-    
+    private String registryAddress;
+
+    public ServiceRegistry(String registryAddress) {
+        this.registryAddress = registryAddress;
+        super.connect(registryAddress);
+    }
+
     public void register(String data) {
         try {
             Stat s = zookeeper.exists(ZookeeperConstant.ZK_REGISTRY_PATH, false);

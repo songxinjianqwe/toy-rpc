@@ -2,15 +2,11 @@ package com.sinjinsong.rpc.core.zookeeper;
 
 import com.sinjinsong.rpc.core.constant.CharsetConst;
 import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
-import com.sinjinsong.rpc.core.spring.RPCProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,19 +16,16 @@ import java.util.concurrent.ThreadLocalRandom;
  * 客户端进行发现
  */
 @Slf4j
-@Component
 public class ServiceDiscovery extends ZookeeperClient {
-    @Autowired
-    private RPCProperties rpcProperties;
+    private String registryAddress;
     private volatile List<String> dataList = new ArrayList<>();
 
-  
-    @PostConstruct
-    public void init() {
-        super.connect(address);
+    public ServiceDiscovery(String registryAddress) {
+        this.registryAddress = registryAddress;
+        super.connect(registryAddress);
         watchNode();
     }
-
+    
     public String discover() {
         String data = null;
         int size = dataList.size();
@@ -65,7 +58,7 @@ public class ServiceDiscovery extends ZookeeperClient {
             }
             log.info("node data: {}", dataList);
             this.dataList = dataList;
-            log.info("Service discovery triggered updating connected server node.");
+            log.info("Service discovery triggered updating connected client node.");
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
         }
