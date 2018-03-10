@@ -1,7 +1,6 @@
 package com.sinjinsong.rpc.core.server;
 
 import com.sinjinsong.rpc.core.domain.Message;
-import com.sinjinsong.rpc.core.util.AnnotationUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -24,8 +23,8 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     private Map<String, Object> handlerMap;
     private ThreadPoolExecutor pool;
     
-    public RPCServerHandler() {
-        this.handlerMap = AnnotationUtil.getServices();
+    public RPCServerHandler( Map<String, Object> handlerMap) {
+        this.handlerMap = handlerMap;
         int threads = Runtime.getRuntime().availableProcessors();
         this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
         log.info("{}",handlerMap);
@@ -39,7 +38,6 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
         log.info("服务器已接收请求 {}，请求类型 {}", message, message.getType());
-        
         if (message.getType() == PING) {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);

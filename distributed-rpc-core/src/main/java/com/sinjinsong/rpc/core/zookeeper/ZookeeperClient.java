@@ -5,6 +5,7 @@ import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 
+import javax.annotation.PostConstruct;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -20,7 +21,8 @@ public class ZookeeperClient {
      * 信号量设置，用于等待zookeeper连接建立之后 通知阻塞程序继续向下执行
      */
     private CountDownLatch connectedSemaphore = new CountDownLatch(1);
-
+    
+    @PostConstruct
     public void connect(String address) {
         try {
             this.zookeeper = new ZooKeeper(address, ZookeeperConstant.ZK_SESSION_TIMEOUT, (WatchedEvent event) -> {

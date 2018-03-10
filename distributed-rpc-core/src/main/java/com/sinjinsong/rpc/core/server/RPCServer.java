@@ -1,8 +1,8 @@
 package com.sinjinsong.rpc.core.server;
 
+import com.sinjinsong.rpc.core.annotation.RPCService;
 import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
-import com.sinjinsong.rpc.core.util.PropertyUtil;
 import com.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -16,6 +16,15 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
 
@@ -23,9 +32,14 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-public class RPCServer {
+@Component
+public class RPCServer implements ApplicationContextAware {
+    @Value("server.address")
+    private String address;
+    @Autowired
     private ServiceRegistry registry;
-
+    private Map<String, Object> handlerMap;
+    
     public void run() {
         //两个事件循环器，第一个用于接收客户端连接，第二个用于处理客户端的读写请求
         //是线程组，持有一组线程
@@ -58,7 +72,7 @@ public class RPCServer {
                                     // Message -> Message
                                     .addLast("RPCDecoder", new RPCDecoder())
 
-                                    .addLast("RPCServerHandler", new RPCServerHandler());
+                                    .addLast("RPCServerHandler", new RPCServerHandler(handlerMap));
                         }
                     })
                     //服务器配置项
@@ -82,11 +96,6 @@ public class RPCServer {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-            String address = PropertyUtil.getProperty("server.address");
-            if (address == null) {
-                throw new IllegalStateException("server.address未找到");
-            }
-
             String host = address.split(":")[0];
             Integer port = Integer.parseInt(address.split(":")[1]);
             //绑定端口，开始监听
@@ -94,7 +103,6 @@ public class RPCServer {
             ChannelFuture future = bootstrap.bind(host, port).sync();
             log.info("服务器启动");
 
-            registry = new ServiceRegistry();
             registry.register(address);
             log.info("服务器向Zookeeper注册完毕");
 
@@ -107,5 +115,19 @@ public class RPCServer {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.handlerMap = new HashMap<>();
+        applicationContext.getBeansWithAnnotation(RPCService.class).forEach(
+                (k, v) -> {
+                    Class<?>[] interfaces = v.getClass().getInterfaces();
+                    if(interfaces.length == 0) {
+                        throw new IllegalStateException("带有RPCService注解的实例不可未实现接口");
+                    }
+                    this.handlerMap.put(interfaces[0].getName(),applicationContext.getBean(k));
+                }
+        );
     }
 }

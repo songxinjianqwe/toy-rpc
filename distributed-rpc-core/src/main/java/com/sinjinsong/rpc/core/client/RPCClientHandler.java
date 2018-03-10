@@ -22,7 +22,6 @@ import static com.sinjinsong.rpc.core.domain.Message.RESPONSE;
 public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private RPCClient client;
     private Map<String, RPCResponseFuture> responses;
-    
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

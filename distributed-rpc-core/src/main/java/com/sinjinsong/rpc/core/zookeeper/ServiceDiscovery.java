@@ -2,12 +2,15 @@ package com.sinjinsong.rpc.core.zookeeper;
 
 import com.sinjinsong.rpc.core.constant.CharsetConst;
 import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
-import com.sinjinsong.rpc.core.util.PropertyUtil;
+import com.sinjinsong.rpc.core.spring.RPCProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,16 +20,16 @@ import java.util.concurrent.ThreadLocalRandom;
  * 客户端进行发现
  */
 @Slf4j
+@Component
 public class ServiceDiscovery extends ZookeeperClient {
-
+    @Autowired
+    private RPCProperties rpcProperties;
     private volatile List<String> dataList = new ArrayList<>();
 
-    public ServiceDiscovery() {
-        String registryAddress = PropertyUtil.getProperty("registry.address");
-        if(registryAddress == null){
-            throw new IllegalStateException("registry.address不存在");
-        }
-        super.connect(registryAddress);
+  
+    @PostConstruct
+    public void init() {
+        super.connect(address);
         watchNode();
     }
 

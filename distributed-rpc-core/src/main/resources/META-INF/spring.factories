@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.sinjinsong.rpc.core.spring.RPCAutoConfiguration

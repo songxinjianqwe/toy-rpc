@@ -20,7 +20,10 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -36,17 +39,19 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
+@Component
 public class RPCClient {
     private EventLoopGroup group;
     private Bootstrap bootstrap;
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
+    @Autowired
     private ServiceDiscovery discovery;
     private ConnectionFailureStrategy connectionFailureStrategy = ConnectionFailureStrategy.RETRY;
-
-    public RPCClient() {
+    
+    @PostConstruct
+    public void init() {
         log.info("初始化RPC客户端");
-        this.discovery = new ServiceDiscovery();
         this.responses = new ConcurrentHashMap<>();
         this.group = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();

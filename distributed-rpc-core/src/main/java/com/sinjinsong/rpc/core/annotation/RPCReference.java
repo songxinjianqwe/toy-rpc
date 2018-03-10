@@ -6,9 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by SinjinSong on 2017/7/31.
+ * @author sinjinsong
+ * @date 2018/3/10
  */
-@Target(ElementType.TYPE)  
-@Retention(RetentionPolicy.RUNTIME) 
-public @interface RPCService {
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RPCReference {
 }
