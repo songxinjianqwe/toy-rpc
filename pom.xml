@@ -12,8 +12,10 @@
     <modules>
         <module>distributed-rpc-core</module>
         <module>sample</module>
+        <module>sample-spring</module>
+        <module>sample-spring-boot</module>
     </modules>
-
+    
     <build>
         <plugins>
             <plugin>
