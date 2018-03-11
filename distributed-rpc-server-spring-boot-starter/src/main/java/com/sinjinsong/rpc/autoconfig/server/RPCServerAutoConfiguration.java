@@ -22,6 +22,7 @@ public class RPCServerAutoConfiguration {
     @Autowired
     private RPCServerProperties properties;
     
+    
     @Bean
     public RPCServer rpcServer() {
         log.info("开始初始化RPCServer");
@@ -29,4 +30,5 @@ public class RPCServerAutoConfiguration {
         ServiceRegistry registry = new ServiceRegistry(properties.getRegistryAddress());
         return new RPCServer(properties.getServiceBasePackage(),  registry);
     }
+    
 }

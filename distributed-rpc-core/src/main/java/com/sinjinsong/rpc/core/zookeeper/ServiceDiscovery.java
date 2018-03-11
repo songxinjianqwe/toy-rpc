@@ -2,6 +2,7 @@ package com.sinjinsong.rpc.core.zookeeper;
 
 import com.sinjinsong.rpc.core.constant.CharsetConst;
 import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
+import com.sinjinsong.rpc.core.lb.LoadBalancer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -9,7 +10,7 @@ import org.apache.zookeeper.Watcher;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * Created by SinjinSong on 2017/9/27.
@@ -17,30 +18,25 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @Slf4j
 public class ServiceDiscovery extends ZookeeperClient {
-    private String registryAddress;
-    private volatile List<String> dataList = new ArrayList<>();
-
-    public ServiceDiscovery(String registryAddress) {
-        this.registryAddress = registryAddress;
+    private LoadBalancer loadBalancer;
+    private Thread discoveringThread;
+    private static long TEN_SEC_NANOS = 10000000000L;
+    public ServiceDiscovery(String registryAddress, LoadBalancer loadBalancer) {
+        this.loadBalancer = loadBalancer;
         super.connect(registryAddress);
-        watchNode();
     }
-    
-    public String discover() {
-        String data = null;
-        int size = dataList.size();
-        if (size > 0) {
-            if (size == 1) {
-                data = dataList.get(0);
-                log.info("using only data: {}", data);
-            } else {
-                // 负载均衡算法
-                
-                data = dataList.get(ThreadLocalRandom.current().nextInt(size));
-                log.info("using random data: {}", data);
-            }
+
+    public String discover(String clientAddress) {
+        log.info("discovering...");
+        // 如果是第一次discovering，那么watchNode
+        if(this.discoveringThread == null) {
+            this.discoveringThread = Thread.currentThread();
+            watchNode();
         }
-        return data;
+        log.info("开始Park... ");
+        LockSupport.parkNanos(this,TEN_SEC_NANOS);
+        log.info("Park结束");
+        return loadBalancer.get(clientAddress);
     }
 
     private void watchNode() {
@@ -59,7 +55,8 @@ public class ServiceDiscovery extends ZookeeperClient {
                 dataList.add(new String(bytes, CharsetConst.UTF_8));
             }
             log.info("node data: {}", dataList);
-            this.dataList = dataList;
+            loadBalancer.update(dataList);
+            LockSupport.unpark(discoveringThread);
             log.info("Service discovery triggered updating connected client node.");
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();

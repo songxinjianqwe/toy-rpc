@@ -13,13 +13,11 @@ import org.apache.zookeeper.data.Stat;
  */
 @Slf4j
 public class ServiceRegistry extends ZookeeperClient {
-    private String registryAddress;
-
+    
     public ServiceRegistry(String registryAddress) {
-        this.registryAddress = registryAddress;
         super.connect(registryAddress);
     }
-
+    
     public void register(String data) {
         try {
             Stat s = zookeeper.exists(ZookeeperConstant.ZK_REGISTRY_PATH, false);

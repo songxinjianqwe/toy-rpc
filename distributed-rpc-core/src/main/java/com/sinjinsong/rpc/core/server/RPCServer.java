@@ -33,12 +33,13 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-public class RPCServer implements ApplicationContextAware {
-    private ServiceRegistry registry;
+public class RPCServer  implements ApplicationContextAware {
     private Map<String, Object> handlerMap = new HashMap<>();
+    private ServiceRegistry registry;
     private String serviceBasePackage;
     private ApplicationContext applicationContext;
-
+    
+    
     public RPCServer(String serviceBasePackage,ServiceRegistry registry) {
         this.serviceBasePackage = serviceBasePackage;
         this.registry = registry;

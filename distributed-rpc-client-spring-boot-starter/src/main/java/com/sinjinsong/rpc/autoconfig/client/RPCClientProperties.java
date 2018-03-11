@@ -13,4 +13,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class RPCClientProperties {
     private String registryAddress;
     private String serviceBasePackage;
+    private String loadBalanceStrategy;
 }

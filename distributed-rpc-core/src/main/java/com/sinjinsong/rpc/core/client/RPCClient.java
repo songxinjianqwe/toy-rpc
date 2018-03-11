@@ -21,6 +21,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,7 @@ public class RPCClient {
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
     private ConnectionFailureStrategy connectionFailureStrategy = ConnectionFailureStrategy.RETRY;
-
+    private String clientId = UUID.randomUUID().toString();
 
     public void init() {
         log.info("初始化RPC客户端");
@@ -99,8 +100,8 @@ public class RPCClient {
 
     private Channel connect() throws Exception {
         log.info("向ZK查询服务器地址中...");
-        String serverAddress = discovery.discover();
-        log.info("本次连接的地址为{}", serverAddress);
+        String serverAddress = discovery.discover(clientId);
+        log.info("本次连接的地址为 : {} ", serverAddress);
         if (serverAddress == null) {
             throw new ServerNotAvailableException();
         }
@@ -113,6 +114,8 @@ public class RPCClient {
 
     /**
      * 实现重新连接的重试策略
+     * 一开始是等待5s，第二次是等待10s，再下一次是等待15s
+     * 但是在发现服务器地址时会等待10s，如果一直没有服务器信息变动的话
      *
      * @return
      * @throws ExecutionException
@@ -168,6 +171,4 @@ public class RPCClient {
     public void setDiscovery(ServiceDiscovery discovery) {
         this.discovery = discovery;
     }
-
-
 }

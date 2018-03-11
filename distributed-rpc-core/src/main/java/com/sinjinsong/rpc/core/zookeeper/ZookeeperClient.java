@@ -5,7 +5,6 @@ import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 
-import javax.annotation.PostConstruct;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -22,7 +21,6 @@ public class ZookeeperClient {
      */
     private CountDownLatch connectedSemaphore = new CountDownLatch(1);
     
-    @PostConstruct
     public void connect(String address) {
         try {
             this.zookeeper = new ZooKeeper(address, ZookeeperConstant.ZK_SESSION_TIMEOUT, (WatchedEvent event) -> {
@@ -56,7 +54,6 @@ public class ZookeeperClient {
             ex.printStackTrace();
         }
     }
-
 
     /**
      * 关闭ZK连接
