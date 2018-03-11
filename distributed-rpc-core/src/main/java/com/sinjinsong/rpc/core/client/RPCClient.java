@@ -32,18 +32,14 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  */
 @Slf4j
 public class RPCClient {
+    private Bootstrap bootstrap;
     private ServiceDiscovery discovery;
     private EventLoopGroup group;
-    private Bootstrap bootstrap;
     private Channel futureChannel;
     private Map<String, RPCResponseFuture> responses;
     private ConnectionFailureStrategy connectionFailureStrategy = ConnectionFailureStrategy.RETRY;
 
-    public RPCClient(ServiceDiscovery discovery) {
-        this.discovery = discovery;
-        init();
-    }
-    
+
     public void init() {
         log.info("初始化RPC客户端");
         this.responses = new ConcurrentHashMap<>();
@@ -104,7 +100,7 @@ public class RPCClient {
     private Channel connect() throws Exception {
         log.info("向ZK查询服务器地址中...");
         String serverAddress = discovery.discover();
-        log.info("本次连接的地址为{}",serverAddress);
+        log.info("本次连接的地址为{}", serverAddress);
         if (serverAddress == null) {
             throw new ServerNotAvailableException();
         }
@@ -168,5 +164,10 @@ public class RPCClient {
         log.info("请求已发送");
         return responseFuture;
     }
+
+    public void setDiscovery(ServiceDiscovery discovery) {
+        this.discovery = discovery;
+    }
+
 
 }

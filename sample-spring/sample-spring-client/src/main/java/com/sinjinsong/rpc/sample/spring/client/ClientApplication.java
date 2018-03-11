@@ -4,19 +4,19 @@ import com.sinjinsong.rpc.core.annotation.RPCReference;
 import com.sinjinsong.rpc.sample.spring.api.domain.User;
 import com.sinjinsong.rpc.sample.spring.api.service.HelloService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Created by SinjinSong on 2017/7/30.
  */
 @Slf4j
 @SpringBootApplication
-@ComponentScan("com.sinjinsong.rpc")
 public class ClientApplication implements CommandLineRunner {
-    @RPCReference
+    @Autowired
+    @RPCReference        
     HelloService helloService;
     
     public void test() throws Exception {

@@ -34,6 +34,8 @@ public class ServiceDiscovery extends ZookeeperClient {
                 data = dataList.get(0);
                 log.info("using only data: {}", data);
             } else {
+                // 负载均衡算法
+                
                 data = dataList.get(ThreadLocalRandom.current().nextInt(size));
                 log.info("using random data: {}", data);
             }

@@ -29,6 +29,4 @@ public class RPCServerAutoConfiguration {
         ServiceRegistry registry = new ServiceRegistry(properties.getRegistryAddress());
         return new RPCServer(properties.getServiceBasePackage(),  registry);
     }
- 
-    
 }
