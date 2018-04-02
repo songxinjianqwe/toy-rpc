@@ -24,7 +24,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private Map<String, RPCResponseFuture> responses;
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception { 
         log.info("客户端捕获到异常");
         cause.printStackTrace();
         log.info("与服务器的连接断开");

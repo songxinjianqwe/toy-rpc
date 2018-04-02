@@ -26,7 +26,7 @@ public class Message {
     public static Message buildResponse(RPCResponse response) {
         return new Message(RESPONSE,null,response);
     }
-
+    
     public static final byte PING = 1 << 0;
     public static final byte PONG = 1 << 1;
     public static final byte REQUEST = 1 << 2;

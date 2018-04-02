@@ -20,12 +20,12 @@ import java.util.concurrent.locks.LockSupport;
 public class ServiceDiscovery extends ZookeeperClient {
     private LoadBalancer loadBalancer;
     private Thread discoveringThread;
-    private static long TEN_SEC_NANOS = 10000000000L;
+    private static long TEN_SEC = 10000000000L;
     public ServiceDiscovery(String registryAddress, LoadBalancer loadBalancer) {
         this.loadBalancer = loadBalancer;
         super.connect(registryAddress);
     }
-
+    
     public String discover(String clientAddress) {
         log.info("discovering...");
         // 如果是第一次discovering，那么watchNode
@@ -34,7 +34,7 @@ public class ServiceDiscovery extends ZookeeperClient {
             watchNode();
         }
         log.info("开始Park... ");
-        LockSupport.parkNanos(this,TEN_SEC_NANOS);
+        LockSupport.parkNanos(this, TEN_SEC);
         log.info("Park结束");
         return loadBalancer.get(clientAddress);
     }
@@ -49,6 +49,7 @@ public class ServiceDiscovery extends ZookeeperClient {
                     }
                 }
             });
+            log.info("node list: {}",nodeList);
             List<String> dataList = new ArrayList<>();
             for (String node : nodeList) {
                 byte[] bytes = zookeeper.getData(ZookeeperConstant.ZK_REGISTRY_PATH + "/" + node, false, null);

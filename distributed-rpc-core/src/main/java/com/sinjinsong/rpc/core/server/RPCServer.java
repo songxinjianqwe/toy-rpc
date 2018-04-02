@@ -103,13 +103,14 @@ public class RPCServer  implements ApplicationContextAware {
 
             String host = serverAddress.split(":")[0];
             Integer port = Integer.parseInt(serverAddress.split(":")[1]);
+            registry.register(serverAddress);
+            log.info("服务器向Zookeeper注册完毕");
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             ChannelFuture future = bootstrap.bind(host, port).sync();
             log.info("服务器启动");
             
-            registry.register(serverAddress);
-            log.info("服务器向Zookeeper注册完毕");
+            
             initHandlerMap();
             //应用程序会一直等待，直到channel关闭
             future.channel().closeFuture().sync();
@@ -134,7 +135,8 @@ public class RPCServer  implements ApplicationContextAware {
                 Class<?> beanClass = Class.forName(beanClassName);
                 Class<?>[] interfaces = beanClass.getInterfaces();
                 if (interfaces.length >= 1) {
-                    this.handlerMap.put(interfaces[0].getName(), applicationContext.getBean(beanClass));
+                    this.handlerMap.put(interfaces[0].getName(), 
+                            applicationContext.getBean(beanClass));
                 }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();

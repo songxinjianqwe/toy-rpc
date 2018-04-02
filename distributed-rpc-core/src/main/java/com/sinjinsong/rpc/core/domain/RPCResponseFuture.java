@@ -13,7 +13,6 @@ public class RPCResponseFuture {
         if (response != null) {
             return response;
         }
-
         /**
          * 使用本身的对象锁即可
          */

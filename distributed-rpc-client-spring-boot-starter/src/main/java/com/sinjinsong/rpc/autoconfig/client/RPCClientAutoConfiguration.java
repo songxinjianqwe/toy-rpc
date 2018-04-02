@@ -4,9 +4,10 @@ package com.sinjinsong.rpc.autoconfig.client;
 import com.sinjinsong.rpc.core.client.RPCClient;
 import com.sinjinsong.rpc.core.lb.LoadBalancer;
 import com.sinjinsong.rpc.core.lb.impl.ConsistentHashLoadBalancer;
+import com.sinjinsong.rpc.core.lb.impl.LeastActiveLoadBalancer;
 import com.sinjinsong.rpc.core.lb.impl.RandomLoadBalancer;
 import com.sinjinsong.rpc.core.lb.impl.RoundRobinLoadBalancer;
-import com.sinjinsong.rpc.core.proxy.RPCProxyFactoryBeanRegistry;
+import com.sinjinsong.rpc.core.proxy.RPCConsumerProxyFactoryBeanRegistry;
 import com.sinjinsong.rpc.core.util.PropertyUtil;
 import com.sinjinsong.rpc.core.zookeeper.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(RPCClientProperties.class)
-@ConditionalOnMissingBean(RPCProxyFactoryBeanRegistry.class)
+@ConditionalOnMissingBean(RPCConsumerProxyFactoryBeanRegistry.class)
 @Slf4j
 public class RPCClientAutoConfiguration {
     @Autowired
@@ -47,7 +48,13 @@ public class RPCClientAutoConfiguration {
     public RoundRobinLoadBalancer roundRobinLoadBalancer() {
         return new RoundRobinLoadBalancer();
     }
-
+    
+    @Bean(name = "LEAST_ACTIVE")
+    public LeastActiveLoadBalancer leastActiveLoadBalancer() {
+        return new LeastActiveLoadBalancer();
+    }
+    
+    
     @Bean
     public RPCClient rpcClient() {
         log.info("properties:{}", properties);
@@ -65,9 +72,9 @@ public class RPCClientAutoConfiguration {
      * @return
      */
     @Bean
-    public static RPCProxyFactoryBeanRegistry rpcProxyFactoryBeanRegistry() {
+    public static RPCConsumerProxyFactoryBeanRegistry rpcConsumerProxyFactoryBeanRegistry() {
         CLIENT = new RPCClient();
         String basePackage = PropertyUtil.getProperty("rpc.serviceBasePackage");
-        return new RPCProxyFactoryBeanRegistry(CLIENT, basePackage);
+        return new RPCConsumerProxyFactoryBeanRegistry(CLIENT, basePackage);
     }
 }

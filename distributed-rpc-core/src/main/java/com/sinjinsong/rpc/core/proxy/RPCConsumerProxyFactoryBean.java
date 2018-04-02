@@ -23,7 +23,7 @@ import java.util.UUID;
  * @date 2018/3/10
  */
 @Slf4j
-public class RPCProxyFactoryBean implements FactoryBean<Object>, InitializingBean {
+public class RPCConsumerProxyFactoryBean implements FactoryBean<Object>, InitializingBean {
     private RPCClient client;
     private Class<?> interfaceClass;
     private Object proxy;

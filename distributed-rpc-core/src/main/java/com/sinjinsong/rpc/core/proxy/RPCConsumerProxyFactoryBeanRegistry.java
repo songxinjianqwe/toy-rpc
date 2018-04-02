@@ -40,11 +40,11 @@ import java.util.Set;
  * @javax.annotation.ManagedBean和@javax.inject.Named注解的类。在扫描时需要指定扫描的根包路径。
  */
 @Slf4j
-public class RPCProxyFactoryBeanRegistry implements BeanDefinitionRegistryPostProcessor {
+public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegistryPostProcessor {
     private String basePackage;
     private RPCClient client;
 
-    public RPCProxyFactoryBeanRegistry(RPCClient client, String basePackage) {
+    public RPCConsumerProxyFactoryBeanRegistry(RPCClient client, String basePackage) {
         this.client = client;
         this.basePackage = basePackage;
     }
@@ -84,7 +84,7 @@ public class RPCProxyFactoryBeanRegistry implements BeanDefinitionRegistryPostPr
 
     private BeanDefinitionHolder createBeanDefinition(String className) {
         log.info("Creating bean definition for class: {}", className);
-        BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(RPCProxyFactoryBean.class);
+        BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(RPCConsumerProxyFactoryBean.class);
         String beanName = StringUtils.uncapitalize(className.substring(className.lastIndexOf('.') + 1));
         definition.addPropertyValue("interfaceClass", className);
         definition.addPropertyValue("client", client);
