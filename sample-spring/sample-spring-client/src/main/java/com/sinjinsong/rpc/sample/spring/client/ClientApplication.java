@@ -15,7 +15,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ClientApplication implements CommandLineRunner {
     @RPCReference        
-    HelloService helloService;
+    private HelloService helloService;
     
     public void test() throws Exception {
         log.info(helloService.hello(new User("1")));

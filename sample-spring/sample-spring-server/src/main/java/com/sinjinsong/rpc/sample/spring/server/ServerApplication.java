@@ -21,7 +21,6 @@ public class ServerApplication implements CommandLineRunner {
         SpringApplication app = new SpringApplication(ServerApplication.class);
         app.setWebEnvironment(false);
         app.run(args);
-
     }
 
     @Override

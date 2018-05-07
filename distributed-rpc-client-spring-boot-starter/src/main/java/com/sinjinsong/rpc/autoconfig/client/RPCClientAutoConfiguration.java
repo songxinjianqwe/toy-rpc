@@ -9,7 +9,7 @@ import com.sinjinsong.rpc.core.lb.impl.RandomLoadBalancer;
 import com.sinjinsong.rpc.core.lb.impl.RoundRobinLoadBalancer;
 import com.sinjinsong.rpc.core.proxy.RPCConsumerProxyFactoryBeanRegistry;
 import com.sinjinsong.rpc.core.util.PropertyUtil;
-import com.sinjinsong.rpc.core.zookeeper.ServiceDiscovery;
+import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

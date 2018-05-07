@@ -1,5 +1,6 @@
-package com.sinjinsong.rpc.core.client;
+package com.sinjinsong.rpc.core.client.handler;
 
+import com.sinjinsong.rpc.core.client.RPCClient;
 import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.domain.RPCResponseFuture;

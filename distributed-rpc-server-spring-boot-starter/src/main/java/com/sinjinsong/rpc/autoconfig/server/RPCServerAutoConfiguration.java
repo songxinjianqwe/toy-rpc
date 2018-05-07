@@ -2,7 +2,7 @@ package com.sinjinsong.rpc.autoconfig.server;
 
 
 import com.sinjinsong.rpc.core.server.RPCServer;
-import com.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
+import com.sinjinsong.rpc.core.zk.ServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

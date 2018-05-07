@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.core.zookeeper;
+package com.sinjinsong.rpc.core.zk;
 
 import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
 import lombok.extern.slf4j.Slf4j;

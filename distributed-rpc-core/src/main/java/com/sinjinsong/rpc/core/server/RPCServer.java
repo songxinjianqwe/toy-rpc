@@ -3,7 +3,8 @@ package com.sinjinsong.rpc.core.server;
 import com.sinjinsong.rpc.core.annotation.RPCService;
 import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
-import com.sinjinsong.rpc.core.zookeeper.ServiceRegistry;
+import com.sinjinsong.rpc.core.server.handler.RPCServerHandler;
+import com.sinjinsong.rpc.core.zk.ServiceRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -33,14 +34,14 @@ import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-public class RPCServer  implements ApplicationContextAware {
+public class RPCServer implements ApplicationContextAware {
     private Map<String, Object> handlerMap = new HashMap<>();
     private ServiceRegistry registry;
     private String serviceBasePackage;
     private ApplicationContext applicationContext;
     
-    
-    public RPCServer(String serviceBasePackage,ServiceRegistry registry) {
+
+    public RPCServer(String serviceBasePackage, ServiceRegistry registry) {
         this.serviceBasePackage = serviceBasePackage;
         this.registry = registry;
     }
@@ -76,7 +77,6 @@ public class RPCServer  implements ApplicationContextAware {
                                     .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, INITIAL_BYTES_TO_STRIP))
                                     // Message -> Message
                                     .addLast("RPCDecoder", new RPCDecoder())
-
                                     .addLast("RPCServerHandler", new RPCServerHandler(handlerMap));
                         }
                     })
@@ -92,10 +92,9 @@ public class RPCServer  implements ApplicationContextAware {
                     //指定发送缓冲区大小
                     .option(ChannelOption.SO_SNDBUF, 32 * 1024)
                     //指定接收缓冲区大小
-                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)
-                    //这里的option是针对于上面的NioServerSocketChannel
-                    //复杂的时候可能会设置多个Channel
-                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+                    .option(ChannelOption.SO_RCVBUF, 32 * 1024);
+            //这里的option是针对于上面的NioServerSocketChannel
+            //复杂的时候可能会设置多个Channel
             //.sync表示是一个同步阻塞执行，普通的Netty的IO操作都是异步执行的
             //一个ChannelFuture代表了一个还没有发生的I/O操作。这意味着任何一个请求操作都不会马上被执行
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
@@ -109,8 +108,8 @@ public class RPCServer  implements ApplicationContextAware {
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             ChannelFuture future = bootstrap.bind(host, port).sync();
             log.info("服务器启动");
-            
-            
+
+
             initHandlerMap();
             //应用程序会一直等待，直到channel关闭
             future.channel().closeFuture().sync();
@@ -123,6 +122,9 @@ public class RPCServer  implements ApplicationContextAware {
         }
     }
 
+    /**
+     * 初始化handlerMap
+     */
     private void initHandlerMap() {
         log.info("serviceBasePackage:{}", this.serviceBasePackage);
         ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
@@ -135,7 +137,7 @@ public class RPCServer  implements ApplicationContextAware {
                 Class<?> beanClass = Class.forName(beanClassName);
                 Class<?>[] interfaces = beanClass.getInterfaces();
                 if (interfaces.length >= 1) {
-                    this.handlerMap.put(interfaces[0].getName(), 
+                    this.handlerMap.put(interfaces[0].getName(),
                             applicationContext.getBean(beanClass));
                 }
             } catch (ClassNotFoundException e) {
