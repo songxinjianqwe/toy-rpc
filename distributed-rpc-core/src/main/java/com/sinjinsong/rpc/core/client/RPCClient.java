@@ -6,7 +6,7 @@ import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
 import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
-import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
+import com.sinjinsong.rpc.core.domain.RPCResponse;
 import com.sinjinsong.rpc.core.enumeration.ConnectionFailureStrategy;
 import com.sinjinsong.rpc.core.exception.ClientConnectionException;
 import com.sinjinsong.rpc.core.exception.ServerNotAvailableException;
@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,10 +39,10 @@ public class RPCClient {
     private ServiceDiscovery discovery;
     private EventLoopGroup group;
     private Channel futureChannel;
-    private Map<String, RPCResponseFuture> responses;
+    private Map<String, CompletableFuture<RPCResponse>> responses;
     private ConnectionFailureStrategy connectionFailureStrategy = ConnectionFailureStrategy.RETRY;
     private String clientId = UUID.randomUUID().toString();
-
+    
     public void init() {
         log.info("初始化RPC客户端");
         this.responses = new ConcurrentHashMap<>();
@@ -157,12 +158,12 @@ public class RPCClient {
      * @return
      * @throws Exception
      */
-    public RPCResponseFuture execute(RPCRequest request) throws Exception {
+    public CompletableFuture execute(RPCRequest request) throws Exception {
         if (this.futureChannel == null) {
             throw new ClientConnectionException();
         }
         log.info("客户端发起请求: {}", request);
-        RPCResponseFuture responseFuture = new RPCResponseFuture();
+        CompletableFuture responseFuture = new CompletableFuture();
         responses.put(request.getRequestId(), responseFuture);
         this.futureChannel.writeAndFlush(Message.buildRequest(request));
         log.info("请求已发送");

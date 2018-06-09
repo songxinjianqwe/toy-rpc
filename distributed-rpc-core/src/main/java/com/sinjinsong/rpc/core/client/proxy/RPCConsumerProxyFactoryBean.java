@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.core.proxy;
+package com.sinjinsong.rpc.core.client.proxy;
 
 /**
  * @author sinjinsong
@@ -8,7 +8,6 @@ package com.sinjinsong.rpc.core.proxy;
 import com.sinjinsong.rpc.core.client.RPCClient;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
-import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -17,6 +16,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author sinjinsong
@@ -60,8 +60,8 @@ public class RPCConsumerProxyFactoryBean implements FactoryBean<Object>, Initial
                         request.setParameterTypes(method.getParameterTypes());
                         request.setParameters(args);
                         // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
-                        RPCResponseFuture responseFuture = client.execute(request);
-                        RPCResponse response = responseFuture.getResponse();
+                        CompletableFuture<RPCResponse> responseFuture = client.execute(request);
+                        RPCResponse response = responseFuture.get();
                         log.info("客户端读到响应");
                         if (response.hasError()) {
                             throw response.getCause();

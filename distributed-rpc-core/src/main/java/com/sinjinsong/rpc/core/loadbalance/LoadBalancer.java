@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.core.lb;
+package com.sinjinsong.rpc.core.loadbalance;
 
 import java.util.List;
 

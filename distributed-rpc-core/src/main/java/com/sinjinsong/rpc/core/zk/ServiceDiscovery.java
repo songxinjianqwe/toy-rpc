@@ -2,7 +2,7 @@ package com.sinjinsong.rpc.core.zk;
 
 import com.sinjinsong.rpc.core.constant.CharsetConst;
 import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
-import com.sinjinsong.rpc.core.lb.LoadBalancer;
+import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;

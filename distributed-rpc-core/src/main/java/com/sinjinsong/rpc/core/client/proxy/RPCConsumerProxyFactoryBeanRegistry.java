@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.core.proxy;
+package com.sinjinsong.rpc.core.client.proxy;
 
 /**
  * @author sinjinsong

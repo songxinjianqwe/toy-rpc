@@ -3,7 +3,6 @@ package com.sinjinsong.rpc.core.client.handler;
 import com.sinjinsong.rpc.core.client.RPCClient;
 import com.sinjinsong.rpc.core.domain.Message;
 import com.sinjinsong.rpc.core.domain.RPCResponse;
-import com.sinjinsong.rpc.core.domain.RPCResponseFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -11,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static com.sinjinsong.rpc.core.domain.Message.PONG;
 import static com.sinjinsong.rpc.core.domain.Message.RESPONSE;
@@ -22,7 +22,7 @@ import static com.sinjinsong.rpc.core.domain.Message.RESPONSE;
 @AllArgsConstructor
 public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private RPCClient client;
-    private Map<String, RPCResponseFuture> responses;
+    private Map<String, CompletableFuture<RPCResponse>> responses;
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception { 
@@ -64,8 +64,8 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
             log.info("{}", message.getClass().getName());
             RPCResponse response = message.getResponse();
             if (responses.containsKey(response.getRequestId())) {
-                RPCResponseFuture future = responses.remove(response.getRequestId());
-                future.setResponse(response);
+                CompletableFuture<RPCResponse> future = responses.remove(response.getRequestId());
+                future.complete(response);
             }
         }
     }

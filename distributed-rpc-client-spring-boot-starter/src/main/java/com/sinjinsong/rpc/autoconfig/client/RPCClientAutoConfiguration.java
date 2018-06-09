@@ -2,12 +2,12 @@ package com.sinjinsong.rpc.autoconfig.client;
 
 
 import com.sinjinsong.rpc.core.client.RPCClient;
-import com.sinjinsong.rpc.core.lb.LoadBalancer;
-import com.sinjinsong.rpc.core.lb.impl.ConsistentHashLoadBalancer;
-import com.sinjinsong.rpc.core.lb.impl.LeastActiveLoadBalancer;
-import com.sinjinsong.rpc.core.lb.impl.RandomLoadBalancer;
-import com.sinjinsong.rpc.core.lb.impl.RoundRobinLoadBalancer;
-import com.sinjinsong.rpc.core.proxy.RPCConsumerProxyFactoryBeanRegistry;
+import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
+import com.sinjinsong.rpc.core.loadbalance.impl.ConsistentHashLoadBalancer;
+import com.sinjinsong.rpc.core.loadbalance.impl.LeastActiveLoadBalancer;
+import com.sinjinsong.rpc.core.loadbalance.impl.RandomLoadBalancer;
+import com.sinjinsong.rpc.core.loadbalance.impl.RoundRobinLoadBalancer;
+import com.sinjinsong.rpc.core.client.proxy.RPCConsumerProxyFactoryBeanRegistry;
 import com.sinjinsong.rpc.core.util.PropertyUtil;
 import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;

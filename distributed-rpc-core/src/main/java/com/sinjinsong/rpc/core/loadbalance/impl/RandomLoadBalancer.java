@@ -1,6 +1,6 @@
-package com.sinjinsong.rpc.core.lb.impl;
+package com.sinjinsong.rpc.core.loadbalance.impl;
 
-import com.sinjinsong.rpc.core.lb.LoadBalancer;
+import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
