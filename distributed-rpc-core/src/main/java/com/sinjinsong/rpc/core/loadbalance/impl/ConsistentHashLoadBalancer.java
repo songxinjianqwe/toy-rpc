@@ -1,6 +1,9 @@
 package com.sinjinsong.rpc.core.loadbalance.impl;
 
-import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
+import com.sinjinsong.rpc.core.client.endpoint.Endpoint;
+import com.sinjinsong.rpc.core.domain.RPCRequest;
+import com.sinjinsong.rpc.core.loadbalance.AbstractLoadBalancer;
+import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
@@ -13,21 +16,27 @@ import java.util.*;
  * @date 2018/3/11
  */
 @Slf4j
-public class ConsistentHashLoadBalancer implements LoadBalancer {
-    private TreeMap<Long, String> hashCircle = new TreeMap<>();
-    private List<String> oldAddresses;
+public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
+    private TreeMap<Long, Endpoint> hashCircle = new TreeMap<>();
+    private List<Endpoint> cachedEndpoints;
     private static final int REPLICA_NUMBER = 160;
 
-
+    public ConsistentHashLoadBalancer(ServiceDiscovery serviceDiscovery) {
+        super(serviceDiscovery);
+    }
+    
     @Override
-    public String get(String clientAddress) {
+    protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
+        if (cachedEndpoints == null || endpoints.hashCode() != cachedEndpoints.hashCode()) {
+            buildHashCircle(endpoints);
+        }
         if (hashCircle.size() == 0) {
             return null;
         }
-        byte[] digest = md5(clientAddress);
+        byte[] digest = md5(request.key());
         long hash = hash(digest, 0);
         if (!hashCircle.containsKey(hash)) {
-            SortedMap<Long, String> tailMap = hashCircle.tailMap(hash);
+            SortedMap<Long, Endpoint> tailMap = hashCircle.tailMap(hash);
             // tailMap是值大于hash的节点集合
             // 如果是空，那么回到头部
             // 如果非空，那么取大于hash的最近的一个节点
@@ -35,53 +44,52 @@ public class ConsistentHashLoadBalancer implements LoadBalancer {
         }
         return hashCircle.get(hash);
     }
-
-    @Override
-    public void update(List<String> addresses) {
-        if (oldAddresses == null) {
-            oldAddresses = addresses;
-            for (String address : addresses) {
-                 add(address);
+    
+    private void buildHashCircle(List<Endpoint> endpoints) {
+        if (cachedEndpoints == null) {
+            cachedEndpoints = endpoints;
+            for (Endpoint endpoint : endpoints) {
+                add(endpoint);
             }
         } else {
             
-            log.info("旧地址列表为:[}", oldAddresses);
-            log.info("新地址列表为:{}", addresses);
-            Set<String> intersect = new HashSet<>(addresses);
-            intersect.retainAll(oldAddresses);
-            for (String address : oldAddresses) {
-                if (!intersect.contains(address)) {
-                    remove(address);
+            log.info("旧地址列表为:[}", cachedEndpoints);
+            log.info("新地址列表为:{}", endpoints);
+            Set<Endpoint> intersect = new HashSet<>(endpoints);
+            intersect.retainAll(cachedEndpoints);
+            for (Endpoint endpoint : cachedEndpoints) {
+                if (!intersect.contains(endpoint)) {
+                    remove(endpoint);
                 }
             }
 
-            for (String address : addresses) {
-                if (!intersect.contains(address)) {
-                    add(address);
+            for (Endpoint endpoint : endpoints) {
+                if (!intersect.contains(endpoint)) {
+                    add(endpoint);
                 }
             }
-            this.oldAddresses = addresses;
+            this.cachedEndpoints = endpoints;
         }
         log.info("更新后地址列表为:{}", new HashSet(hashCircle.values()));
     }
-
-    private void add(String address) {
+    
+    private void add(Endpoint endpoint) {
         for (int i = 0; i < REPLICA_NUMBER / 4; i++) {
             // 根据md5算法为每4个结点生成一个消息摘要，摘要长为16字节128位。
-            byte[] digest = md5(address + i);
+            byte[] digest = md5(endpoint.getAddress() + i);
             // 随后将128位分为4部分，0-31,32-63,64-95,95-128，并生成4个32位数，存于long中，long的高32位都为0
             // 并作为虚拟结点的key。
             for (int h = 0; h < 4; h++) {
                 long m = hash(digest, h);
-                hashCircle.put(m, address);
+                hashCircle.put(m, endpoint);
             }
         }
     }
 
-    private void remove(String address) {
+    private void remove(Endpoint endpoint) {
         for (int i = 0; i < REPLICA_NUMBER / 4; i++) {
             // 根据md5算法为每4个结点生成一个消息摘要，摘要长为16字节128位。
-            byte[] digest = md5(address + i);
+            byte[] digest = md5(endpoint.getAddress() + i);
             // 随后将128位分为4部分，0-31,32-63,64-95,95-128，并生成4个32位数，存于long中，long的高32位都为0
             // 并作为虚拟结点的key。
             for (int h = 0; h < 4; h++) {
@@ -89,10 +97,6 @@ public class ConsistentHashLoadBalancer implements LoadBalancer {
                 hashCircle.remove(m);
             }
         }
-    }
-
-    private int hash(String str) {
-        return str.hashCode();
     }
 
     private byte[] md5(String value) {
@@ -131,5 +135,6 @@ public class ConsistentHashLoadBalancer implements LoadBalancer {
                 | (digest[0 + number * 4] & 0xFF))
                 & 0xFFFFFFFFL;
     }
+
 
 }

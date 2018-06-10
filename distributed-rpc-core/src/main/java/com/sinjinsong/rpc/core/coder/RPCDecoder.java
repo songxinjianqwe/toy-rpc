@@ -20,7 +20,6 @@ public class RPCDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         byte type = in.readByte();
-        log.info("解码消息，消息类型为:{}", type);
         if (type == Message.PING) {
             out.add(Message.PING_MSG);
         } else if (type == Message.PONG) {

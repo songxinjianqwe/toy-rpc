@@ -1,6 +1,8 @@
 package com.sinjinsong.rpc.core.server.handler;
 
 import com.sinjinsong.rpc.core.domain.Message;
+import com.sinjinsong.rpc.core.server.invoker.RPCInvoker;
+import com.sinjinsong.rpc.core.server.wrapper.HandlerWrapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -20,10 +22,10 @@ import static com.sinjinsong.rpc.core.domain.Message.REQUEST;
  */
 @Slf4j
 public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
-    private Map<String, Object> handlerMap;
+    private Map<String, HandlerWrapper> handlerMap;
     private ThreadPoolExecutor pool;
     
-    public RPCServerHandler( Map<String, Object> handlerMap) {
+    public RPCServerHandler(Map<String, HandlerWrapper> handlerMap) {
         this.handlerMap = handlerMap;
         int threads = Runtime.getRuntime().availableProcessors();
         this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
@@ -42,7 +44,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);
         } else if (message.getType() == REQUEST) {
-            pool.submit(new Worker(ctx, message.getRequest(), handlerMap));
+            pool.submit(new RPCInvoker(ctx, message.getRequest(), handlerMap.get(message.getRequest().getClassName())));
         }
     }
 

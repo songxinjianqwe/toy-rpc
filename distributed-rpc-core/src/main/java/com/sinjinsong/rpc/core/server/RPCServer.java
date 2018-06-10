@@ -4,6 +4,7 @@ import com.sinjinsong.rpc.core.annotation.RPCService;
 import com.sinjinsong.rpc.core.coder.RPCDecoder;
 import com.sinjinsong.rpc.core.coder.RPCEncoder;
 import com.sinjinsong.rpc.core.server.handler.RPCServerHandler;
+import com.sinjinsong.rpc.core.server.wrapper.HandlerWrapper;
 import com.sinjinsong.rpc.core.zk.ServiceRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -27,26 +28,29 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
+import static com.sinjinsong.rpc.core.server.property.ServerAddressProperty.HOST;
+import static com.sinjinsong.rpc.core.server.property.ServerAddressProperty.PORT;
 
 /**
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
 public class RPCServer implements ApplicationContextAware {
-    private Map<String, Object> handlerMap = new HashMap<>();
+    private Map<String, HandlerWrapper> handlerMap = new HashMap<>();
     private ServiceRegistry registry;
     private String serviceBasePackage;
     private ApplicationContext applicationContext;
-    
+
 
     public RPCServer(String serviceBasePackage, ServiceRegistry registry) {
         this.serviceBasePackage = serviceBasePackage;
         this.registry = registry;
     }
 
-    public void run(String serverAddress) {
+    public void run() {
         //两个事件循环器，第一个用于接收客户端连接，第二个用于处理客户端的读写请求
         //是线程组，持有一组线程
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -100,15 +104,12 @@ public class RPCServer implements ApplicationContextAware {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-            String host = serverAddress.split(":")[0];
-            Integer port = Integer.parseInt(serverAddress.split(":")[1]);
-            registry.register(serverAddress);
+            registry.register(HOST + ":" + PORT);
             log.info("服务器向Zookeeper注册完毕");
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
-            ChannelFuture future = bootstrap.bind(host, port).sync();
+            ChannelFuture future = bootstrap.bind(HOST, PORT).sync();
             log.info("服务器启动");
-
 
             initHandlerMap();
             //应用程序会一直等待，直到channel关闭
@@ -127,28 +128,35 @@ public class RPCServer implements ApplicationContextAware {
      */
     private void initHandlerMap() {
         log.info("serviceBasePackage:{}", this.serviceBasePackage);
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(RPCService.class));
-        Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(serviceBasePackage);
-        beanDefinitions.forEach((beanDefinition -> {
-            try {
-                log.info("扫描到: {}", beanDefinition);
-                String beanClassName = beanDefinition.getBeanClassName();
-                Class<?> beanClass = Class.forName(beanClassName);
-                Class<?>[] interfaces = beanClass.getInterfaces();
-                if (interfaces.length >= 1) {
-                    this.handlerMap.put(interfaces[0].getName(),
-                            applicationContext.getBean(beanClass));
-                }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }));
+        scanByPackageAndAnnotation(this.serviceBasePackage, (beanClass, interfaceClass) -> {
+            this.handlerMap.put(interfaceClass.getName(),
+                    new HandlerWrapper(applicationContext.getBean(beanClass), beanClass.getAnnotation(RPCService.class)));
+        });
         log.info("最终handlerMap为:{}", this.handlerMap);
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public static void scanByPackageAndAnnotation(String basePackage, BiConsumer<Class<?>, Class<?>> action) {
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.addIncludeFilter(new AnnotationTypeFilter(RPCService.class));
+        Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(basePackage);
+        beanDefinitions.forEach((beanDefinition -> {
+            try {
+                log.info("扫描到: {}", beanDefinition);
+
+                String beanClassName = beanDefinition.getBeanClassName();
+                Class<?> beanClass = Class.forName(beanClassName);
+                Class<?>[] interfaces = beanClass.getInterfaces();
+                if (interfaces.length >= 1) {
+                    action.accept(beanClass, interfaces[0]);
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }));
     }
 }

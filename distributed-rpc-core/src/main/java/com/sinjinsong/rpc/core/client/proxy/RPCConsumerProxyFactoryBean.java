@@ -5,9 +5,10 @@ package com.sinjinsong.rpc.core.client.proxy;
  * @date 2018/3/11
  */
 
+import com.sinjinsong.rpc.core.annotation.RPCReference;
 import com.sinjinsong.rpc.core.client.RPCClient;
+import com.sinjinsong.rpc.core.client.call.CallHandler;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
-import com.sinjinsong.rpc.core.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -16,7 +17,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author sinjinsong
@@ -27,7 +27,9 @@ public class RPCConsumerProxyFactoryBean implements FactoryBean<Object>, Initial
     private RPCClient client;
     private Class<?> interfaceClass;
     private Object proxy;
-
+    private CallHandler callHandler;
+    private RPCReference rpcReference;
+    
     @Override
     public Object getObject() throws Exception {
         return proxy;
@@ -60,14 +62,7 @@ public class RPCConsumerProxyFactoryBean implements FactoryBean<Object>, Initial
                         request.setParameterTypes(method.getParameterTypes());
                         request.setParameters(args);
                         // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
-                        CompletableFuture<RPCResponse> responseFuture = client.execute(request);
-                        RPCResponse response = responseFuture.get();
-                        log.info("客户端读到响应");
-                        if (response.hasError()) {
-                            throw response.getCause();
-                        } else {
-                            return response.getResult();
-                        }
+                        return callHandler.handleCall(request,rpcReference);
                     }
                 }
         );
@@ -79,6 +74,14 @@ public class RPCConsumerProxyFactoryBean implements FactoryBean<Object>, Initial
 
     public void setInterfaceClass(Class<?> interfaceClass) {
         this.interfaceClass = interfaceClass;
+    }
+
+    public void setCallHandler(CallHandler callHandler) {
+        this.callHandler = callHandler;
+    }
+
+    public void setRpcReference(RPCReference rpcReference) {
+        this.rpcReference = rpcReference;
     }
 }
 

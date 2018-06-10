@@ -2,12 +2,12 @@ package com.sinjinsong.rpc.autoconfig.client;
 
 
 import com.sinjinsong.rpc.core.client.RPCClient;
+import com.sinjinsong.rpc.core.client.proxy.RPCConsumerProxyFactoryBeanRegistry;
 import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
 import com.sinjinsong.rpc.core.loadbalance.impl.ConsistentHashLoadBalancer;
 import com.sinjinsong.rpc.core.loadbalance.impl.LeastActiveLoadBalancer;
 import com.sinjinsong.rpc.core.loadbalance.impl.RandomLoadBalancer;
 import com.sinjinsong.rpc.core.loadbalance.impl.RoundRobinLoadBalancer;
-import com.sinjinsong.rpc.core.client.proxy.RPCConsumerProxyFactoryBeanRegistry;
 import com.sinjinsong.rpc.core.util.PropertyUtil;
 import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;
@@ -31,37 +31,40 @@ public class RPCClientAutoConfiguration {
     private RPCClientProperties properties;
     @Autowired
     private ApplicationContext applicationContext;
+
     private static RPCClient CLIENT;
 
+    @Bean
+    public ServiceDiscovery serviceDiscovery() {
+        return new ServiceDiscovery(properties.getRegistryAddress());
+    }
 
     @Bean(name = "CONSISTENT_HASH")
     public ConsistentHashLoadBalancer consistentHashLoadBalancer() {
-        return new ConsistentHashLoadBalancer();
+        return new ConsistentHashLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
 
     @Bean(name = "RANDOM")
     public RandomLoadBalancer randomLoadBalancer() {
-        return new RandomLoadBalancer();
+        return new RandomLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
 
-    @Bean(name = "RR")
+    @Bean(name = "ROUND_ROBIN")
     public RoundRobinLoadBalancer roundRobinLoadBalancer() {
-        return new RoundRobinLoadBalancer();
+        return new RoundRobinLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
-    
+
     @Bean(name = "LEAST_ACTIVE")
     public LeastActiveLoadBalancer leastActiveLoadBalancer() {
-        return new LeastActiveLoadBalancer();
+        return new LeastActiveLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
-    
-    
+
+
     @Bean
     public RPCClient rpcClient() {
         log.info("properties:{}", properties);
         LoadBalancer loadBalancer = applicationContext.getBean(properties.getLoadBalanceStrategy().toUpperCase(), LoadBalancer.class);
-        ServiceDiscovery discovery = new ServiceDiscovery(properties.getRegistryAddress(), loadBalancer);
-        CLIENT.setDiscovery(discovery);
-        CLIENT.init();
+        CLIENT.setLoadBalancer(loadBalancer);
         return CLIENT;
     }
 

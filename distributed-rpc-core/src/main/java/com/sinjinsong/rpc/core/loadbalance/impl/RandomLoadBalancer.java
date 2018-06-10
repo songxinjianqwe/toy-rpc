@@ -1,6 +1,9 @@
 package com.sinjinsong.rpc.core.loadbalance.impl;
 
-import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
+import com.sinjinsong.rpc.core.client.endpoint.Endpoint;
+import com.sinjinsong.rpc.core.domain.RPCRequest;
+import com.sinjinsong.rpc.core.loadbalance.AbstractLoadBalancer;
+import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -10,19 +13,19 @@ import java.util.concurrent.ThreadLocalRandom;
  * @date 2018/3/11
  */
 
-public class RandomLoadBalancer implements LoadBalancer {
-    private List<String> addresses;
+public class RandomLoadBalancer extends AbstractLoadBalancer {
 
-    @Override
-    public String get(String clientAddress) {
-        if(addresses.size() == 0) {
-            return null;
-        }
-        return addresses.get(ThreadLocalRandom.current().nextInt(addresses.size()));
+    public RandomLoadBalancer(ServiceDiscovery serviceDiscovery) {
+        super(serviceDiscovery);
     }
 
+
     @Override
-    public void update(List<String> addresses) {
-        this.addresses = addresses;
+    protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
+        if (endpoints.size() == 0) {
+            return null;
+        }
+        return endpoints.get(ThreadLocalRandom.current().nextInt(endpoints.size()));
+
     }
 }

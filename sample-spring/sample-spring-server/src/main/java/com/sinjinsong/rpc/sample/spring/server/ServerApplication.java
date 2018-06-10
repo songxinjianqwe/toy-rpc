@@ -25,6 +25,6 @@ public class ServerApplication implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        server.run(strings[0]);
+        server.run();
     }
 }

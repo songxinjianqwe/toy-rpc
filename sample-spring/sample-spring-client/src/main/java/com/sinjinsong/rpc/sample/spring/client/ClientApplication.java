@@ -1,9 +1,10 @@
 package com.sinjinsong.rpc.sample.spring.client;
 
-import com.sinjinsong.rpc.core.annotation.RPCReference;
-import com.sinjinsong.rpc.sample.spring.api.domain.User;
-import com.sinjinsong.rpc.sample.spring.api.service.HelloService;
+import com.sinjinsong.rpc.sample.spring.client.call.AsyncCallService;
+import com.sinjinsong.rpc.sample.spring.client.call.CallbackCallService;
+import com.sinjinsong.rpc.sample.spring.client.call.SyncCallService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,18 +15,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 @SpringBootApplication
 public class ClientApplication implements CommandLineRunner {
-    @RPCReference        
-    private HelloService helloService;
-    
-    public void test() throws Exception {
-        log.info(helloService.hello(new User("1")));
-        log.info(helloService.hello(new User("2")));
-        
-        Thread.sleep(3000);
-        log.info(helloService.hello(new User("3")));
-        Thread.sleep(8000);
-        log.info(helloService.hello(new User("4")));
-    }
+    @Autowired
+    private SyncCallService syncCallService;
+    @Autowired
+    private AsyncCallService asyncCallService;
+    @Autowired
+    private CallbackCallService callbackCallService;
     
     public static void main(String[] args) throws Exception {
         SpringApplication app = new SpringApplication(ClientApplication.class);
@@ -34,7 +29,9 @@ public class ClientApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... strings) throws Exception {
-        test();
+    public void run(String... args) throws Exception {
+//        syncCallService.test();
+//        asyncCallService.test();
+        callbackCallService.test();
     }
 }

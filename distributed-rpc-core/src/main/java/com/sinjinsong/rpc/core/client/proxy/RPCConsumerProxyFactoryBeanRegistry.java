@@ -7,6 +7,9 @@ package com.sinjinsong.rpc.core.client.proxy;
 
 import com.sinjinsong.rpc.core.annotation.RPCReference;
 import com.sinjinsong.rpc.core.client.RPCClient;
+import com.sinjinsong.rpc.core.client.call.async.AsyncCallHandler;
+import com.sinjinsong.rpc.core.client.call.callback.CallbackCallHandler;
+import com.sinjinsong.rpc.core.client.call.sync.SyncCallHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -48,7 +51,7 @@ public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegist
         this.client = client;
         this.basePackage = basePackage;
     }
-
+    
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         log.info("正在添加动态代理类的FactoryBean");
@@ -74,20 +77,28 @@ public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegist
                 RPCReference reference = field.getAnnotation(RPCReference.class);
                 Class<?> className = field.getType();
                 if (reference != null) {
-                    log.info("创建了对应的动态代理");
-                    BeanDefinitionHolder holder = createBeanDefinition(className.getName());
+                    log.info("创建了对应的动态代理,reference {}",reference);
+                    BeanDefinitionHolder holder = createBeanDefinition(className.getName(),reference);
                     BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
                 }
             }
         }
     }
 
-    private BeanDefinitionHolder createBeanDefinition(String className) {
+    private BeanDefinitionHolder createBeanDefinition(String className,RPCReference reference) {
         log.info("Creating bean definition for class: {}", className);
         BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(RPCConsumerProxyFactoryBean.class);
         String beanName = StringUtils.uncapitalize(className.substring(className.lastIndexOf('.') + 1));
         definition.addPropertyValue("interfaceClass", className);
         definition.addPropertyValue("client", client);
+        if(reference.async()) {
+            definition.addPropertyValue("callHandler",new AsyncCallHandler(client));
+        }else if(reference.callback()) {
+            definition.addPropertyValue("callHandler",new CallbackCallHandler(client));
+        }else{
+            definition.addPropertyValue("callHandler",new SyncCallHandler(client));
+        }
+        definition.addPropertyValue("rpcReference",reference);
         return new BeanDefinitionHolder(definition.getBeanDefinition(), beanName);
     }
 

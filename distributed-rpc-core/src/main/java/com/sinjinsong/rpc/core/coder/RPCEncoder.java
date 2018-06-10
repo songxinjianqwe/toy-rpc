@@ -17,7 +17,6 @@ public class RPCEncoder extends MessageToByteEncoder {
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         Message message = (Message) msg;
         out.writeByte((message.getType()));
-        log.info("编码消息，消息类型为:{}",message.getType());
         if (message.getType() == Message.REQUEST) {
             out.writeBytes(ProtostuffUtil.serialize(message.getRequest()));
         }

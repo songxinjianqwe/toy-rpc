@@ -15,4 +15,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Autowired
 public @interface RPCReference {
+    boolean async() default false;
+    boolean callback() default  false;
+    long timeout() default 3000;
+    String callbackMethod() default "";
+    int callbackParamIndex() default 1;
 }

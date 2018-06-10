@@ -1,6 +1,9 @@
 package com.sinjinsong.rpc.core.loadbalance.impl;
 
-import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
+import com.sinjinsong.rpc.core.client.endpoint.Endpoint;
+import com.sinjinsong.rpc.core.domain.RPCRequest;
+import com.sinjinsong.rpc.core.loadbalance.AbstractLoadBalancer;
+import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 
 import java.util.List;
 
@@ -8,23 +11,20 @@ import java.util.List;
  * @author sinjinsong
  * @date 2018/3/11
  */
-public class RoundRobinLoadBalancer implements LoadBalancer {
-    private List<String> addresses;
+public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     private int index = 0;
 
+    public RoundRobinLoadBalancer(ServiceDiscovery serviceDiscovery) {
+        super(serviceDiscovery);
+    }
+    
     @Override
-    public String get(String clientAddress) {
-        if(addresses.size() == 0) {
+    protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
+         if(endpoints.size() == 0) {
             return null;
         }
-        String result = addresses.get(index);
-        index = (index + 1) % addresses.size();
+        Endpoint result = endpoints.get(index);
+        index = (index + 1) % endpoints.size();
         return result;
-    }
-
-    @Override
-    public void update(List<String> addresses) {
-        this.addresses = addresses;
-        this.index = this.index % addresses.size();
     }
 }

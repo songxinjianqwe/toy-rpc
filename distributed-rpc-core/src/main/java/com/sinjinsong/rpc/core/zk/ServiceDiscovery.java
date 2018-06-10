@@ -2,7 +2,6 @@ package com.sinjinsong.rpc.core.zk;
 
 import com.sinjinsong.rpc.core.constant.CharsetConst;
 import com.sinjinsong.rpc.core.constant.ZookeeperConstant;
-import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -18,25 +17,26 @@ import java.util.concurrent.locks.LockSupport;
  */
 @Slf4j
 public class ServiceDiscovery extends ZookeeperClient {
-    private LoadBalancer loadBalancer;
-    private Thread discoveringThread;
     private static long TEN_SEC = 10000000000L;
-    public ServiceDiscovery(String registryAddress, LoadBalancer loadBalancer) {
-        this.loadBalancer = loadBalancer;
+    
+    private volatile Thread discoveringThread;
+    private volatile List<String> addresses;
+
+    public ServiceDiscovery(String registryAddress) {
         super.connect(registryAddress);
     }
-    
-    public String discover(String clientAddress) {
+
+    public List<String> discover() {
         log.info("discovering...");
         // 如果是第一次discovering，那么watchNode
-        if(this.discoveringThread == null) {
+        if (this.discoveringThread == null) {
             this.discoveringThread = Thread.currentThread();
             watchNode();
+            log.info("开始Park... ");
+            LockSupport.parkNanos(this, TEN_SEC);
+            log.info("Park结束");
         }
-        log.info("开始Park... ");
-        LockSupport.parkNanos(this, TEN_SEC);
-        log.info("Park结束");
-        return loadBalancer.get(clientAddress);
+        return addresses;
     }
 
     private void watchNode() {
@@ -49,14 +49,13 @@ public class ServiceDiscovery extends ZookeeperClient {
                     }
                 }
             });
-            log.info("node list: {}",nodeList);
             List<String> dataList = new ArrayList<>();
             for (String node : nodeList) {
                 byte[] bytes = zookeeper.getData(ZookeeperConstant.ZK_REGISTRY_PATH + "/" + node, false, null);
                 dataList.add(new String(bytes, CharsetConst.UTF_8));
             }
             log.info("node data: {}", dataList);
-            loadBalancer.update(dataList);
+            this.addresses = dataList;
             LockSupport.unpark(discoveringThread);
             log.info("Service discovery triggered updating connected client node.");
         } catch (KeeperException | InterruptedException e) {

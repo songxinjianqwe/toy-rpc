@@ -1,12 +1,13 @@
 package com.sinjinsong.rpc.core.loadbalance;
 
-import java.util.List;
+import com.sinjinsong.rpc.core.client.endpoint.Endpoint;
+import com.sinjinsong.rpc.core.domain.RPCRequest;
 
 /**
  * @author sinjinsong
  * @date 2018/3/11
  */
 public interface LoadBalancer {
-    String get(String clientAddress);
-    void update(List<String> addresses);
+    Endpoint select(RPCRequest request);
+    void close();
 }
