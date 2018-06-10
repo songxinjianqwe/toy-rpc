@@ -18,7 +18,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     public AbstractLoadBalancer(ServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
     }
-
+    
     @Override
     public Endpoint select(RPCRequest request) {
         List<String> newAddresses = serviceDiscovery.discover();

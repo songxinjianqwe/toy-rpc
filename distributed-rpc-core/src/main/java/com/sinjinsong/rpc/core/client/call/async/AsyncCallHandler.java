@@ -18,12 +18,11 @@ public class AsyncCallHandler extends CallHandler {
     public AsyncCallHandler(RPCClient rpcClient) {
         super(rpcClient);
     }
-
+    
     @Override
     public Object handleCall(RPCRequest request, RPCReference rpcReference) throws Throwable {
         Future<RPCResponse> future = rpcClient.execute(request);
         RPCThreadLocalContext.getContext().setFuture(future);
         return null;
     }
-    
 }

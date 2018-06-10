@@ -49,8 +49,7 @@ public class SyncCallHandler extends CallHandler {
             return response.getResult();
         }
     }
-
-
+    
     private RPCResponse executeAndWaitForResponse(RPCRequest request, Long timeout) throws Exception {
         Future<RPCResponse> future = rpcClient.execute(request);
         return future.get(timeout, TimeUnit.MILLISECONDS);

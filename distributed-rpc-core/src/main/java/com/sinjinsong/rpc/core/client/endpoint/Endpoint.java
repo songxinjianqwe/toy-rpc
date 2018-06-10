@@ -38,7 +38,7 @@ public class Endpoint {
     public Endpoint(String address) {
         this.address = address;
     }
-
+    
     private void init() {
         this.group = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();

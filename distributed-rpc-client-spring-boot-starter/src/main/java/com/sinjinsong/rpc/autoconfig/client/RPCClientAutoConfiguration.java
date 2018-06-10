@@ -31,7 +31,7 @@ public class RPCClientAutoConfiguration {
     private RPCClientProperties properties;
     @Autowired
     private ApplicationContext applicationContext;
-
+    
     private static RPCClient CLIENT;
 
     @Bean
