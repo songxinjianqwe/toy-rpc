@@ -34,28 +34,4 @@ public class RPCDecoder extends ByteToMessageDecoder {
             }
         }
     }
-
-//    @Override
-//    protected void decode(ChannelHandlerContext ctx, Object msg, List out) throws Exception {
-//        ByteBuf in = (ByteBuf) msg;
-//        byte type = in.readByte();
-//        if (type == Message.PING) {
-//            log.info("接收到PING消息");
-//            out.add(Message.PING_MSG);
-//        } else if (type == Message.PONG) {
-//            log.info("接收到PONG消息");
-//            out.add(Message.PONG_MSG);
-//        } else {
-//            byte[] bytes = new byte[in.readableBytes()];
-//            in.readBytes(bytes);
-//            if (type == Message.REQUEST) {
-//                log.info("接收到REQUEST消息");
-//                out.add(ProtostuffUtil.deserialize(bytes, RPCRequest.class));
-//            } else if (type == Message.RESPONSE) {
-//                log.info("接收到RESPONSE消息");
-//                out.add(ProtostuffUtil.deserialize(bytes, RPCResponse.class));
-//            }
-//        }
-//    }
-
 }

@@ -20,11 +20,12 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private TreeMap<Long, Endpoint> hashCircle = new TreeMap<>();
     private List<Endpoint> cachedEndpoints;
     private static final int REPLICA_NUMBER = 160;
+    
 
     public ConsistentHashLoadBalancer(ServiceDiscovery serviceDiscovery) {
         super(serviceDiscovery);
     }
-    
+
     @Override
     protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
         if (cachedEndpoints == null || endpoints.hashCode() != cachedEndpoints.hashCode()) {

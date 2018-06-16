@@ -17,7 +17,7 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     public RoundRobinLoadBalancer(ServiceDiscovery serviceDiscovery) {
         super(serviceDiscovery);
     }
-    
+
     @Override
     protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
          if(endpoints.size() == 0) {

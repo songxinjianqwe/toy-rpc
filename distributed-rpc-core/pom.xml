@@ -89,6 +89,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>1.5.9.RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>

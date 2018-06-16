@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.sinjinsong.rpc.core.constant.FrameConstant.*;
 
@@ -34,8 +35,10 @@ public class Endpoint {
     private EventLoopGroup group;
     private Channel futureChannel;
     private volatile boolean initialized = false;
-   
-    public Endpoint(String address) {
+    private ThreadPoolExecutor pool;
+    
+    public Endpoint(String address, ThreadPoolExecutor pool) {
+        this.pool = pool;
         this.address = address;
     }
     
@@ -57,7 +60,7 @@ public class Endpoint {
                                 // Message -> Message
                                 .addLast("RPCDecoder", new RPCDecoder())
 
-                                .addLast("RPCClientHandler", new RPCClientHandler(Endpoint.this));
+                                .addLast("RPCClientHandler", new RPCClientHandler(Endpoint.this,pool));
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);

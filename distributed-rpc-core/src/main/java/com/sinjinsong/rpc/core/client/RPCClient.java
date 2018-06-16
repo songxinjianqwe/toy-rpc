@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
 @Slf4j
 public class RPCClient {
     private LoadBalancer loadBalancer;
-    
+        
     public void setLoadBalancer(LoadBalancer loadBalancer) {
         this.loadBalancer = loadBalancer;
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -45,5 +45,4 @@ public class RPCClient {
     public void close() {
         loadBalancer.close();
     }
-    
 }

@@ -3,18 +3,24 @@ package com.sinjinsong.rpc.core.loadbalance;
 import com.sinjinsong.rpc.core.client.endpoint.Endpoint;
 import com.sinjinsong.rpc.core.domain.RPCRequest;
 import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author sinjinsong
  * @date 2018/6/10
  */
 public abstract class AbstractLoadBalancer implements LoadBalancer {
+    @Autowired
     private ServiceDiscovery serviceDiscovery;
     private Map<String, Endpoint> endpoints = new ConcurrentHashMap<>();
-
+    private ThreadPoolExecutor pool = new ThreadPoolExecutor(100, 100, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
+    
     public AbstractLoadBalancer(ServiceDiscovery serviceDiscovery) {
         this.serviceDiscovery = serviceDiscovery;
     }
@@ -35,7 +41,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         
         for (String address : newAddresses) {
             if (!intersect.contains(address)) {
-                endpoints.put(address, new Endpoint(address));
+                endpoints.put(address, new Endpoint(address,pool));
             }
         }
         return doSelect(new ArrayList<>(endpoints.values()), request);
@@ -45,6 +51,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     @Override
     public void close() {
+        pool.shutdown();
         endpoints.values().forEach(endpoint -> endpoint.close());
     }
 }

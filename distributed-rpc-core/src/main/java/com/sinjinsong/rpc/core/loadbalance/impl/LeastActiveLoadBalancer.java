@@ -13,6 +13,7 @@ import java.util.List;
  */
 public class LeastActiveLoadBalancer extends AbstractLoadBalancer {
 
+    
     public LeastActiveLoadBalancer(ServiceDiscovery serviceDiscovery) {
         super(serviceDiscovery);
     }

@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.sinjinsong.rpc.core.domain.Message.*;
 
@@ -23,11 +24,12 @@ import static com.sinjinsong.rpc.core.domain.Message.*;
  * Created by SinjinSong on 2017/7/31.
  */
 @Slf4j
-@AllArgsConstructor
 @ChannelHandler.Sharable
+@AllArgsConstructor
 public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private Endpoint endpoint;
-
+    private ThreadPoolExecutor pool;
+    
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");
@@ -43,7 +45,6 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
 
     /**
      * 当超过规定时间，客户端未读写数据，那么会自动调用userEventTriggered方法，向服务器发送一个心跳包
-     *
      * @param ctx
      * @param evt
      * @throws Exception
@@ -71,11 +72,11 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         } else if (message.getType() == REQUEST) {
             // callback
             RPCRequest request = message.getRequest();
-            new RPCInvoker(ctx, request,
+            pool.submit(new RPCInvoker(ctx, request,
                     new HandlerWrapper(RPCThreadSharedContext.getAndRemoveHandler(
                             CallbackCallHandler.generateCallbackHandlerKey(request)
-                    ))
-            ).run();
+                    )))
+            );
         }
     }
 }

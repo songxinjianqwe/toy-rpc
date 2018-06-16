@@ -12,13 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author sinjinsong
  * @date 2018/3/11
  */
-
 public class RandomLoadBalancer extends AbstractLoadBalancer {
+
 
     public RandomLoadBalancer(ServiceDiscovery serviceDiscovery) {
         super(serviceDiscovery);
     }
-
 
     @Override
     protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {

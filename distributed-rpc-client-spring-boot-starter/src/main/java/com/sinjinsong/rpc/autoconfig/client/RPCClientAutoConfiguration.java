@@ -13,6 +13,7 @@ import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -31,34 +32,37 @@ public class RPCClientAutoConfiguration {
     private RPCClientProperties properties;
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     private static RPCClient CLIENT;
 
     @Bean
     public ServiceDiscovery serviceDiscovery() {
         return new ServiceDiscovery(properties.getRegistryAddress());
     }
-
+    
+    @ConditionalOnProperty(value = "rpc.loadBalanceStrategy", havingValue = "CONSISTENT_HASH")
     @Bean(name = "CONSISTENT_HASH")
     public ConsistentHashLoadBalancer consistentHashLoadBalancer() {
         return new ConsistentHashLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
 
+    @ConditionalOnProperty(value = "rpc.loadBalanceStrategy",havingValue = "RANDOM")
     @Bean(name = "RANDOM")
     public RandomLoadBalancer randomLoadBalancer() {
         return new RandomLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
 
+    @ConditionalOnProperty(value = "rpc.loadBalanceStrategy", havingValue = "ROUND_ROBIN")
     @Bean(name = "ROUND_ROBIN")
     public RoundRobinLoadBalancer roundRobinLoadBalancer() {
         return new RoundRobinLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
 
+    @ConditionalOnProperty(value = "rpc.loadBalanceStrategy", havingValue = "LEAST_ACTIVE")
     @Bean(name = "LEAST_ACTIVE")
     public LeastActiveLoadBalancer leastActiveLoadBalancer() {
         return new LeastActiveLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
-
 
     @Bean
     public RPCClient rpcClient() {

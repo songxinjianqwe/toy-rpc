@@ -27,8 +27,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     
     public RPCServerHandler(Map<String, HandlerWrapper> handlerMap) {
         this.handlerMap = handlerMap;
-        int threads = Runtime.getRuntime().availableProcessors();
-        this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
+        this.pool = new ThreadPoolExecutor(100, 100, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
         log.info("{}",handlerMap);
     }
 
