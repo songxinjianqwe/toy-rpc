@@ -4,15 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sinjinsong</groupId>
-    <artifactId>distributed-rpc</artifactId>
+    <artifactId>toy-rpc</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
     <modules>
-        <module>distributed-rpc-core</module>
-        <module>distributed-rpc-client-spring-boot-starter</module>
-        <module>distributed-rpc-server-spring-boot-starter</module>
+        <module>toy-rpc-core</module>
+        <module>toy-rpc-client-spring-boot-starter</module>
+        <module>toy-rpc-server-spring-boot-starter</module>
     </modules>
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

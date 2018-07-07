@@ -34,7 +34,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.sinjinsong.rpc.sample.spring.client.ClientApplication</mainClass>
+                            <mainClass>com.sinjinsong.toy.sample.spring.client.ClientApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
