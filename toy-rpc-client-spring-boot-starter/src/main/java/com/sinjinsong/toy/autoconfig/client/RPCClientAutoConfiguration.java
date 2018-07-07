@@ -2,14 +2,14 @@ package com.sinjinsong.toy.autoconfig.client;
 
 
 import com.sinjinsong.toy.cluster.LoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.impl.ConsistentHashLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.impl.LeastActiveLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.impl.RandomLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.impl.RoundRobinLoadBalancer;
+import com.sinjinsong.toy.cluster.loadbalance.ConsistentHashLoadBalancer;
+import com.sinjinsong.toy.cluster.loadbalance.LeastActiveLoadBalancer;
+import com.sinjinsong.toy.cluster.loadbalance.RandomLoadBalancer;
+import com.sinjinsong.toy.cluster.loadbalance.RoundRobinLoadBalancer;
 import com.sinjinsong.toy.common.util.PropertyUtil;
 import com.sinjinsong.toy.proxy.RPCConsumerProxyFactoryBeanRegistry;
 import com.sinjinsong.toy.registry.ServiceDiscovery;
-import com.sinjinsong.toy.transport.client.RPCClient;
+import com.sinjinsong.toy.remoting.transport.client.RPCClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

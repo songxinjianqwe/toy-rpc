@@ -6,9 +6,9 @@ package com.sinjinsong.toy.proxy;
  */
 
 import com.sinjinsong.toy.config.ReferenceConfig;
-import com.sinjinsong.toy.exchange.ExchangeHandler;
-import com.sinjinsong.toy.transport.client.RPCClient;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
+import com.sinjinsong.toy.remoting.ExchangeHandler;
+import com.sinjinsong.toy.remoting.transport.client.RPCClient;
+import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
@@ -26,6 +26,7 @@ import java.util.UUID;
 @Slf4j
 @Setter
 public class RPCConsumerProxyFactoryBean<T> implements FactoryBean<T>, InitializingBean {
+    
     private RPCClient client;
     private Class<T> interfaceClass;
     private T proxy;
@@ -36,7 +37,7 @@ public class RPCConsumerProxyFactoryBean<T> implements FactoryBean<T>, Initializ
     public T getObject() throws Exception {
         return proxy;
     }
-
+    
     @Override
     public Class<?> getObjectType() {
         return this.interfaceClass;

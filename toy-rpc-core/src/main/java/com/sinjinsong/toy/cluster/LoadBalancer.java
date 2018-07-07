@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster;
 
-import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
+import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 
 /**
  * @author sinjinsong

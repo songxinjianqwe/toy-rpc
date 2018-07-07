@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.sample.spring.server;
 
-import com.sinjinsong.toy.transport.server.RPCServer;
+import com.sinjinsong.toy.remoting.transport.server.RPCServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
