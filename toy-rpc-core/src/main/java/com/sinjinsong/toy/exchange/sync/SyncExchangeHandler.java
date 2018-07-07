@@ -1,12 +1,12 @@
-package com.sinjinsong.toy.core.exchange.sync;
+package com.sinjinsong.toy.exchange.sync;
 
 import com.github.rholder.retry.*;
-import com.sinjinsong.rpc.core.config.ReferenceConfig;
-import com.sinjinsong.rpc.core.exchange.AbstractExchangeHandler;
-import com.sinjinsong.rpc.core.exchange.RPCCallException;
-import com.sinjinsong.rpc.core.transport.client.RPCClient;
-import com.sinjinsong.rpc.core.transport.domain.RPCRequest;
-import com.sinjinsong.rpc.core.transport.domain.RPCResponse;
+import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.exchange.AbstractExchangeHandler;
+import com.sinjinsong.toy.exchange.RPCCallException;
+import com.sinjinsong.toy.transport.client.RPCClient;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
+import com.sinjinsong.toy.transport.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ExecutionException;
@@ -64,7 +64,7 @@ public class SyncExchangeHandler extends AbstractExchangeHandler {
      * @throws ExecutionException
      * @throws RetryException
      */
-    private RPCResponse retry(Long timeout,RPCRequest request) throws ExecutionException, RetryException {
+    private RPCResponse retry(Long timeout, RPCRequest request) throws ExecutionException, RetryException {
         Retryer<RPCResponse> retryer = RetryerBuilder.<RPCResponse>newBuilder()
                 .retryIfExceptionOfType(Exception.class) // 抛出IOException时重试 
                 .withWaitStrategy(WaitStrategies.incrementingWait(5, TimeUnit.SECONDS, 5, TimeUnit.SECONDS))

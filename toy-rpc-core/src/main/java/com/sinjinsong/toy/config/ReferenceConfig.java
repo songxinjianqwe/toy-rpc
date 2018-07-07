@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.config;
+package com.sinjinsong.toy.config;
 
 import lombok.Builder;
 import lombok.Data;

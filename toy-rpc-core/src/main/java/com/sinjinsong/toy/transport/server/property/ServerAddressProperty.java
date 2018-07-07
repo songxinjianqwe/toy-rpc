@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.transport.server.property;
+package com.sinjinsong.toy.transport.server.property;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;

@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.common.util;
+package com.sinjinsong.toy.common.util;
 
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;

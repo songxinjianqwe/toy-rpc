@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.exchange;
+package com.sinjinsong.toy.exchange;
 
 /**
  * @author sinjinsong

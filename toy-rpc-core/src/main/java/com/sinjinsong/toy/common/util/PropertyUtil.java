@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.common.util;
+package com.sinjinsong.toy.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 

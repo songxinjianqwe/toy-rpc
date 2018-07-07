@@ -1,16 +1,14 @@
-package com.sinjinsong.toy.core.transport.server;
+package com.sinjinsong.toy.transport.server;
 
-import com.sinjinsong.rpc.core.config.ServiceConfig;
-import com.sinjinsong.rpc.core.config.annotation.RPCService;
-import com.sinjinsong.rpc.core.registry.ServiceRegistry;
-import com.sinjinsong.rpc.core.transport.coder.RPCDecoder;
-import com.sinjinsong.rpc.core.transport.coder.RPCEncoder;
-import com.sinjinsong.rpc.core.transport.server.handler.RPCServerHandler;
-import com.sinjinsong.rpc.core.transport.server.wrapper.HandlerWrapper;
-import com.sinjinsong.toy.core.config.annotation.RPCService;
-import com.sinjinsong.toy.core.registry.ServiceRegistry;
-import com.sinjinsong.toy.core.transport.FrameConstant;
-import com.sinjinsong.toy.core.transport.server.property.ServerAddressProperty;
+import com.sinjinsong.toy.config.ServiceConfig;
+import com.sinjinsong.toy.config.annotation.RPCService;
+import com.sinjinsong.toy.registry.ServiceRegistry;
+import com.sinjinsong.toy.transport.FrameConstant;
+import com.sinjinsong.toy.transport.coder.RPCDecoder;
+import com.sinjinsong.toy.transport.coder.RPCEncoder;
+import com.sinjinsong.toy.transport.server.handler.RPCServerHandler;
+import com.sinjinsong.toy.transport.server.property.ServerAddressProperty;
+import com.sinjinsong.toy.transport.server.wrapper.HandlerWrapper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -34,10 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
-
-import static com.sinjinsong.rpc.core.transport.FrameConstant.*;
-import static com.sinjinsong.rpc.core.transport.server.property.ServerAddressProperty.HOST;
-import static com.sinjinsong.rpc.core.transport.server.property.ServerAddressProperty.PORT;
 
 /**
  * Created by SinjinSong on 2017/7/29.

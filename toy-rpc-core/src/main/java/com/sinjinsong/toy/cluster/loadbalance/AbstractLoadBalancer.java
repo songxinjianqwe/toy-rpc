@@ -1,11 +1,10 @@
-package com.sinjinsong.toy.core.cluster.loadbalance;
+package com.sinjinsong.toy.cluster.loadbalance;
 
-import com.sinjinsong.rpc.core.cluster.LoadBalancer;
-import com.sinjinsong.rpc.core.registry.ServiceDiscovery;
-import com.sinjinsong.rpc.core.transport.client.endpoint.Endpoint;
-import com.sinjinsong.rpc.core.transport.domain.RPCRequest;
-import com.sinjinsong.toy.core.registry.ServiceDiscovery;
-import com.sinjinsong.toy.core.transport.client.endpoint.Endpoint;
+
+import com.sinjinsong.toy.cluster.LoadBalancer;
+import com.sinjinsong.toy.registry.ServiceDiscovery;
+import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;

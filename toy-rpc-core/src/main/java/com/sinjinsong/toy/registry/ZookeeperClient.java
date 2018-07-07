@@ -1,6 +1,6 @@
-package com.sinjinsong.toy.core.registry;
+package com.sinjinsong.toy.registry;
 
-import com.sinjinsong.rpc.core.common.constant.CharsetConst;
+import com.sinjinsong.toy.common.constant.CharsetConst;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 

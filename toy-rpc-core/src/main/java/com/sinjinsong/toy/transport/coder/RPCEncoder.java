@@ -1,8 +1,7 @@
-package com.sinjinsong.toy.core.transport.coder;
+package com.sinjinsong.toy.transport.coder;
 
-import com.sinjinsong.rpc.core.transport.domain.Message;
-import com.sinjinsong.rpc.core.common.util.ProtostuffUtil;
-import com.sinjinsong.toy.core.transport.domain.Message;
+import com.sinjinsong.toy.common.util.ProtostuffUtil;
+import com.sinjinsong.toy.transport.domain.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;

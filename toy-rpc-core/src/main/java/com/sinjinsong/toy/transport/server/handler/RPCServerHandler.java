@@ -1,9 +1,9 @@
-package com.sinjinsong.toy.core.transport.server.handler;
+package com.sinjinsong.toy.transport.server.handler;
 
-import com.sinjinsong.rpc.core.transport.domain.Message;
-import com.sinjinsong.rpc.core.transport.server.task.RPCTask;
-import com.sinjinsong.rpc.core.transport.server.wrapper.HandlerWrapper;
-import com.sinjinsong.toy.core.transport.server.task.RPCTask;
+
+import com.sinjinsong.toy.transport.domain.Message;
+import com.sinjinsong.toy.transport.server.task.RPCTask;
+import com.sinjinsong.toy.transport.server.wrapper.HandlerWrapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -14,8 +14,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.sinjinsong.rpc.core.transport.domain.Message.PING;
-import static com.sinjinsong.rpc.core.transport.domain.Message.REQUEST;
+import static com.sinjinsong.toy.transport.domain.Message.PING;
+import static com.sinjinsong.toy.transport.domain.Message.REQUEST;
 
 /**
  * Created by SinjinSong on 2017/7/29.

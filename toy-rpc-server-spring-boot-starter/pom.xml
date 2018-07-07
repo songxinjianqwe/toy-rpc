@@ -10,7 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>toy-rpc-server-spring-boot-starter</artifactId>
+    
     <packaging>jar</packaging>
+    
     <properties>
         <springboot.version>1.5.9.RELEASE</springboot.version>
         <slf4j.version>1.7.25</slf4j.version>
@@ -26,7 +28,7 @@
         <dependency>
             <groupId>com.sinjinsong</groupId>
             <artifactId>toy-rpc-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

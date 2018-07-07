@@ -1,7 +1,6 @@
-package com.sinjinsong.toy.core.transport.server.wrapper;
+package com.sinjinsong.toy.transport.server.wrapper;
 
-import com.sinjinsong.rpc.core.config.ServiceConfig;
-import com.sinjinsong.toy.core.config.ServiceConfig;
+import com.sinjinsong.toy.config.ServiceConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

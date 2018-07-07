@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.registry;
+package com.sinjinsong.toy.registry;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;

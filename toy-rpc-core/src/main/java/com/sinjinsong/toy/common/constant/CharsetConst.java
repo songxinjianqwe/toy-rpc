@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.common.constant;
+package com.sinjinsong.toy.common.constant;
 
 import java.nio.charset.Charset;
 

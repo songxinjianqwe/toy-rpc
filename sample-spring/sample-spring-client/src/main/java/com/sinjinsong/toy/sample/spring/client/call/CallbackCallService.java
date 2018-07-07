@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.sample.spring.client.call;
 
 
-import com.sinjinsong.toy.core.config.annotation.RPCReference;
+import com.sinjinsong.toy.config.annotation.RPCReference;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloServiceWithCallback;
 import lombok.extern.slf4j.Slf4j;

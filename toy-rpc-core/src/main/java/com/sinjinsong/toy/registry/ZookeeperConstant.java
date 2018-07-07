@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.core.registry;
+package com.sinjinsong.toy.registry;
 
 
 public class ZookeeperConstant {

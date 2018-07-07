@@ -1,17 +1,14 @@
-package com.sinjinsong.toy.core.proxy;
+package com.sinjinsong.toy.proxy;
 
 /**
  * @author sinjinsong
  * @date 2018/3/11
  */
 
-import com.sinjinsong.rpc.core.config.ReferenceConfig;
-import com.sinjinsong.rpc.core.exchange.ExchangeHandler;
-import com.sinjinsong.rpc.core.transport.client.RPCClient;
-import com.sinjinsong.rpc.core.transport.domain.RPCRequest;
-import com.sinjinsong.toy.core.config.ReferenceConfig;
-import com.sinjinsong.toy.core.transport.client.RPCClient;
-import com.sinjinsong.toy.core.transport.domain.RPCRequest;
+import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.exchange.ExchangeHandler;
+import com.sinjinsong.toy.transport.client.RPCClient;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;

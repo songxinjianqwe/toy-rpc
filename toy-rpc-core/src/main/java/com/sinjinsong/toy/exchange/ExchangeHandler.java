@@ -1,9 +1,7 @@
-package com.sinjinsong.toy.core.exchange;
+package com.sinjinsong.toy.exchange;
 
-import com.sinjinsong.rpc.core.config.ReferenceConfig;
-import com.sinjinsong.rpc.core.transport.domain.RPCRequest;
-import com.sinjinsong.toy.core.config.ReferenceConfig;
-import com.sinjinsong.toy.core.transport.domain.RPCRequest;
+import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
 
 /**
  * @author sinjinsong

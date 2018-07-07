@@ -1,8 +1,8 @@
 package com.sinjinsong.toy.sample.spring.client.call;
 
-import com.sinjinsong.toy.core.transport.client.context.RPCThreadLocalContext;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloService;
+import com.sinjinsong.toy.transport.client.context.RPCThreadLocalContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
