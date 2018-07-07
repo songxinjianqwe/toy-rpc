@@ -1,15 +1,15 @@
 package com.sinjinsong.rpc.autoconfig.client;
 
 
-import com.sinjinsong.rpc.core.client.RPCClient;
-import com.sinjinsong.rpc.core.client.proxy.RPCConsumerProxyFactoryBeanRegistry;
-import com.sinjinsong.rpc.core.loadbalance.LoadBalancer;
-import com.sinjinsong.rpc.core.loadbalance.impl.ConsistentHashLoadBalancer;
-import com.sinjinsong.rpc.core.loadbalance.impl.LeastActiveLoadBalancer;
-import com.sinjinsong.rpc.core.loadbalance.impl.RandomLoadBalancer;
-import com.sinjinsong.rpc.core.loadbalance.impl.RoundRobinLoadBalancer;
-import com.sinjinsong.rpc.core.util.PropertyUtil;
-import com.sinjinsong.rpc.core.zk.ServiceDiscovery;
+import com.sinjinsong.rpc.core.transport.client.RPCClient;
+import com.sinjinsong.rpc.core.proxy.RPCConsumerProxyFactoryBeanRegistry;
+import com.sinjinsong.rpc.core.cluster.LoadBalancer;
+import com.sinjinsong.rpc.core.cluster.loadbalance.impl.ConsistentHashLoadBalancer;
+import com.sinjinsong.rpc.core.cluster.loadbalance.impl.LeastActiveLoadBalancer;
+import com.sinjinsong.rpc.core.cluster.loadbalance.impl.RandomLoadBalancer;
+import com.sinjinsong.rpc.core.cluster.loadbalance.impl.RoundRobinLoadBalancer;
+import com.sinjinsong.rpc.core.common.util.PropertyUtil;
+import com.sinjinsong.rpc.core.registry.ServiceDiscovery;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -63,7 +63,7 @@ public class RPCClientAutoConfiguration {
     public LeastActiveLoadBalancer leastActiveLoadBalancer() {
         return new LeastActiveLoadBalancer(applicationContext.getBean(ServiceDiscovery.class));
     }
-
+    
     @Bean
     public RPCClient rpcClient() {
         log.info("properties:{}", properties);

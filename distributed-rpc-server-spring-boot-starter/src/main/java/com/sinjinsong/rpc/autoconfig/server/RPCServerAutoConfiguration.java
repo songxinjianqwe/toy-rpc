@@ -1,8 +1,8 @@
 package com.sinjinsong.rpc.autoconfig.server;
 
 
-import com.sinjinsong.rpc.core.server.RPCServer;
-import com.sinjinsong.rpc.core.zk.ServiceRegistry;
+import com.sinjinsong.rpc.core.transport.server.RPCServer;
+import com.sinjinsong.rpc.core.registry.ServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

@@ -1,6 +1,6 @@
 package com.sinjinsong.rpc.sample.spring.client.call;
 
-import com.sinjinsong.rpc.core.client.context.RPCThreadLocalContext;
+import com.sinjinsong.rpc.core.transport.client.context.RPCThreadLocalContext;
 import com.sinjinsong.rpc.sample.spring.api.domain.User;
 import com.sinjinsong.rpc.sample.spring.api.service.HelloService;
 import lombok.extern.slf4j.Slf4j;
