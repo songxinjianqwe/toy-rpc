@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.autoconfig.server;
+package com.sinjinsong.toy.autoconfig.server;
 
 
 import com.sinjinsong.rpc.core.transport.server.RPCServer;

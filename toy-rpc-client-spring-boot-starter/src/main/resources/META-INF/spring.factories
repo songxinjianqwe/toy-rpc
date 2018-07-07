@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.sinjinsong.rpc.autoconfig.client.RPCClientAutoConfiguration
+com.sinjinsong.toy.autoconfig.client.RPCClientAutoConfiguration

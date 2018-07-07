@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.autoconfig.client;
+package com.sinjinsong.toy.autoconfig.client;
 
 
 import lombok.Data;

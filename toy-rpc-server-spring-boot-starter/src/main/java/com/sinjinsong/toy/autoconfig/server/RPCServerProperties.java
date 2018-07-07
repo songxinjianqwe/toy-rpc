@@ -1,4 +1,4 @@
-package com.sinjinsong.rpc.autoconfig.server;
+package com.sinjinsong.toy.autoconfig.server;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
