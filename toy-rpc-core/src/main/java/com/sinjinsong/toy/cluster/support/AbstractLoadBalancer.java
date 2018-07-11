@@ -3,8 +3,9 @@ package com.sinjinsong.toy.cluster.support;
 
 import com.sinjinsong.toy.cluster.LoadBalancer;
 import com.sinjinsong.toy.registry.ServiceRegistry;
-import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
+import com.sinjinsong.toy.serialize.api.Serializer;
+import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,9 +31,11 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * 客户端callback线程池
      */
     private ExecutorService callbackPool = Executors.newSingleThreadExecutor();
-
-    public AbstractLoadBalancer(ServiceRegistry ServiceRegistry) {
+    private Serializer serializer;
+    
+    public AbstractLoadBalancer(ServiceRegistry ServiceRegistry,Serializer serializer) {
         this.serviceRegistry = ServiceRegistry;
+        this.serializer = serializer;
     }
 
     @Override
@@ -68,7 +71,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
                     }
                 }
                 // 如果不包含，则建立连接
-                addressEndpoints.put(address, endpoint != null ? endpoint : new Endpoint(address, callbackPool, request.getInterfaceName()));
+                addressEndpoints.put(address, endpoint != null ? endpoint : new Endpoint(address, callbackPool, request.getInterfaceName(),serializer));
             }
         }
 

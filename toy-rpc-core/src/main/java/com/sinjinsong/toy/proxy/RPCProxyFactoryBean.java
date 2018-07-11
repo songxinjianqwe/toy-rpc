@@ -1,8 +1,8 @@
 package com.sinjinsong.toy.proxy;
 
 import com.sinjinsong.toy.config.ReferenceConfig;
-import com.sinjinsong.toy.remoting.ExchangeHandler;
-import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
+import com.sinjinsong.toy.exchange.ExchangeHandler;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;

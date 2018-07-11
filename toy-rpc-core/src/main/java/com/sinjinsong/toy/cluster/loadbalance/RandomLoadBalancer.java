@@ -2,8 +2,9 @@ package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
 import com.sinjinsong.toy.registry.ServiceRegistry;
-import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
+import com.sinjinsong.toy.serialize.api.Serializer;
+import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.transport.domain.RPCRequest;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -15,8 +16,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RandomLoadBalancer extends AbstractLoadBalancer {
 
 
-    public RandomLoadBalancer(ServiceRegistry serviceRegistry) {
-        super(serviceRegistry);
+    public RandomLoadBalancer(ServiceRegistry ServiceRegistry, Serializer serializer) {
+        super(ServiceRegistry, serializer);
     }
 
     @Override

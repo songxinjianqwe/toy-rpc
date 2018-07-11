@@ -2,10 +2,10 @@ package com.sinjinsong.toy.proxy;
 
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.annotation.RPCReference;
-import com.sinjinsong.toy.remoting.exchange.async.AsyncExchangeHandler;
-import com.sinjinsong.toy.remoting.exchange.callback.CallbackExchangeHandler;
-import com.sinjinsong.toy.remoting.exchange.sync.SyncExchangeHandler;
-import com.sinjinsong.toy.remoting.transport.client.RPCClient;
+import com.sinjinsong.toy.exchange.async.AsyncExchangeHandler;
+import com.sinjinsong.toy.exchange.callback.CallbackExchangeHandler;
+import com.sinjinsong.toy.exchange.sync.SyncExchangeHandler;
+import com.sinjinsong.toy.transport.client.RPCClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;

@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.rpc.api;
 
 
-import com.sinjinsong.toy.remoting.transport.domain.RPCResponse;
+import com.sinjinsong.toy.transport.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;

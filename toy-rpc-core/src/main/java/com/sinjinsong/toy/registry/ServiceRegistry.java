@@ -47,13 +47,14 @@ public class ServiceRegistry extends ZookeeperClient {
 
     /**
      * 数据格式：
-     * /toy/AService -> 192.168.1.1:1221,192.168.1.2:1221
-     * /toy/BService -> 192.168.1.3:1221
+     * /toy/AService/192.168.1.1:1221 -> 192.168.1.1:1221
+     * /toy/AService/192.168.1.2:1221 -> 192.168.1.2:1221
+     * /toy/BService/192.168.1.3:1221 -> 192.168.1.3:1221
      */
     private void watchNode(String interfaceName) {
         try {
             List<String> interfaceNames = zookeeper.getChildren(ZookeeperConstant.ZK_REGISTRY_PATH, false);
-
+            
             for (String i : interfaceNames) {
                 String path = generatePath(interfaceName);
                 if (i.equals(interfaceName)) {
