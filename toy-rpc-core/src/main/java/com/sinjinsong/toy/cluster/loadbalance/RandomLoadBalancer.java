@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.registry.ServiceDiscovery;
+import com.sinjinsong.toy.registry.ServiceRegistry;
 import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 
@@ -15,8 +15,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RandomLoadBalancer extends AbstractLoadBalancer {
 
 
-    public RandomLoadBalancer(ServiceDiscovery serviceDiscovery) {
-        super(serviceDiscovery);
+    public RandomLoadBalancer(ServiceRegistry serviceRegistry) {
+        super(serviceRegistry);
     }
 
     @Override

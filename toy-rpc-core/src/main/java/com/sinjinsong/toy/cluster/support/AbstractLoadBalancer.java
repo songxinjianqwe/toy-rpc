@@ -2,58 +2,84 @@ package com.sinjinsong.toy.cluster.support;
 
 
 import com.sinjinsong.toy.cluster.LoadBalancer;
-import com.sinjinsong.toy.registry.ServiceDiscovery;
+import com.sinjinsong.toy.registry.ServiceRegistry;
 import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author sinjinsong
  * @date 2018/6/10
  */
 public abstract class AbstractLoadBalancer implements LoadBalancer {
-    @Autowired
-    private ServiceDiscovery serviceDiscovery;
-    private Map<String, Endpoint> endpoints = new ConcurrentHashMap<>();
-    private ThreadPoolExecutor pool = new ThreadPoolExecutor(100, 100, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
-    
-    public AbstractLoadBalancer(ServiceDiscovery serviceDiscovery) {
-        this.serviceDiscovery = serviceDiscovery;
+    private ServiceRegistry serviceRegistry;
+    /**
+     * key是接口名，value的key是IP地址，value是Endpoint
+     * <p>
+     * 一种可能的格式：
+     * key : AService, value:   192.168.1.1,Endpoint1
+     * 192.168.1.2,Endpoint2
+     * key : BService, value:   192.168.1.1,Endpoint1
+     */
+    private Map<String, Map<String, Endpoint>> interfaceEndpoints = new ConcurrentHashMap<>();
+    /**
+     * 客户端callback线程池
+     */
+    private ExecutorService callbackPool = Executors.newSingleThreadExecutor();
+
+    public AbstractLoadBalancer(ServiceRegistry ServiceRegistry) {
+        this.serviceRegistry = ServiceRegistry;
     }
-    
+
     @Override
     public Endpoint select(RPCRequest request) {
-        List<String> newAddresses = serviceDiscovery.discover();
-        Set<String> oldAddresses = endpoints.keySet();
-
+        // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
+        // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
+        List<String> newAddresses = serviceRegistry.discover(request.getInterfaceName());
+        if (!interfaceEndpoints.containsKey(request.getInterfaceName())) {
+            interfaceEndpoints.put(request.getInterfaceName(), new ConcurrentHashMap<>());
+        }
+        Map<String, Endpoint> addressEndpoints = interfaceEndpoints.get(request.getInterfaceName());
+        Set<String> oldAddresses = addressEndpoints.keySet();
+        
         Set<String> intersect = new HashSet<>(newAddresses);
         intersect.retainAll(oldAddresses);
         
         for (String address : oldAddresses) {
             if (!intersect.contains(address)) {
-                endpoints.remove(address);
+                // 去掉一个Endpoint所管理的一个服务，如果某个Endpoint不管理任何服务，则关闭连接
+                addressEndpoints.get(address).closeIfNoServiceAvailable(request.getInterfaceName());
+                addressEndpoints.remove(address);
             }
         }
-        
+
         for (String address : newAddresses) {
             if (!intersect.contains(address)) {
-                endpoints.put(address, new Endpoint(address,pool));
+                Endpoint endpoint = null;
+                // 找其他服务的Map中是否包含该endpoint，如果包含，则说明已经连接了，复用该连接即可
+                for (Map<String, Endpoint> map : interfaceEndpoints.values()) {
+                    if (map != addressEndpoints && map.containsKey(address)) {
+                        endpoint = map.get(address);
+                        endpoint.addInterface(request.getInterfaceName());
+                    }
+                }
+                // 如果不包含，则建立连接
+                addressEndpoints.put(address, endpoint != null ? endpoint : new Endpoint(address, callbackPool, request.getInterfaceName()));
             }
         }
-        return doSelect(new ArrayList<>(endpoints.values()), request);
+
+        return doSelect(new ArrayList<>(addressEndpoints.values()), request);
     }
-    
-    abstract protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request);
+
+    protected abstract Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request);
 
     @Override
     public void close() {
-        pool.shutdown();
-        endpoints.values().forEach(endpoint -> endpoint.close());
+        callbackPool.shutdown();
+        interfaceEndpoints.forEach( (interfaceName,map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
     }
 }

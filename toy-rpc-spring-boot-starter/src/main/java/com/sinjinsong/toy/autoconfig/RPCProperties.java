@@ -1,5 +1,4 @@
-package com.sinjinsong.toy.autoconfig.client;
-
+package com.sinjinsong.toy.autoconfig;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -10,8 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "rpc")
 @Data
-public class RPCClientProperties {
+public class RPCProperties {
     private String registryAddress;
-    private String serviceBasePackage;
     private String loadBalanceStrategy;
+    
 }

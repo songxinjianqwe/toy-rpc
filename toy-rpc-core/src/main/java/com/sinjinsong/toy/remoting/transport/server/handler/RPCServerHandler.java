@@ -44,7 +44,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);
         } else if (message.getType() == REQUEST) {
-            pool.submit(new RPCTask(ctx, message.getRequest(), handlerMap.get(message.getRequest().getClassName())));
+            pool.submit(new RPCTask(ctx, message.getRequest(), handlerMap.get(message.getRequest().getInterfaceName())));
         }
     }
 

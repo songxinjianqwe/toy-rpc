@@ -10,13 +10,13 @@ import java.util.Arrays;
 @Data
 public class RPCRequest {
     private String requestId;
-    private String className;
+    private String interfaceName;
     private String methodName;
     private Class<?>[] parameterTypes;
     private Object[] parameters;
         
     public String key() {
-        return new StringBuilder(className)
+        return new StringBuilder(interfaceName)
                 .append(".")
                 .append(methodName)
                 .append(".")

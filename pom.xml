@@ -10,8 +10,7 @@
 
     <modules>
         <module>toy-rpc-core</module>
-        <module>toy-rpc-client-spring-boot-starter</module>
-        <module>toy-rpc-server-spring-boot-starter</module>
+        <module>toy-rpc-spring-boot-starter</module>
     </modules>
     
     <properties>

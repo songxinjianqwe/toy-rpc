@@ -1,13 +1,7 @@
 package com.sinjinsong.toy.proxy;
 
-/**
- * @author sinjinsong
- * @date 2018/3/11
- */
-
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.remoting.ExchangeHandler;
-import com.sinjinsong.toy.remoting.transport.client.RPCClient;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +19,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Setter
-public class RPCConsumerProxyFactoryBean<T> implements FactoryBean<T>, InitializingBean {
-    
-    private RPCClient client;
+public class RPCProxyFactoryBean<T> implements FactoryBean<T>, InitializingBean {
     private Class<T> interfaceClass;
     private T proxy;
     private ExchangeHandler exchangeHandler;
@@ -60,7 +52,7 @@ public class RPCConsumerProxyFactoryBean<T> implements FactoryBean<T>, Initializ
                         RPCRequest request = new RPCRequest();
                         log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
                         request.setRequestId(UUID.randomUUID().toString());
-                        request.setClassName(method.getDeclaringClass().getName());
+                        request.setInterfaceName(method.getDeclaringClass().getName());
                         request.setMethodName(method.getName());
                         request.setParameterTypes(method.getParameterTypes());
                         request.setParameters(args);

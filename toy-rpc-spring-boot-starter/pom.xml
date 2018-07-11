@@ -7,15 +7,19 @@
         <groupId>com.sinjinsong</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <packaging>jar</packaging>
-    <artifactId>toy-rpc-client-spring-boot-starter</artifactId>
 
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>toy-rpc-spring-boot-starter</artifactId>
+
+    <packaging>jar</packaging>
+        
     <properties>
         <springboot.version>1.5.9.RELEASE</springboot.version>
+         <spring.version>4.3.9.RELEASE</spring.version>
         <slf4j.version>1.7.25</slf4j.version>
     </properties>
-
+    
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -44,6 +48,11 @@
             <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
-
 </project>

@@ -1,10 +1,5 @@
 package com.sinjinsong.toy.proxy;
 
-/**
- * @author sinjinsong
- * @date 2018/3/11
- */
-
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.annotation.RPCReference;
 import com.sinjinsong.toy.remoting.exchange.async.AsyncExchangeHandler;
@@ -20,12 +15,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.Set;
-
 
 /**
  * @author sinjinsong
@@ -44,29 +36,25 @@ import java.util.Set;
  * @javax.annotation.ManagedBean和@javax.inject.Named注解的类。在扫描时需要指定扫描的根包路径。
  */
 @Slf4j
-public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegistryPostProcessor {
-    private String basePackage;
+public class RPCProxyFactoryBeanRegistry implements BeanDefinitionRegistryPostProcessor {
     private RPCClient client;
-
-    public RPCConsumerProxyFactoryBeanRegistry(RPCClient client, String basePackage) {
+    public static boolean HAS_REFERENCE = false;
+    
+    public RPCProxyFactoryBeanRegistry(RPCClient client) {
         this.client = client;
-        this.basePackage = basePackage;
     }
-
+    
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         log.info("正在添加动态代理类的FactoryBean");
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-        scanner.addIncludeFilter((metadataReader, metadataReaderFactory) -> true);
-        Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
-
-        for (BeanDefinition beanDefinition : candidateComponents) {
-            log.info("beanDefinition: {}", beanDefinition);
-            log.info("{}", beanDefinition.getBeanClassName());
-            String beanClassName = beanDefinition.getBeanClassName();
+        for (String beanName : registry.getBeanDefinitionNames()) {
+            BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
+            if(beanDefinition.getBeanClassName() == null) {
+                continue;
+            }
             Class<?> beanClass = null;
             try {
-                beanClass = Class.forName(beanClassName);
+                beanClass = Class.forName(beanDefinition.getBeanClassName());
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -78,6 +66,7 @@ public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegist
                 Class<?> className = field.getType();
                 RPCReference reference = field.getAnnotation(RPCReference.class);
                 if (reference != null) {
+                    HAS_REFERENCE = true;
                     ReferenceConfig config = ReferenceConfig.builder()
                             .interfaceName(className.getName())
                             .interfaceClass((Class<Object>) className)
@@ -87,20 +76,21 @@ public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegist
                             .callbackMethod(reference.callbackMethod())
                             .callbackParamIndex(reference.callbackParamIndex())
                             .build();
-                    log.info("创建了对应的动态代理,reference {}", reference);
-                    BeanDefinitionHolder holder = createBeanDefinition(className.getName(), config);
-                    BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
+                    createBeanDefinitionIfAbsent(registry, className.getName(), config);
                 }
             }
         }
     }
 
-    private BeanDefinitionHolder createBeanDefinition(String className, ReferenceConfig config) {
+    private void createBeanDefinitionIfAbsent(BeanDefinitionRegistry registry, String className, ReferenceConfig config) {
         log.info("Creating bean definition for class: {}", className);
-        BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(RPCConsumerProxyFactoryBean.class);
         String beanName = StringUtils.uncapitalize(className.substring(className.lastIndexOf('.') + 1));
+//        if (!registry.containsBeanDefinition(beanName)) {
+//            log.info("duplicated beanDefinition! {}",beanName);
+//            return;
+//        }
+        BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(RPCProxyFactoryBean.class);
         definition.addPropertyValue("interfaceClass", className);
-        definition.addPropertyValue("client", client);
         if (config.isAsync()) {
             definition.addPropertyValue("exchangeHandler", new AsyncExchangeHandler(client));
         } else if (config.isCallback()) {
@@ -109,13 +99,16 @@ public class RPCConsumerProxyFactoryBeanRegistry implements BeanDefinitionRegist
             definition.addPropertyValue("exchangeHandler", new SyncExchangeHandler(client));
         }
         definition.addPropertyValue("referenceConfig", config);
-        return new BeanDefinitionHolder(definition.getBeanDefinition(), beanName);
+        log.info("创建了对应的动态代理,ReferenceConfig {}", config);
+        BeanDefinitionHolder holder = new BeanDefinitionHolder(definition.getBeanDefinition(), beanName);
+        BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
     }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
     }
-
+    
+    
 }
 

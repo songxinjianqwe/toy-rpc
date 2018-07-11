@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.registry.ServiceDiscovery;
+import com.sinjinsong.toy.registry.ServiceRegistry;
 import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private static final int REPLICA_NUMBER = 160;
     
 
-    public ConsistentHashLoadBalancer(ServiceDiscovery serviceDiscovery) {
-        super(serviceDiscovery);
+    public ConsistentHashLoadBalancer(ServiceRegistry serviceRegistry) {
+        super(serviceRegistry);
     }
 
     @Override

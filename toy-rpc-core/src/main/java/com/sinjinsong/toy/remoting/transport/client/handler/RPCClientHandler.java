@@ -1,13 +1,13 @@
 package com.sinjinsong.toy.remoting.transport.client.handler;
 
 import com.sinjinsong.toy.remoting.exchange.callback.CallbackExchangeHandler;
-import com.sinjinsong.toy.rpc.api.RPCThreadSharedContext;
 import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.remoting.transport.domain.Message;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 import com.sinjinsong.toy.remoting.transport.domain.RPCResponse;
 import com.sinjinsong.toy.remoting.transport.server.task.RPCTask;
 import com.sinjinsong.toy.remoting.transport.server.wrapper.HandlerWrapper;
+import com.sinjinsong.toy.rpc.api.RPCThreadSharedContext;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import static com.sinjinsong.toy.remoting.transport.domain.Message.*;
 
@@ -29,7 +29,7 @@ import static com.sinjinsong.toy.remoting.transport.domain.Message.*;
 @AllArgsConstructor
 public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private Endpoint endpoint;
-    private ThreadPoolExecutor pool;
+    private ExecutorService callbackPool;
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -73,7 +73,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         } else if (message.getType() == REQUEST) {
             // callback
             RPCRequest request = message.getRequest();
-            pool.submit(new RPCTask(ctx, request,
+            callbackPool.submit(new RPCTask(ctx, request,
                     new HandlerWrapper(RPCThreadSharedContext.getAndRemoveHandler(
                             CallbackExchangeHandler.generateCallbackHandlerKey(request)
                     )))

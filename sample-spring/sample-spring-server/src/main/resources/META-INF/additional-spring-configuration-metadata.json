@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "rpc.application",
+      "type": "java.lang.String",
+      "description": "Description for rpc.application."
+  }
+] }

@@ -22,15 +22,11 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
@@ -40,12 +36,10 @@ import java.util.function.BiConsumer;
 public class RPCServer implements ApplicationContextAware {
     private Map<String, HandlerWrapper> handlerMap = new HashMap<>();
     private ServiceRegistry registry;
-    private String serviceBasePackage;
     private ApplicationContext applicationContext;
 
 
-    public RPCServer(String serviceBasePackage, ServiceRegistry registry) {
-        this.serviceBasePackage = serviceBasePackage;
+    public RPCServer(ServiceRegistry registry) {
         this.registry = registry;
     }
 
@@ -103,15 +97,15 @@ public class RPCServer implements ApplicationContextAware {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-            registry.register(ServerAddressProperty.HOST + ":" + ServerAddressProperty.PORT);
-            log.info("服务器向Zookeeper注册完毕");
+           
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             ChannelFuture future = bootstrap.bind(ServerAddressProperty.HOST, ServerAddressProperty.PORT).sync();
-            log.info("服务器启动");
-
             initHandlerMap();
+            registry.register(ServerAddressProperty.HOST + ":" + ServerAddressProperty.PORT,this.handlerMap.keySet());
+            log.info("服务器向Zookeeper注册完毕");
             //应用程序会一直等待，直到channel关闭
+            log.info("服务器启动");
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -126,16 +120,15 @@ public class RPCServer implements ApplicationContextAware {
      * 初始化handlerMap
      */
     private void initHandlerMap() {
-        log.info("serviceBasePackage:{}", this.serviceBasePackage);
-        scanByPackageAndAnnotation(this.serviceBasePackage, (beanClass, interfaceClass) -> {
+        scanByPackageAndAnnotation((beanClass, interfaceClass) -> {
             RPCService rpcService = beanClass.getAnnotation(RPCService.class);
             this.handlerMap.put(interfaceClass.getName(),
                     new HandlerWrapper(applicationContext.getBean(beanClass), ServiceConfig.builder()
-                    .interfaceName(interfaceClass.getName())
-                    .interfaceClass((Class<Object>) interfaceClass)
-                    .isCallback(rpcService.callback())
-                    .callbackMethod(rpcService.callbackMethod())
-                    .callbackParamIndex(rpcService.callbackParamIndex()).build()));
+                            .interfaceName(interfaceClass.getName())
+                            .interfaceClass((Class<Object>) interfaceClass)
+                            .isCallback(rpcService.callback())
+                            .callbackMethod(rpcService.callbackMethod())
+                            .callbackParamIndex(rpcService.callbackParamIndex()).build()));
         });
         log.info("最终handlerMap为:{}", this.handlerMap);
     }
@@ -145,23 +138,15 @@ public class RPCServer implements ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 
-    public static void scanByPackageAndAnnotation(String basePackage, BiConsumer<Class<?>, Class<?>> action) {
-        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
-        scanner.addIncludeFilter(new AnnotationTypeFilter(RPCService.class));
-        Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(basePackage);
-        beanDefinitions.forEach((beanDefinition -> {
-            try {
-                log.info("扫描到: {}", beanDefinition);
-                
-                String beanClassName = beanDefinition.getBeanClassName();
-                Class<?> beanClass = Class.forName(beanClassName);
-                Class<?>[] interfaces = beanClass.getInterfaces();
-                if (interfaces.length >= 1) {
-                    action.accept(beanClass, interfaces[0]);
-                }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+    private void scanByPackageAndAnnotation(BiConsumer<Class<?>, Class<?>> action) {
+        Map<String, Object> beans = applicationContext.getBeansWithAnnotation(RPCService.class);
+        beans.forEach((beanName, beanInstance) -> {
+            log.info("扫描到: {}", beanName);
+            Class<?> beanClass = beanInstance.getClass();
+            Class<?>[] interfaces = beanClass.getInterfaces();
+            if (interfaces.length >= 1) {
+                action.accept(beanClass, interfaces[0]);
             }
-        }));
+        });
     }
 }

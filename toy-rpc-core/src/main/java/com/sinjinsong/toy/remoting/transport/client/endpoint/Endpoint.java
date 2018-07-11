@@ -1,12 +1,12 @@
 package com.sinjinsong.toy.remoting.transport.client.endpoint;
 
-import com.sinjinsong.toy.rpc.api.RPCThreadSharedContext;
 import com.sinjinsong.toy.remoting.transport.client.handler.RPCClientHandler;
 import com.sinjinsong.toy.remoting.transport.coder.RPCDecoder;
 import com.sinjinsong.toy.remoting.transport.coder.RPCEncoder;
 import com.sinjinsong.toy.remoting.transport.domain.Message;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 import com.sinjinsong.toy.remoting.transport.domain.RPCResponse;
+import com.sinjinsong.toy.rpc.api.RPCThreadSharedContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -17,10 +17,12 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.sinjinsong.toy.remoting.transport.FrameConstant.*;
 
@@ -32,17 +34,20 @@ import static com.sinjinsong.toy.remoting.transport.FrameConstant.*;
 @Slf4j
 public class Endpoint {
     private String address;
+    private List<String> interfaces;
     private Bootstrap bootstrap;
     private EventLoopGroup group;
     private Channel futureChannel;
     private volatile boolean initialized = false;
-    private ThreadPoolExecutor pool;
+    private ExecutorService callbackPool;
     
-    public Endpoint(String address, ThreadPoolExecutor pool) {
-        this.pool = pool;
+    public Endpoint(String address, ExecutorService callbackPool,String interfaceName) {
+        this.callbackPool = callbackPool;
         this.address = address;
+        this.interfaces = new ArrayList<>();
+        this.interfaces.add(interfaceName);
     }
-    
+
     private void init() {
         this.group = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
@@ -61,7 +66,7 @@ public class Endpoint {
                                 // Message -> Message
                                 .addLast("RPCDecoder", new RPCDecoder())
 
-                                .addLast("RPCClientHandler", new RPCClientHandler(Endpoint.this,pool));
+                                .addLast("RPCClientHandler", new RPCClientHandler(Endpoint.this, callbackPool));
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
@@ -74,8 +79,8 @@ public class Endpoint {
             handleException();
         }
     }
-    
-     private Channel connect() throws Exception {
+
+    private Channel connect() throws Exception {
         String host = address.split(":")[0];
         Integer port = Integer.parseInt(address.split(":")[1]);
         ChannelFuture future = bootstrap.connect(host, port).sync();
@@ -89,13 +94,12 @@ public class Endpoint {
 
     public void handleException() {
         log.info("连接失败策略为直接关闭，关闭客户端");
-        this.close();
+        close();
     }
-   
+
 
     /**
      * 提交请求
-     *
      * @param request
      * @return
      */
@@ -113,7 +117,17 @@ public class Endpoint {
     }
 
     /**
-     * 关闭连接
+     * 如果该Endpoint不提供任何服务，则将其关闭
+     */
+    public void closeIfNoServiceAvailable(String interfaceName) {
+        interfaces.remove(interfaceName);
+        if (interfaces.size() == 0) {
+            close();
+        }
+    }
+
+    /**
+     * 如果该Endpoint不提供任何服务，则将其关闭
      */
     public void close() {
         try {
@@ -126,9 +140,13 @@ public class Endpoint {
             group.shutdownGracefully();
         }
     }
-
+    
     public String getAddress() {
         return address;
+    }
+
+    public void addInterface(String interfaceName) {
+        this.interfaces.add(interfaceName);
     }
 
     @Override
@@ -136,18 +154,18 @@ public class Endpoint {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Endpoint endpoint = (Endpoint) o;
-        return Objects.equals(address, endpoint.address);
+        return initialized == endpoint.initialized &&
+                Objects.equals(address, endpoint.address) &&
+                Objects.equals(interfaces, endpoint.interfaces) &&
+                Objects.equals(bootstrap, endpoint.bootstrap) &&
+                Objects.equals(group, endpoint.group) &&
+                Objects.equals(futureChannel, endpoint.futureChannel) &&
+                Objects.equals(callbackPool, endpoint.callbackPool);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(address);
-    }
 
-    @Override
-    public String toString() {
-        return "Endpoint{" +
-                "address='" + address + '\'' +
-                '}';
+        return Objects.hash(address, interfaces, bootstrap, group, futureChannel, initialized, callbackPool);
     }
 }

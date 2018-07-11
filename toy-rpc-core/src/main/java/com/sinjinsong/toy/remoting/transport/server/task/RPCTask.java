@@ -87,7 +87,7 @@ public class RPCTask implements Runnable {
                                 log.info("requestId {}",request.getRequestId());
                                 // 这里requestId是一样的
                                 callbackRequest.setRequestId(request.getRequestId());
-                                callbackRequest.setClassName(method.getDeclaringClass().getName());
+                                callbackRequest.setInterfaceName(method.getDeclaringClass().getName());
                                 callbackRequest.setMethodName(method.getName());
                                 callbackRequest.setParameterTypes(method.getParameterTypes());
                                 callbackRequest.setParameters(args);

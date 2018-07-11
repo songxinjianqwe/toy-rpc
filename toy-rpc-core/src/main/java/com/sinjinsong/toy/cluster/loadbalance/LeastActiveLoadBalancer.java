@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.registry.ServiceDiscovery;
+import com.sinjinsong.toy.registry.ServiceRegistry;
 import com.sinjinsong.toy.remoting.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.remoting.transport.domain.RPCRequest;
 
@@ -14,8 +14,8 @@ import java.util.List;
 public class LeastActiveLoadBalancer extends AbstractLoadBalancer {
 
     
-    public LeastActiveLoadBalancer(ServiceDiscovery serviceDiscovery) {
-        super(serviceDiscovery);
+    public LeastActiveLoadBalancer(ServiceRegistry serviceRegistry) {
+        super(serviceRegistry);
     }
 
     @Override

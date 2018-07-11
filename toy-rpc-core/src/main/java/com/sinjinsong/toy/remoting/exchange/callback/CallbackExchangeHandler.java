@@ -36,7 +36,7 @@ public class CallbackExchangeHandler extends AbstractExchangeHandler {
     }
     
     public static String generateCallbackHandlerKey(RPCRequest request) {
-        return new StringBuilder(request.getRequestId()).append(".").append(request.getClassName()).toString();
+        return new StringBuilder(request.getRequestId()).append(".").append(request.getInterfaceName()).toString();
     }
 
     private static String generateCallbackHandlerKey(RPCRequest request, ReferenceConfig referenceConfig) {
