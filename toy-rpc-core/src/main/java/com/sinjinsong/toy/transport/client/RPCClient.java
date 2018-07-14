@@ -3,8 +3,8 @@ package com.sinjinsong.toy.transport.client;
 import com.sinjinsong.toy.cluster.LoadBalancer;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
-import com.sinjinsong.toy.transport.domain.RPCResponse;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Future;

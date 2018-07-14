@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.transport.domain;
+package com.sinjinsong.toy.transport.common.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

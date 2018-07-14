@@ -1,9 +1,9 @@
 package com.sinjinsong.toy.transport.server.handler;
 
 
-import com.sinjinsong.toy.transport.domain.Message;
-import com.sinjinsong.toy.transport.server.task.RPCTask;
-import com.sinjinsong.toy.transport.server.wrapper.HandlerWrapper;
+import com.sinjinsong.toy.transport.common.domain.Message;
+import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
+import com.sinjinsong.toy.transport.task.RPCTaskRunner;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -14,8 +14,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.sinjinsong.toy.transport.domain.Message.PING;
-import static com.sinjinsong.toy.transport.domain.Message.REQUEST;
+import static com.sinjinsong.toy.transport.common.domain.Message.PING;
+import static com.sinjinsong.toy.transport.common.domain.Message.REQUEST;
 
 /**
  * Created by SinjinSong on 2017/7/29.
@@ -29,7 +29,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     public RPCServerHandler(Map<String, HandlerWrapper> handlerMap) {
         this.handlerMap = handlerMap;
         this.pool = new ThreadPoolExecutor(100, 100, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
-        log.info("{}",handlerMap);
+        log.info("HANDLERS:{}",handlerMap);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);
         } else if (message.getType() == REQUEST) {
-            pool.submit(new RPCTask(ctx, message.getRequest(), handlerMap.get(message.getRequest().getInterfaceName())));
+            pool.submit(new RPCTaskRunner(ctx, message.getRequest(), handlerMap.get(message.getRequest().getInterfaceName())));
         }
     }
 

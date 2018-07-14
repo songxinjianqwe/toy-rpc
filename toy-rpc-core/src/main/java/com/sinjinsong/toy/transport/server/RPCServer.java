@@ -1,15 +1,15 @@
 package com.sinjinsong.toy.transport.server;
 
+import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.config.annotation.RPCService;
 import com.sinjinsong.toy.registry.ServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.FrameConstant;
-import com.sinjinsong.toy.transport.codec.RPCDecoder;
-import com.sinjinsong.toy.transport.codec.RPCEncoder;
+import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
+import com.sinjinsong.toy.transport.common.codec.RPCEncoder;
+import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
 import com.sinjinsong.toy.transport.server.handler.RPCServerHandler;
-import com.sinjinsong.toy.transport.server.property.ServerAddressProperty;
-import com.sinjinsong.toy.transport.server.wrapper.HandlerWrapper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -26,6 +26,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -36,13 +38,17 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class RPCServer implements ApplicationContextAware {
     private Map<String, HandlerWrapper> handlerMap = new HashMap<>();
-    private ServiceRegistry registry;
     private ApplicationContext applicationContext;
+    private ServiceRegistry registry;
     private Serializer serializer;
+    private ProtocolConfig protocolConfig;
 
-    public RPCServer(ServiceRegistry registry,Serializer serializer) {
+    public RPCServer(ServiceRegistry registry,
+                     Serializer serializer,
+                     ProtocolConfig protocolConfig) {
         this.registry = registry;
         this.serializer = serializer;
+        this.protocolConfig = protocolConfig;
     }
 
     public void run() {
@@ -99,17 +105,20 @@ public class RPCServer implements ApplicationContextAware {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-           
+
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
-            ChannelFuture future = bootstrap.bind(ServerAddressProperty.HOST, ServerAddressProperty.PORT).sync();
+            String host = InetAddress.getLocalHost().getHostAddress();
+            ChannelFuture future = bootstrap.bind(host, protocolConfig.getPort()).sync();
             initHandlerMap();
-            registry.register(ServerAddressProperty.HOST + ":" + ServerAddressProperty.PORT,this.handlerMap.keySet());
+            registry.register(host + ":" + protocolConfig.getPort(), this.handlerMap.keySet());
             log.info("服务器向Zookeeper注册完毕");
             //应用程序会一直等待，直到channel关闭
             log.info("服务器启动");
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
             e.printStackTrace();
         } finally {
             registry.close();
@@ -117,7 +126,7 @@ public class RPCServer implements ApplicationContextAware {
             bossGroup.shutdownGracefully();
         }
     }
-
+    
     /**
      * 初始化handlerMap
      */
@@ -139,11 +148,10 @@ public class RPCServer implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
-
+    
     private void scanByPackageAndAnnotation(BiConsumer<Class<?>, Class<?>> action) {
         Map<String, Object> beans = applicationContext.getBeansWithAnnotation(RPCService.class);
         beans.forEach((beanName, beanInstance) -> {
-            log.info("扫描到: {}", beanName);
             Class<?> beanClass = beanInstance.getClass();
             Class<?>[] interfaces = beanClass.getInterfaces();
             if (interfaces.length >= 1) {

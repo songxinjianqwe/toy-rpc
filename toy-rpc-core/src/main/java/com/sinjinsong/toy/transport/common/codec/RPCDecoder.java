@@ -1,9 +1,9 @@
-package com.sinjinsong.toy.transport.codec;
+package com.sinjinsong.toy.transport.common.codec;
 
 import com.sinjinsong.toy.serialize.api.Serializer;
-import com.sinjinsong.toy.transport.domain.Message;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
-import com.sinjinsong.toy.transport.domain.RPCResponse;
+import com.sinjinsong.toy.transport.common.domain.Message;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;

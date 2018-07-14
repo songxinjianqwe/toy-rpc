@@ -1,8 +1,12 @@
 package com.sinjinsong.toy.registry;
 
 import com.sinjinsong.toy.common.constant.CharsetConst;
+import com.sinjinsong.toy.config.RegistryConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +21,16 @@ import java.util.concurrent.locks.LockSupport;
  */
 @Slf4j
 public class ServiceRegistry extends ZookeeperClient {
+
     private static long TEN_SEC = 10000000000L;
 
+    private RegistryConfig registryConfig;
     private volatile Thread discoveringThread;
     private volatile Map<String, List<String>> addresses = new ConcurrentHashMap<>();
-
-    public ServiceRegistry(String registryAddress) {
-        super.connect(registryAddress);
-    }
-
+    
+    public void init() {
+        super.connect(registryConfig.getAddress());
+    }    
     /**
      * 服务发现
      * 返回值的key是接口名，返回值的value是IP地址列表
@@ -98,5 +103,9 @@ public class ServiceRegistry extends ZookeeperClient {
 
     private static String generatePath(String interfaceName) {
         return new StringBuilder(ZookeeperConstant.ZK_REGISTRY_PATH).append("/").append(interfaceName).toString();
+    }
+
+    public void setRegistryConfig(RegistryConfig registryConfig) {
+        this.registryConfig = registryConfig;
     }
 }

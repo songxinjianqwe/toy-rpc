@@ -1,7 +1,7 @@
-package com.sinjinsong.toy.transport.codec;
+package com.sinjinsong.toy.transport.common.codec;
 
 import com.sinjinsong.toy.serialize.api.Serializer;
-import com.sinjinsong.toy.transport.domain.Message;
+import com.sinjinsong.toy.transport.common.domain.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;

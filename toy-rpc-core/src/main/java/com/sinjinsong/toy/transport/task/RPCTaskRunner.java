@@ -1,10 +1,10 @@
-package com.sinjinsong.toy.transport.server.task;
+package com.sinjinsong.toy.transport.task;
 
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.transport.domain.Message;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
-import com.sinjinsong.toy.transport.domain.RPCResponse;
-import com.sinjinsong.toy.transport.server.wrapper.HandlerWrapper;
+import com.sinjinsong.toy.transport.common.domain.Message;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,12 +16,12 @@ import java.lang.reflect.Proxy;
  * Created by SinjinSong on 2017/7/31.
  */
 @Slf4j
-public class RPCTask implements Runnable {
+public class RPCTaskRunner implements Runnable {
     private ChannelHandlerContext ctx;
     private RPCRequest request;
     private HandlerWrapper handlerWrapper;
     
-    public RPCTask(ChannelHandlerContext ctx, RPCRequest request, HandlerWrapper handlerWrapper) {
+    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request, HandlerWrapper handlerWrapper) {
         this.ctx = ctx;
         this.request = request;
         this.handlerWrapper = handlerWrapper;

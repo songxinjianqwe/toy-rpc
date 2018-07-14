@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.transport.server.wrapper;
+package com.sinjinsong.toy.transport.common.handler;
 
 import com.sinjinsong.toy.config.ServiceConfig;
 import lombok.AllArgsConstructor;

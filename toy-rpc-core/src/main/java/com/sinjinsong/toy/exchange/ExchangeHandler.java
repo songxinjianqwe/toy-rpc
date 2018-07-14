@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.exchange;
 
 import com.sinjinsong.toy.config.ReferenceConfig;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
 /**
  * @author sinjinsong

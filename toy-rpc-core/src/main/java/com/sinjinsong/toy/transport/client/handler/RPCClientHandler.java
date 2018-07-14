@@ -2,11 +2,11 @@ package com.sinjinsong.toy.transport.client.handler;
 
 import com.sinjinsong.toy.exchange.callback.CallbackExchangeHandler;
 import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.transport.domain.Message;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
-import com.sinjinsong.toy.transport.domain.RPCResponse;
-import com.sinjinsong.toy.transport.server.task.RPCTask;
-import com.sinjinsong.toy.transport.server.wrapper.HandlerWrapper;
+import com.sinjinsong.toy.transport.common.domain.Message;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.task.RPCTaskRunner;
+import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
 import com.sinjinsong.toy.rpc.api.RPCThreadSharedContext;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -71,7 +71,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         } else if (message.getType() == Message.REQUEST) {
             // callback
             RPCRequest request = message.getRequest();
-            callbackPool.submit(new RPCTask(ctx, request,
+            callbackPool.submit(new RPCTaskRunner(ctx, request,
                     new HandlerWrapper(RPCThreadSharedContext.getAndRemoveHandler(
                             CallbackExchangeHandler.generateCallbackHandlerKey(request)
                     )))

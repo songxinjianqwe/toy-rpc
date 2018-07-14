@@ -2,10 +2,11 @@ package com.sinjinsong.toy.cluster.support;
 
 
 import com.sinjinsong.toy.cluster.LoadBalancer;
+import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.registry.ServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,12 +33,8 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      */
     private ExecutorService callbackPool = Executors.newSingleThreadExecutor();
     private Serializer serializer;
+    private ClusterConfig clusterConfig;
     
-    public AbstractLoadBalancer(ServiceRegistry ServiceRegistry,Serializer serializer) {
-        this.serviceRegistry = ServiceRegistry;
-        this.serializer = serializer;
-    }
-
     @Override
     public Endpoint select(RPCRequest request) {
         // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
@@ -84,5 +81,17 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     public void close() {
         callbackPool.shutdown();
         interfaceEndpoints.forEach( (interfaceName,map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
+    }
+
+    public void setServiceRegistry(ServiceRegistry serviceRegistry) {
+        this.serviceRegistry = serviceRegistry;
+    }
+
+    public void setSerializer(Serializer serializer) {
+        this.serializer = serializer;
+    }
+
+    public void setClusterConfig(ClusterConfig clusterConfig) {
+        this.clusterConfig = clusterConfig;
     }
 }

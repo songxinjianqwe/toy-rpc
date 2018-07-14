@@ -4,8 +4,8 @@ import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.exchange.support.AbstractExchangeHandler;
 import com.sinjinsong.toy.transport.client.RPCClient;
 import com.sinjinsong.toy.rpc.api.RPCThreadLocalContext;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
-import com.sinjinsong.toy.transport.domain.RPCResponse;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 
 import java.util.concurrent.Future;
 

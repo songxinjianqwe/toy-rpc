@@ -1,10 +1,8 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.registry.ServiceRegistry;
-import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
-import com.sinjinsong.toy.transport.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
@@ -21,10 +19,6 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private TreeMap<Long, Endpoint> hashCircle = new TreeMap<>();
     private List<Endpoint> cachedEndpoints;
     private static final int REPLICA_NUMBER = 160;
-
-    public ConsistentHashLoadBalancer(ServiceRegistry ServiceRegistry, Serializer serializer) {
-        super(ServiceRegistry, serializer);
-    }
 
 
     @Override
