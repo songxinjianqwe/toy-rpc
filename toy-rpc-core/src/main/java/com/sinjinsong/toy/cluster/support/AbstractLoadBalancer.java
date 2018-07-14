@@ -3,7 +3,7 @@ package com.sinjinsong.toy.cluster.support;
 
 import com.sinjinsong.toy.cluster.LoadBalancer;
 import com.sinjinsong.toy.config.ClusterConfig;
-import com.sinjinsong.toy.registry.ServiceRegistry;
+import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
  * @date 2018/6/10
  */
 public abstract class AbstractLoadBalancer implements LoadBalancer {
-    private ServiceRegistry serviceRegistry;
+    private ZkServiceRegistry serviceRegistry;
     /**
      * key是接口名，value的key是IP地址，value是Endpoint
      * <p>
@@ -83,7 +83,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         interfaceEndpoints.forEach( (interfaceName,map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
     }
 
-    public void setServiceRegistry(ServiceRegistry serviceRegistry) {
+    public void setServiceRegistry(ZkServiceRegistry serviceRegistry) {
         this.serviceRegistry = serviceRegistry;
     }
 

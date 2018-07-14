@@ -3,7 +3,7 @@ package com.sinjinsong.toy.transport.server;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.config.annotation.RPCService;
-import com.sinjinsong.toy.registry.ServiceRegistry;
+import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.FrameConstant;
 import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
@@ -39,11 +39,11 @@ import java.util.function.BiConsumer;
 public class RPCServer implements ApplicationContextAware {
     private Map<String, HandlerWrapper> handlerMap = new HashMap<>();
     private ApplicationContext applicationContext;
-    private ServiceRegistry registry;
+    private ZkServiceRegistry registry;
     private Serializer serializer;
     private ProtocolConfig protocolConfig;
 
-    public RPCServer(ServiceRegistry registry,
+    public RPCServer(ZkServiceRegistry registry,
                      Serializer serializer,
                      ProtocolConfig protocolConfig) {
         this.registry = registry;

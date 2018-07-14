@@ -1,8 +1,6 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.registry.ServiceRegistry;
-import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 

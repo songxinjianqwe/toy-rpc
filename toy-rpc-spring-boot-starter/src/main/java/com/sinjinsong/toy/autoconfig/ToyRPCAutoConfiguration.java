@@ -11,7 +11,8 @@ import com.sinjinsong.toy.cluster.loadbalance.RoundRobinLoadBalancer;
 import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.proxy.RPCProxyFactoryBeanRegistry;
-import com.sinjinsong.toy.registry.ServiceRegistry;
+import com.sinjinsong.toy.registry.api.ServiceRegistry;
+import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
 import com.sinjinsong.toy.transport.client.RPCClient;
@@ -38,16 +39,17 @@ public class ToyRPCAutoConfiguration {
 
     @Bean
     public Serializer serializer() {
+        //TODO 根据protocol.serialize创建Serializer
         return new ProtostuffSerializer();
     }
     
     @ConditionalOnProperty(value = "rpc.registry.address")
-    @Bean
+    @Bean(initMethod = "init",destroyMethod="close")
     public ServiceRegistry serviceRegistry() {
         log.info("{}",properties.getRegistry());
-        ServiceRegistry serviceRegistry = new ServiceRegistry();
+        //TODO 根据type创建ServiceRegistry
+        ZkServiceRegistry serviceRegistry = new ZkServiceRegistry();
         serviceRegistry.setRegistryConfig(properties.getRegistry());
-        serviceRegistry.init();
         return serviceRegistry;
     } 
 
@@ -67,7 +69,7 @@ public class ToyRPCAutoConfiguration {
     
     @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "CONSISTENT_HASH")
     @Bean
-    public ConsistentHashLoadBalancer consistentHashLoadBalancer(ServiceRegistry serviceRegistry,Serializer serializer) {
+    public ConsistentHashLoadBalancer consistentHashLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
         log.info("{}",properties.getCluster());
         ConsistentHashLoadBalancer loadBalancer = new ConsistentHashLoadBalancer();
         loadBalancer.setServiceRegistry(serviceRegistry);
@@ -78,7 +80,7 @@ public class ToyRPCAutoConfiguration {
     
     @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "RANDOM")
     @Bean
-    public LoadBalancer randomLoadBalancer(ServiceRegistry serviceRegistry, Serializer serializer) {
+    public LoadBalancer randomLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
          log.info("{}",properties.getCluster());
         RandomLoadBalancer loadBalancer = new RandomLoadBalancer();
         loadBalancer.setServiceRegistry(serviceRegistry);
@@ -89,7 +91,7 @@ public class ToyRPCAutoConfiguration {
     
     @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "ROUND_ROBIN")
     @Bean
-    public LoadBalancer roundRobinLoadBalancer(ServiceRegistry serviceRegistry,Serializer serializer) {
+    public LoadBalancer roundRobinLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
          log.info("{}",properties.getCluster());
         RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
         loadBalancer.setServiceRegistry(serviceRegistry);
@@ -100,7 +102,7 @@ public class ToyRPCAutoConfiguration {
     
     @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "LEAST_ACTIVE")
     @Bean
-    public LoadBalancer leastActiveLoadBalancer(ServiceRegistry serviceRegistry,Serializer serializer) {
+    public LoadBalancer leastActiveLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
          log.info("{}",properties.getCluster());
         LeastActiveLoadBalancer loadBalancer = new LeastActiveLoadBalancer();
         loadBalancer.setServiceRegistry(serviceRegistry);
@@ -111,7 +113,7 @@ public class ToyRPCAutoConfiguration {
     
     @Conditional(RPCServerCondition.class)
     @Bean
-    public RPCServer rpcServer(ServiceRegistry serviceRegistry,Serializer serializer,ProtocolConfig protocolConfig) {
+    public RPCServer rpcServer(ZkServiceRegistry serviceRegistry, Serializer serializer, ProtocolConfig protocolConfig) {
         return new RPCServer(serviceRegistry, serializer, protocolConfig);
     }
     

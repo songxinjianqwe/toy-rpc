@@ -1,7 +1,8 @@
-package com.sinjinsong.toy.registry;
+package com.sinjinsong.toy.registry.zookeeper;
 
 import com.sinjinsong.toy.common.constant.CharsetConst;
-import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.registry.api.support.AbstractServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -20,23 +21,28 @@ import java.util.concurrent.locks.LockSupport;
  * 服务器进行服务注册或者客户端进行服务发现
  */
 @Slf4j
-public class ServiceRegistry extends ZookeeperClient {
-
+public class ZkServiceRegistry extends AbstractServiceRegistry {
+    private ZkSupport zkSupport;
+    
     private static long TEN_SEC = 10000000000L;
-
-    private RegistryConfig registryConfig;
+    private static final String ZK_REGISTRY_PATH = "/toy";
+    
     private volatile Thread discoveringThread;
     private volatile Map<String, List<String>> addresses = new ConcurrentHashMap<>();
     
+    @Override
     public void init() {
-        super.connect(registryConfig.getAddress());
+        zkSupport = new ZkSupport();
+        zkSupport.connect(registryConfig.getAddress());
     }    
+    
     /**
      * 服务发现
      * 返回值的key是接口名，返回值的value是IP地址列表
      *
      * @return
      */
+    @Override
     public List<String> discover(String interfaceName) {
         log.info("discovering...");
         // 如果是第一次discovering，那么watchNode
@@ -58,12 +64,11 @@ public class ServiceRegistry extends ZookeeperClient {
      */
     private void watchNode(String interfaceName) {
         try {
-            List<String> interfaceNames = zookeeper.getChildren(ZookeeperConstant.ZK_REGISTRY_PATH, false);
-            
+            List<String> interfaceNames = zkSupport.getChildren(ZK_REGISTRY_PATH, false);
             for (String i : interfaceNames) {
                 String path = generatePath(interfaceName);
                 if (i.equals(interfaceName)) {
-                    List<String> addresses = zookeeper.getChildren(path, new Watcher() {
+                    List<String> addresses = zkSupport.getChildren(path, new Watcher() {
                         @Override
                         public void process(WatchedEvent event) {
                             if (event.getType() == Event.EventType.NodeChildrenChanged) {
@@ -74,7 +79,7 @@ public class ServiceRegistry extends ZookeeperClient {
                     log.info("interfaceName:{} -> addresses:{}", interfaceName, addresses);
                     List<String> dataList = new ArrayList<>();
                     for (String node : addresses) {
-                        byte[] bytes = zookeeper.getData(path + "/" + node, false, null);
+                        byte[] bytes = zkSupport.getData(path + "/" + node, false, null);
                         dataList.add(new String(bytes, CharsetConst.UTF_8));
                     }
                     log.info("node data: {}", dataList);
@@ -83,7 +88,7 @@ public class ServiceRegistry extends ZookeeperClient {
             }
             LockSupport.unpark(discoveringThread);
         } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
+            throw new RPCException("ZK故障",e);
         }
     }
 
@@ -93,19 +98,25 @@ public class ServiceRegistry extends ZookeeperClient {
      * @param address
      * @param interfaces
      */
+    @Override
     public void register(String address, Set<String> interfaces) {
         for (String interfaceName : interfaces) {
             String path = generatePath(interfaceName);
-            createPathIfAbsent(path, CreateMode.PERSISTENT);
-            createNode(address, path);
+            try {
+                zkSupport.createPathIfAbsent(path, CreateMode.PERSISTENT);
+            } catch (KeeperException | InterruptedException e) {
+                throw new RPCException("ZK故障",e);
+            }
+            zkSupport.createNode(address, path);
         }
     }
 
-    private static String generatePath(String interfaceName) {
-        return new StringBuilder(ZookeeperConstant.ZK_REGISTRY_PATH).append("/").append(interfaceName).toString();
+    @Override
+    public void close() {
+        zkSupport.close();
     }
-
-    public void setRegistryConfig(RegistryConfig registryConfig) {
-        this.registryConfig = registryConfig;
+    
+    private static String generatePath(String interfaceName) {
+        return new StringBuilder(ZK_REGISTRY_PATH).append("/").append(interfaceName).toString();
     }
 }
