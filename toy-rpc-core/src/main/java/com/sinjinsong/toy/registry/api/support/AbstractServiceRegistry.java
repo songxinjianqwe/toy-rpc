@@ -13,6 +13,4 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
     public void setRegistryConfig(RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
     }
-    
-    
 }

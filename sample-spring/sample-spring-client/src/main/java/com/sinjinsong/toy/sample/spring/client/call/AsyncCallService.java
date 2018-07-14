@@ -2,7 +2,7 @@ package com.sinjinsong.toy.sample.spring.client.call;
 
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloService;
-import com.sinjinsong.toy.rpc.api.RPCThreadLocalContext;
+import com.sinjinsong.toy.common.context.RPCThreadLocalContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

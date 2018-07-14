@@ -25,4 +25,16 @@ getObject方法获取实例（MyBatis也是这样做的）。但是前期无法�
 独⽴模块。
 所有接⼝都放在模块的根包下，基类放在 support ⼦包下，不同实现⽤放在以扩展点名字命名的
 ⼦包下。
-![image](http://markdown-1252651195.cossh.myqcloud.com/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20%281%29.jpg)
+
+## 分层
+### Consumer
+BeanPostProcessor->如果有属性有@RPCReference注解，则读取为ReferenceConfig，调用get方法。
+ReferenceConfig会注入ApplicationConfig,ProtocolConfig,ClusterConfig,RegistryConfig
+ReferenceConfig#get ->   RPCProxyFactory#createProxy && ReferenceConfig#refer -> Protocol#refer  
+
+proxy#invoke -> invoker#invoker 
+1) filter.invoke 
+2) doInvoke -> invocation#invoke -> loadBalancer#select && endpoint#submit
+
+### Provider
+

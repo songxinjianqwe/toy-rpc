@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.config;
 
+import com.sinjinsong.toy.protocol.api.Protocol;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +15,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProtocolConfig {
+    public static final Integer DEFAULT_THREADS = Integer.valueOf(100);
     private String type;
     private Integer port;
     private Integer threads;
-    private String serialize;
+    
+    
+    private Protocol protocolInstance;
 }

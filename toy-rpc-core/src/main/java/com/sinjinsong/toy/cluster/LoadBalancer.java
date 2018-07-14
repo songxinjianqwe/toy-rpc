@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.cluster;
 
-import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.transport.client.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
 /**

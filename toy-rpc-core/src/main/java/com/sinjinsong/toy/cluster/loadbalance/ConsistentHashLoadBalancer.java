@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.transport.client.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import lombok.extern.slf4j.Slf4j;
 

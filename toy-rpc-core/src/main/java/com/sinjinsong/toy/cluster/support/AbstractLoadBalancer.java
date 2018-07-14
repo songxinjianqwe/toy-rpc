@@ -2,10 +2,9 @@ package com.sinjinsong.toy.cluster.support;
 
 
 import com.sinjinsong.toy.cluster.LoadBalancer;
-import com.sinjinsong.toy.config.ClusterConfig;
-import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
+import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.serialize.api.Serializer;
-import com.sinjinsong.toy.transport.client.endpoint.Endpoint;
+import com.sinjinsong.toy.transport.client.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
 import java.util.*;
@@ -18,7 +17,7 @@ import java.util.concurrent.Executors;
  * @date 2018/6/10
  */
 public abstract class AbstractLoadBalancer implements LoadBalancer {
-    private ZkServiceRegistry serviceRegistry;
+    private RegistryConfig registryConfig;
     /**
      * key是接口名，value的key是IP地址，value是Endpoint
      * <p>
@@ -33,13 +32,12 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      */
     private ExecutorService callbackPool = Executors.newSingleThreadExecutor();
     private Serializer serializer;
-    private ClusterConfig clusterConfig;
-    
+        
     @Override
     public Endpoint select(RPCRequest request) {
         // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
         // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
-        List<String> newAddresses = serviceRegistry.discover(request.getInterfaceName());
+        List<String> newAddresses = registryConfig.getRegistryInstance().discover(request.getInterfaceName());
         if (!interfaceEndpoints.containsKey(request.getInterfaceName())) {
             interfaceEndpoints.put(request.getInterfaceName(), new ConcurrentHashMap<>());
         }
@@ -83,15 +81,11 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         interfaceEndpoints.forEach( (interfaceName,map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
     }
 
-    public void setServiceRegistry(ZkServiceRegistry serviceRegistry) {
-        this.serviceRegistry = serviceRegistry;
+    public void setRegistryConfig(RegistryConfig registryConfig) {
+        this.registryConfig = registryConfig;
     }
 
     public void setSerializer(Serializer serializer) {
         this.serializer = serializer;
-    }
-
-    public void setClusterConfig(ClusterConfig clusterConfig) {
-        this.clusterConfig = clusterConfig;
     }
 }

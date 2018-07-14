@@ -1,15 +1,11 @@
 package com.sinjinsong.toy.transport.server;
 
-import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.config.ServiceConfig;
+import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.config.annotation.RPCService;
-import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
-import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.FrameConstant;
 import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
 import com.sinjinsong.toy.transport.common.codec.RPCEncoder;
 import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
-import com.sinjinsong.toy.transport.server.handler.RPCServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -39,15 +35,16 @@ import java.util.function.BiConsumer;
 public class RPCServer implements ApplicationContextAware {
     private Map<String, HandlerWrapper> handlerMap = new HashMap<>();
     private ApplicationContext applicationContext;
-    private ZkServiceRegistry registry;
-    private Serializer serializer;
+    private RegistryConfig registry;
     private ProtocolConfig protocolConfig;
-
-    public RPCServer(ZkServiceRegistry registry,
-                     Serializer serializer,
+    private ApplicationConfig applicationConfig;
+    private ClusterConfig clusterConfig;
+    
+    public RPCServer(ApplicationConfig applicationConfig,ClusterConfig clusterConfig,RegistryConfig registry,
                      ProtocolConfig protocolConfig) {
+        this.applicationConfig = applicationConfig;
+        this.clusterConfig = clusterConfig;
         this.registry = registry;
-        this.serializer = serializer;
         this.protocolConfig = protocolConfig;
     }
 
@@ -77,12 +74,12 @@ public class RPCServer implements ApplicationContextAware {
                                     // ByteBuf -> Message 
                                     .addLast("LengthFieldPrepender", new LengthFieldPrepender(FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT))
                                     // Message -> ByteBuf
-                                    .addLast("RPCEncoder", new RPCEncoder(serializer))
+                                    .addLast("RPCEncoder", new RPCEncoder(applicationConfig.getSerializerInstance()))
                                     // ByteBuf -> Message
                                     .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(FrameConstant.MAX_FRAME_LENGTH, FrameConstant.LENGTH_FIELD_OFFSET, FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT, FrameConstant.INITIAL_BYTES_TO_STRIP))
                                     // Message -> Message
-                                    .addLast("RPCDecoder", new RPCDecoder(serializer))
-                                    .addLast("RPCServerHandler", new RPCServerHandler(handlerMap));
+                                    .addLast("RPCDecoder", new RPCDecoder(applicationConfig.getSerializerInstance()))
+                                    .addLast("RPCServerHandler", new RPCServerHandler(handlerMap,protocolConfig.getThreads() != null ? protocolConfig.getThreads() : ProtocolConfig.DEFAULT_THREADS));
                         }
                     })
                     //服务器配置项
@@ -111,7 +108,7 @@ public class RPCServer implements ApplicationContextAware {
             String host = InetAddress.getLocalHost().getHostAddress();
             ChannelFuture future = bootstrap.bind(host, protocolConfig.getPort()).sync();
             initHandlerMap();
-            registry.register(host + ":" + protocolConfig.getPort(), this.handlerMap.keySet());
+            registry.getRegistryInstance().register(host + ":" + protocolConfig.getPort(), this.handlerMap.keySet());
             log.info("服务器向Zookeeper注册完毕");
             //应用程序会一直等待，直到channel关闭
             log.info("服务器启动");

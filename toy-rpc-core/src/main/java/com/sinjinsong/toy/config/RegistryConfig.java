@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.config;
 
+import com.sinjinsong.toy.registry.api.ServiceRegistry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,14 @@ import lombok.NoArgsConstructor;
 public class RegistryConfig {
     private String type;
     private String address;
+    private ServiceRegistry registryInstance;
+    
+    public void init() {
+        registryInstance.init();
+    }
+    
+    
+    public void close() {
+        registryInstance.close();
+    }
 }

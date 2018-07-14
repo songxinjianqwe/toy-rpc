@@ -1,21 +1,17 @@
 package com.sinjinsong.toy.autoconfig;
 
 
-import com.sinjinsong.toy.autoconfig.condition.RPCClientCondition;
 import com.sinjinsong.toy.autoconfig.condition.RPCServerCondition;
-import com.sinjinsong.toy.cluster.LoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.ConsistentHashLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.LeastActiveLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.RandomLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.RoundRobinLoadBalancer;
+import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
+import com.sinjinsong.toy.common.enumeration.LoadBalanceType;
 import com.sinjinsong.toy.config.ApplicationConfig;
+import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.proxy.RPCProxyFactoryBeanRegistry;
-import com.sinjinsong.toy.registry.api.ServiceRegistry;
+import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.protocol.toy.ToyProtocol;
+import com.sinjinsong.toy.proxy.JDKRPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
-import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
-import com.sinjinsong.toy.transport.client.RPCClient;
 import com.sinjinsong.toy.transport.server.RPCServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,105 +31,58 @@ import org.springframework.context.annotation.Configuration;
 public class ToyRPCAutoConfiguration {
     @Autowired
     private RPCProperties properties;
-    private static RPCClient CLIENT;
 
-    @Bean
-    public Serializer serializer() {
-        //TODO 根据protocol.serialize创建Serializer
-        return new ProtostuffSerializer();
-    }
-    
     @ConditionalOnProperty(value = "rpc.registry.address")
     @Bean(initMethod = "init",destroyMethod="close")
-    public ServiceRegistry serviceRegistry() {
-        log.info("{}",properties.getRegistry());
+    public RegistryConfig registryConfig() {
+        RegistryConfig registryConfig = properties.getRegistry();
         //TODO 根据type创建ServiceRegistry
-        ZkServiceRegistry serviceRegistry = new ZkServiceRegistry();
-        serviceRegistry.setRegistryConfig(properties.getRegistry());
-        return serviceRegistry;
+        ZkServiceRegistry serviceRegistry = new ZkServiceRegistry(registryConfig);
+        registryConfig.setRegistryInstance(serviceRegistry);
+        log.info("{}",registryConfig);
+        return registryConfig;
     } 
 
     @ConditionalOnProperty(value = "rpc.application.name")
     @Bean
     public ApplicationConfig applicationConfig() {
-        log.info("{}",properties.getApplication());
-        return properties.getApplication();
-    }
-
+        ApplicationConfig application = properties.getApplication();
+        application.setProxyFactoryInstance(new JDKRPCProxyFactory());
+        application.setSerializerInstance(new ProtostuffSerializer());
+        log.info("{}",application);
+        return application;
+    }   
+    
     @ConditionalOnProperty(value = "rpc.protocol.type")
     @Bean
     public ProtocolConfig protocolConfig() {
-        log.info("{}",properties.getProtocol());
-        return properties.getProtocol();
+        ProtocolConfig protocolConfig = properties.getProtocol();
+        protocolConfig.setProtocolInstance(new ToyProtocol());
+        log.info("{}",protocolConfig);
+        return protocolConfig;
     }
     
-    @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "CONSISTENT_HASH")
+    @ConditionalOnProperty(value = "rpc.cluster.loadbalance")
     @Bean
-    public ConsistentHashLoadBalancer consistentHashLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
-        log.info("{}",properties.getCluster());
-        ConsistentHashLoadBalancer loadBalancer = new ConsistentHashLoadBalancer();
-        loadBalancer.setServiceRegistry(serviceRegistry);
-        loadBalancer.setSerializer(serializer);
-        loadBalancer.setClusterConfig(properties.getCluster());
-        return loadBalancer;
+    public ClusterConfig clusterconfig(ApplicationConfig applicationConfig,RegistryConfig registryConfig) {
+        ClusterConfig clusterConfig = properties.getCluster();
+        AbstractLoadBalancer loadBalancer = LoadBalanceType.valueOf(clusterConfig.getLoadbalance().toUpperCase()).getLoadBalancer();
+        loadBalancer.setSerializer(applicationConfig.getSerializerInstance());
+        loadBalancer.setRegistryConfig(registryConfig);
+        clusterConfig.setLoadBalanceInstance(loadBalancer);
+        log.info("{}",clusterConfig);
+        return clusterConfig;
     }
-    
-    @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "RANDOM")
-    @Bean
-    public LoadBalancer randomLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
-         log.info("{}",properties.getCluster());
-        RandomLoadBalancer loadBalancer = new RandomLoadBalancer();
-        loadBalancer.setServiceRegistry(serviceRegistry);
-        loadBalancer.setSerializer(serializer);
-        loadBalancer.setClusterConfig(properties.getCluster());
-        return loadBalancer;
-    }
-    
-    @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "ROUND_ROBIN")
-    @Bean
-    public LoadBalancer roundRobinLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
-         log.info("{}",properties.getCluster());
-        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
-        loadBalancer.setServiceRegistry(serviceRegistry);
-        loadBalancer.setSerializer(serializer);
-        loadBalancer.setClusterConfig(properties.getCluster());
-        return loadBalancer;
-    }
-    
-    @ConditionalOnProperty(value = "rpc.cluster.loadbalance", havingValue = "LEAST_ACTIVE")
-    @Bean
-    public LoadBalancer leastActiveLoadBalancer(ZkServiceRegistry serviceRegistry, Serializer serializer) {
-         log.info("{}",properties.getCluster());
-        LeastActiveLoadBalancer loadBalancer = new LeastActiveLoadBalancer();
-        loadBalancer.setServiceRegistry(serviceRegistry);
-        loadBalancer.setSerializer(serializer);
-        loadBalancer.setClusterConfig(properties.getCluster());
-        return loadBalancer;
-    }
-    
+        
     @Conditional(RPCServerCondition.class)
     @Bean
-    public RPCServer rpcServer(ZkServiceRegistry serviceRegistry, Serializer serializer, ProtocolConfig protocolConfig) {
-        return new RPCServer(serviceRegistry, serializer, protocolConfig);
+    public RPCServer rpcServer(ApplicationConfig applicationConfig,RegistryConfig registryConfig,ClusterConfig clusterConfig, ProtocolConfig protocolConfig) {
+        return new RPCServer(applicationConfig,clusterConfig,registryConfig, protocolConfig);
     }
     
-    @Conditional(RPCClientCondition.class)
     @Bean
-    public RPCClient rpcClient(LoadBalancer loadBalancer) {
-        CLIENT.setLoadBalancer(loadBalancer);
-        return CLIENT;
-    }
-    
-    /**
-     * 因为RPCProxyFactoryBeanRegistry初始化是在常规bean还没有初始化之前进行的，所以是拿不到@Autowired的属性的
-     * 只能去直接读配置文件才能得到basePackage
-     *
-     * @return
-     */
-    @Bean
-    public static RPCProxyFactoryBeanRegistry rpcConsumerProxyFactoryBeanRegistry() {
-        CLIENT = new RPCClient();
-        return new RPCProxyFactoryBeanRegistry(CLIENT);
+    public RPCConsumerBeanPostProcessor rpcConsumerBeanPostProcessor() {
+        return new RPCConsumerBeanPostProcessor();        
     }
 }
 

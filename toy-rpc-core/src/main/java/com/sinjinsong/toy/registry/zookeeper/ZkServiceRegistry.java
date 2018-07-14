@@ -2,6 +2,7 @@ package com.sinjinsong.toy.registry.zookeeper;
 
 import com.sinjinsong.toy.common.constant.CharsetConst;
 import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.registry.api.support.AbstractServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
@@ -29,7 +30,11 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
     
     private volatile Thread discoveringThread;
     private volatile Map<String, List<String>> addresses = new ConcurrentHashMap<>();
-    
+
+    public ZkServiceRegistry(RegistryConfig registryConfig) {
+        this.registryConfig = registryConfig;
+    }
+
     @Override
     public void init() {
         zkSupport = new ZkSupport();
@@ -115,7 +120,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
     public void close() {
         zkSupport.close();
     }
-    
+
     private static String generatePath(String interfaceName) {
         return new StringBuilder(ZK_REGISTRY_PATH).append("/").append(interfaceName).toString();
     }
