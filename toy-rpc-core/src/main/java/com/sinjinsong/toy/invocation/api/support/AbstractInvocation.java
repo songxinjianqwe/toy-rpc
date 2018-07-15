@@ -23,10 +23,12 @@ public abstract class AbstractInvocation implements Invocation {
     public void setReferenceConfig(ReferenceConfig referenceConfig) {
         this.referenceConfig = referenceConfig;
     }
-    
+
+    //TODO 排除掉一些endpoint，不然无法做到failover
     protected Future<RPCResponse> execute(RPCRequest request) {
         Endpoint endpoint = referenceConfig.getClusterConfig().getLoadBalanceInstance().select(request);
         if (endpoint != null) {
+            // 如果提交任务失败，则删掉该Endpoint，再次提交的话必须重新创建Endpoint
             return endpoint.submit(request);
         }
         log.error("未找到可用服务器");

@@ -1,12 +1,12 @@
 package com.sinjinsong.toy.transport.client;
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
+import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.invocation.callback.CallbackInvocation;
 import com.sinjinsong.toy.transport.common.domain.Message;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
-import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
-import com.sinjinsong.toy.transport.task.RPCTaskRunner;
+import com.sinjinsong.toy.transport.runner.RPCTaskRunner;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutorService;
 public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private Endpoint endpoint;
     private ExecutorService callbackPool;
-    
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");
@@ -43,6 +43,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
 
     /**
      * 当超过规定时间，客户端未读写数据，那么会自动调用userEventTriggered方法，向服务器发送一个心跳包
+     *
      * @param ctx
      * @param evt
      * @throws Exception
@@ -70,11 +71,10 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         } else if (message.getType() == Message.REQUEST) {
             // callback
             RPCRequest request = message.getRequest();
-            callbackPool.submit(new RPCTaskRunner(ctx, request,
-                    new HandlerWrapper(RPCThreadSharedContext.getAndRemoveHandler(
-                            CallbackInvocation.generateCallbackHandlerKey(request)
-                    )))
+            ServiceConfig serviceConfig = RPCThreadSharedContext.getAndRemoveHandler(
+                    CallbackInvocation.generateCallbackHandlerKey(request)
             );
+            callbackPool.submit(new RPCTaskRunner(ctx, request, serviceConfig));
         }
     }
 }

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class SyncInvocation extends AbstractInvocation {
         
     @Override
-    public Object invoke(RPCRequest request) throws RPCException {
+    public RPCResponse invoke(RPCRequest request) throws RPCException {
         RPCResponse response = null;
         try {
             response = executeAndWaitForResponse(request,referenceConfig.getTimeout());
@@ -36,12 +36,8 @@ public class SyncInvocation extends AbstractInvocation {
                 throw new RPCException("超过出错重试次数",e1);
             }
         }
-        log.info("客户端读到响应");
-        if (response.hasError()) {
-            throw new RPCException("invocation failed",response.getCause());
-        } else {
-            return response.getResult();
-        }
+        log.info("客户端读到响应:{}",response);
+        return response;
     }
     
     private RPCResponse executeAndWaitForResponse(RPCRequest request, Long timeout) throws Exception {

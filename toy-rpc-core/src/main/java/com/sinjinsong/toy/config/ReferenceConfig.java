@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.config;
 
+import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import lombok.Builder;
 import lombok.Data;
@@ -24,14 +25,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private long timeout = 3000;
     private String callbackMethod;
     private int callbackParamIndex = 1;
-    
+
     private transient volatile T ref;
     private transient volatile Invoker<T> invoker;
     private transient volatile boolean initialized;
 //    private transient volatile boolean destroyed;
 
     private static final Map<Class<?>, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
-    
+
 
     /**
      * 同一个接口只会对应一个ReferenceConfig实例
@@ -53,10 +54,16 @@ public class ReferenceConfig<T> extends AbstractConfig {
                                                                      String callbackMethod,
                                                                      int callbackParamIndex) {
         if (CACHE.containsKey(interfaceClass)) {
+            if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
+                throw new RPCException("同一个接口只能以相同的配置引用" + interfaceClass);
+            }
             return (ReferenceConfig<T>) CACHE.get(interfaceClass);
         }
         synchronized (ReferenceConfig.class) {
             if (CACHE.containsKey(interfaceClass)) {
+                if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
+                    throw new RPCException("同一个接口只能以相同的配置引用" + interfaceClass);
+                }
                 return (ReferenceConfig<T>) CACHE.get(interfaceClass);
             }
             ReferenceConfig config = ReferenceConfig.builder()
@@ -74,6 +81,28 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
     }
 
+    private boolean isDiff(boolean isAsync, boolean isCallback, boolean isOneWay, long timeout, String callbackMethod, int callbackParamIndex) {
+        if (this.isAsync != isAsync) {
+            return true;
+        }
+        if(this.isCallback != isCallback) {
+            return false;
+        }
+        if(this.isOneWay != isOneWay){
+            return true;
+        }
+        if(this.timeout != timeout) {
+            return true;
+        }
+        if(this.callbackMethod != callbackMethod) {
+            return true;
+        }
+        if(this.callbackParamIndex != callbackParamIndex) {
+            return true;
+        }
+        return false;
+    }
+
 
     private void init() {
         if (initialized) {
@@ -81,12 +110,13 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         initialized = true;
 
-        invoker = protocolConfig.getProtocolInstance().refer(interfaceClass,this);
+        invoker = protocolConfig.getProtocolInstance().refer(interfaceClass, this);
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
 
     /**
      * 初始化并
+     *
      * @return
      */
     public T get() {
@@ -95,5 +125,5 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         return ref;
     }
-    
+
 }

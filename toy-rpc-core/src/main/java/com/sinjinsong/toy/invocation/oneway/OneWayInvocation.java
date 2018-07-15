@@ -3,6 +3,7 @@ package com.sinjinsong.toy.invocation.oneway;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 
 /**
  * @author sinjinsong
@@ -11,7 +12,7 @@ import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 public class OneWayInvocation extends AbstractInvocation {
     
     @Override
-    public Object invoke(RPCRequest request) throws RPCException {
+    public RPCResponse invoke(RPCRequest request) throws RPCException {
         execute(request);
         return null;
     }

@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.transport;
+package com.sinjinsong.toy.transport.common.constant;
 
 /**
  * @author sinjinsong

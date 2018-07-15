@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
 public class AsyncInvocation extends AbstractInvocation {
     
     @Override
-    public Object invoke(RPCRequest request) throws RPCException {
+    public RPCResponse invoke(RPCRequest request) throws RPCException {
         Future<RPCResponse> future = execute(request);
         RPCThreadLocalContext.getContext().setFuture(future);
         return null;

@@ -1,10 +1,11 @@
 package com.sinjinsong.toy.transport.client;
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
+import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.serialize.api.Serializer;
-import com.sinjinsong.toy.transport.FrameConstant;
 import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
 import com.sinjinsong.toy.transport.common.codec.RPCEncoder;
+import com.sinjinsong.toy.transport.common.constant.FrameConstant;
 import com.sinjinsong.toy.transport.common.domain.Message;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
@@ -29,7 +30,7 @@ import java.util.concurrent.Future;
 /**
  * @author sinjinsong
  * @date 2018/6/10
- * 
+ * <p>
  * 相当于一个客户端连接，对应一个Channel
  */
 @Slf4j
@@ -40,10 +41,11 @@ public class Endpoint {
     private EventLoopGroup group;
     private Channel futureChannel;
     private volatile boolean initialized = false;
+    private volatile boolean destroyed = false;
     private ExecutorService callbackPool;
     private Serializer serializer;
-    
-    public Endpoint(String address, ExecutorService callbackPool,String interfaceName,Serializer serializer) {
+
+    public Endpoint(String address, ExecutorService callbackPool, String interfaceName, Serializer serializer) {
         this.callbackPool = callbackPool;
         this.address = address;
         this.interfaces = new ArrayList<>();
@@ -84,9 +86,10 @@ public class Endpoint {
     }
 
     private Channel connect() throws Exception {
+        ChannelFuture future = null;
         String host = address.split(":")[0];
         Integer port = Integer.parseInt(address.split(":")[1]);
-        ChannelFuture future = bootstrap.connect(host, port).sync();
+        future = bootstrap.connect(host, port).sync();
         log.info("客户端已连接至 {}", this.address);
         return future.channel();
     }
@@ -94,15 +97,26 @@ public class Endpoint {
     /**
      * 连接失败或IO时失败均会调此方法处理异常
      */
-
     public void handleException() {
         log.info("连接失败策略为直接关闭，关闭客户端");
         close();
+        throw new RPCException("连接失败,关闭客户端");
     }
 
 
     /**
+     * 如果该Endpoint不提供任何服务，则将其关闭
+     */
+    public void closeIfNoServiceAvailable(String interfaceName) {
+        interfaces.remove(interfaceName);
+        if (interfaces.size() == 0) {
+            close();
+        }
+    }
+
+    /**
      * 提交请求
+     *
      * @param request
      * @return
      */
@@ -122,28 +136,19 @@ public class Endpoint {
     /**
      * 如果该Endpoint不提供任何服务，则将其关闭
      */
-    public void closeIfNoServiceAvailable(String interfaceName) {
-        interfaces.remove(interfaceName);
-        if (interfaces.size() == 0) {
-            close();
-        }
-    }
-
-    /**
-     * 如果该Endpoint不提供任何服务，则将其关闭
-     */
     public void close() {
         try {
             if (this.futureChannel != null) {
                 this.futureChannel.close().sync();
             }
+            destroyed = true;
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             group.shutdownGracefully();
         }
     }
-    
+
     public String getAddress() {
         return address;
     }

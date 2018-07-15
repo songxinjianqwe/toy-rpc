@@ -1,10 +1,9 @@
-package com.sinjinsong.toy.transport.task;
+package com.sinjinsong.toy.transport.runner;
 
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.transport.common.domain.Message;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
-import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,18 +18,18 @@ import java.lang.reflect.Proxy;
 public class RPCTaskRunner implements Runnable {
     private ChannelHandlerContext ctx;
     private RPCRequest request;
-    private HandlerWrapper handlerWrapper;
+    private ServiceConfig serviceConfig;
     
-    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request, HandlerWrapper handlerWrapper) {
+    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request,ServiceConfig serviceConfig) {
         this.ctx = ctx;
         this.request = request;
-        this.handlerWrapper = handlerWrapper;
+        this.serviceConfig = serviceConfig;
     }
 
     @Override
     public void run() {
         // callback的无需响应
-        if(handlerWrapper.getServiceConfig()!= null && handlerWrapper.getServiceConfig().isCallback()) {
+        if(serviceConfig != null && serviceConfig.isCallback()) {
             try {
                 handle(request);
             } catch (Throwable t) {
@@ -60,7 +59,7 @@ public class RPCTaskRunner implements Runnable {
      * @throws Throwable
      */
     private Object handle(RPCRequest request) throws Throwable {
-        Object serviceBean = handlerWrapper.getHandler();
+        Object serviceBean = serviceConfig.getRef();
 
         Class<?> serviceClass = serviceBean.getClass();
         String methodName = request.getMethodName();
@@ -71,7 +70,6 @@ public class RPCTaskRunner implements Runnable {
         method.setAccessible(true);
         
         // 针对callback参数，要将其设置为代理对象
-        ServiceConfig serviceConfig = handlerWrapper.getServiceConfig();
         if (serviceConfig != null && serviceConfig.isCallback()) {
             Class<?> interfaceClass = parameterTypes[serviceConfig.getCallbackParamIndex()];
             parameters[serviceConfig.getCallbackParamIndex()] = Proxy.newProxyInstance(

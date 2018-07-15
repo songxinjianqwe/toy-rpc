@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProtocolConfig {
     public static final Integer DEFAULT_THREADS = Integer.valueOf(100);
+    public static final Integer DEFAULT_PORT = Integer.valueOf(8000);
     private String type;
     private Integer port;
     private Integer threads;

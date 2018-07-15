@@ -1,12 +1,10 @@
-package com.sinjinsong.toy.autoconfig;
+package com.sinjinsong.toy.autoconfig.beanpostprocessor;
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.*;
+import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.annotation.RPCReference;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.lang.reflect.Field;
 
@@ -14,14 +12,9 @@ import java.lang.reflect.Field;
  * @author sinjinsong
  * @date 2018/7/14
  */
-public class RPCConsumerBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
-    private ApplicationContext ctx;
+@Slf4j
+public class RPCConsumerBeanPostProcessor extends AbstractRPCBeanPostProcessor{
     
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        return bean;
-    }
-
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Class<?> beanClass = bean.getClass();
@@ -30,11 +23,11 @@ public class RPCConsumerBeanPostProcessor implements BeanPostProcessor, Applicat
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
-            Class<?> className = field.getType();
+            Class<?> interfaceClass = field.getType();
             RPCReference reference = field.getAnnotation(RPCReference.class);
             if (reference != null) {
                 ReferenceConfig config = ReferenceConfig.getSingletonByInterfaceName(
-                        className,
+                        interfaceClass,
                         reference.async(),
                         reference.callback(),
                         reference.oneway(),
@@ -42,24 +35,15 @@ public class RPCConsumerBeanPostProcessor implements BeanPostProcessor, Applicat
                         reference.callbackMethod(),
                         reference.callbackParamIndex()
                 );
-                config.init(
-                        ctx.getBean(ApplicationConfig.class),
-                        ctx.getBean(ClusterConfig.class),
-                        ctx.getBean(ProtocolConfig.class),
-                        ctx.getBean(RegistryConfig.class)
-                );
+                initConfig(config);
                 try {
                     field.set(bean,config.get());
                 } catch (IllegalAccessException e) {
                     throw new RPCException("set proxy failed",e);
                 }
+                log.info("注入依赖:{}",interfaceClass);
             }
         }
         return bean;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.ctx = applicationContext;
     }
 }

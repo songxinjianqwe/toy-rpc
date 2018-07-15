@@ -1,7 +1,6 @@
 package com.sinjinsong.toy.registry.api;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author sinjinsong
@@ -10,6 +9,6 @@ import java.util.Set;
 public interface ServiceRegistry {
     void init();
     List<String> discover(String interfaceName);
-    void register(String address, Set<String> interfaces);
+    void register(String address,String interfaceName);
     void close();
 }

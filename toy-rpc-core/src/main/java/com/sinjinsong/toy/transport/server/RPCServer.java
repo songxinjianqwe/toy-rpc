@@ -1,11 +1,12 @@
 package com.sinjinsong.toy.transport.server;
 
-import com.sinjinsong.toy.config.*;
-import com.sinjinsong.toy.config.annotation.RPCService;
-import com.sinjinsong.toy.transport.FrameConstant;
+import com.sinjinsong.toy.config.ApplicationConfig;
+import com.sinjinsong.toy.config.ClusterConfig;
+import com.sinjinsong.toy.config.ProtocolConfig;
+import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
 import com.sinjinsong.toy.transport.common.codec.RPCEncoder;
-import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
+import com.sinjinsong.toy.transport.common.constant.FrameConstant;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -18,23 +19,15 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
 
 /**
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-public class RPCServer implements ApplicationContextAware {
-    private Map<String, HandlerWrapper> handlerMap = new HashMap<>();
-    private ApplicationContext applicationContext;
+public class RPCServer {
     private RegistryConfig registry;
     private ProtocolConfig protocolConfig;
     private ApplicationConfig applicationConfig;
@@ -79,7 +72,7 @@ public class RPCServer implements ApplicationContextAware {
                                     .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(FrameConstant.MAX_FRAME_LENGTH, FrameConstant.LENGTH_FIELD_OFFSET, FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT, FrameConstant.INITIAL_BYTES_TO_STRIP))
                                     // Message -> Message
                                     .addLast("RPCDecoder", new RPCDecoder(applicationConfig.getSerializerInstance()))
-                                    .addLast("RPCServerHandler", new RPCServerHandler(handlerMap,protocolConfig.getThreads() != null ? protocolConfig.getThreads() : ProtocolConfig.DEFAULT_THREADS));
+                                    .addLast("RPCServerHandler", new RPCServerHandler(protocolConfig));
                         }
                     })
                     //服务器配置项
@@ -107,9 +100,6 @@ public class RPCServer implements ApplicationContextAware {
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             String host = InetAddress.getLocalHost().getHostAddress();
             ChannelFuture future = bootstrap.bind(host, protocolConfig.getPort()).sync();
-            initHandlerMap();
-            registry.getRegistryInstance().register(host + ":" + protocolConfig.getPort(), this.handlerMap.keySet());
-            log.info("服务器向Zookeeper注册完毕");
             //应用程序会一直等待，直到channel关闭
             log.info("服务器启动");
             future.channel().closeFuture().sync();
@@ -122,38 +112,5 @@ public class RPCServer implements ApplicationContextAware {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
-    }
-    
-    /**
-     * 初始化handlerMap
-     */
-    private void initHandlerMap() {
-        scanByPackageAndAnnotation((beanClass, interfaceClass) -> {
-            RPCService rpcService = beanClass.getAnnotation(RPCService.class);
-            this.handlerMap.put(interfaceClass.getName(),
-                    new HandlerWrapper(applicationContext.getBean(beanClass), ServiceConfig.builder()
-                            .interfaceName(interfaceClass.getName())
-                            .interfaceClass((Class<Object>) interfaceClass)
-                            .isCallback(rpcService.callback())
-                            .callbackMethod(rpcService.callbackMethod())
-                            .callbackParamIndex(rpcService.callbackParamIndex()).build()));
-        });
-        log.info("最终handlerMap为:{}", this.handlerMap);
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-    
-    private void scanByPackageAndAnnotation(BiConsumer<Class<?>, Class<?>> action) {
-        Map<String, Object> beans = applicationContext.getBeansWithAnnotation(RPCService.class);
-        beans.forEach((beanName, beanInstance) -> {
-            Class<?> beanClass = beanInstance.getClass();
-            Class<?>[] interfaces = beanClass.getInterfaces();
-            if (interfaces.length >= 1) {
-                action.accept(beanClass, interfaces[0]);
-            }
-        });
     }
 }

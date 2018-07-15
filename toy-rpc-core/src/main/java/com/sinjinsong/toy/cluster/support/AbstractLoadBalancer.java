@@ -32,7 +32,8 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      */
     private ExecutorService callbackPool = Executors.newSingleThreadExecutor();
     private Serializer serializer;
-        
+
+
     @Override
     public Endpoint select(RPCRequest request) {
         // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
@@ -43,10 +44,10 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         }
         Map<String, Endpoint> addressEndpoints = interfaceEndpoints.get(request.getInterfaceName());
         Set<String> oldAddresses = addressEndpoints.keySet();
-        
+
         Set<String> intersect = new HashSet<>(newAddresses);
         intersect.retainAll(oldAddresses);
-        
+
         for (String address : oldAddresses) {
             if (!intersect.contains(address)) {
                 // 去掉一个Endpoint所管理的一个服务，如果某个Endpoint不管理任何服务，则关闭连接
@@ -66,7 +67,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
                     }
                 }
                 // 如果不包含，则建立连接
-                addressEndpoints.put(address, endpoint != null ? endpoint : new Endpoint(address, callbackPool, request.getInterfaceName(),serializer));
+                addressEndpoints.put(address, endpoint != null ? endpoint : new Endpoint(address, callbackPool, request.getInterfaceName(), serializer));
             }
         }
 
@@ -78,8 +79,9 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     @Override
     public void close() {
         callbackPool.shutdown();
-        interfaceEndpoints.forEach( (interfaceName,map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
+        interfaceEndpoints.forEach((interfaceName, map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
     }
+
 
     public void setRegistryConfig(RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;

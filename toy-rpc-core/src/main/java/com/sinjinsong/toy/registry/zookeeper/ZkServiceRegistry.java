@@ -13,7 +13,6 @@ import org.apache.zookeeper.Watcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.LockSupport;
 
@@ -30,7 +29,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
     
     private volatile Thread discoveringThread;
     private volatile Map<String, List<String>> addresses = new ConcurrentHashMap<>();
-
+    
     public ZkServiceRegistry(RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
     }
@@ -49,9 +48,9 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
      */
     @Override
     public List<String> discover(String interfaceName) {
-        log.info("discovering...");
-        // 如果是第一次discovering，那么watchNode
-        if (this.discoveringThread == null) {
+        // 如果该接口对应的地址不存在，那么watchNode
+        if (!addresses.containsKey(interfaceName)) {
+            log.info("discovering...");
             this.discoveringThread = Thread.currentThread();
             watchNode(interfaceName);
             log.info("开始Park... ");
@@ -101,19 +100,17 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
      * 服务注册
      *
      * @param address
-     * @param interfaces
+     * @param interfaceName
      */
     @Override
-    public void register(String address, Set<String> interfaces) {
-        for (String interfaceName : interfaces) {
-            String path = generatePath(interfaceName);
-            try {
-                zkSupport.createPathIfAbsent(path, CreateMode.PERSISTENT);
-            } catch (KeeperException | InterruptedException e) {
-                throw new RPCException("ZK故障",e);
-            }
-            zkSupport.createNode(address, path);
+    public void register(String address, String interfaceName) {
+        String path = generatePath(interfaceName);
+        try {
+            zkSupport.createPathIfAbsent(path, CreateMode.PERSISTENT);
+        } catch (KeeperException | InterruptedException e) {
+            throw new RPCException("ZK故障",e);
         }
+        zkSupport.createNode(address, path);
     }
 
     @Override

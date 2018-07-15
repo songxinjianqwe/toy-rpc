@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.config;
 
-import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import lombok.Builder;
@@ -20,8 +19,12 @@ public class ServiceConfig<T> extends AbstractConfig {
     private boolean isCallback;
     private String callbackMethod;
     private int callbackParamIndex = 1;
+    private T ref;
     
-    public Exporter<T> export(Invoker<T> invoker) throws RPCException {
-        return null;
+    private Exporter<T> exporter; 
+    
+    public void export() {
+        Invoker<T> invoker = applicationConfig.getProxyFactoryInstance().getInvoker(ref, interfaceClass);
+        exporter = protocolConfig.getProtocolInstance().export(invoker,this);
     }
 }

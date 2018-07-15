@@ -1,15 +1,14 @@
 package com.sinjinsong.toy.transport.server;
 
 
+import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.transport.common.domain.Message;
-import com.sinjinsong.toy.transport.common.handler.HandlerWrapper;
-import com.sinjinsong.toy.transport.task.RPCTaskRunner;
+import com.sinjinsong.toy.transport.runner.RPCTaskRunner;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -23,13 +22,14 @@ import static com.sinjinsong.toy.transport.common.domain.Message.REQUEST;
  */
 @Slf4j
 public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
-    private Map<String, HandlerWrapper> handlerMap;
+    private ProtocolConfig protocolConfig;
     private ThreadPoolExecutor pool;
+    private int threads;    
     
-    public RPCServerHandler(Map<String, HandlerWrapper> handlerMap,int threads) {
-        this.handlerMap = handlerMap;
+    public RPCServerHandler(ProtocolConfig protocolConfig) {
+        this.protocolConfig = protocolConfig;
+        this.threads = protocolConfig.getThreads() != null ? protocolConfig.getThreads() : ProtocolConfig.DEFAULT_THREADS;
         this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
-        log.info("HANDLERS:{}",handlerMap);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);
         } else if (message.getType() == REQUEST) {
-            pool.submit(new RPCTaskRunner(ctx, message.getRequest(), handlerMap.get(message.getRequest().getInterfaceName())));
+            pool.submit(new RPCTaskRunner(ctx, message.getRequest(), protocolConfig.getProtocolInstance().getExportedServiceConfig(message.getRequest().getInterfaceName())));
         }
     }
 

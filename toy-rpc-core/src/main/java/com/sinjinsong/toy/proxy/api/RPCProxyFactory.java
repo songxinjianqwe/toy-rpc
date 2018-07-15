@@ -8,4 +8,6 @@ import com.sinjinsong.toy.protocol.api.Invoker;
  */
 public interface RPCProxyFactory {
     <T> T createProxy(Invoker<T> invoker);
+
+    <T> Invoker<T> getInvoker(T proxy, Class<T> type);
 }
