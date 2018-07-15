@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.transport.client.Endpoint;
+import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
 import java.util.List;
@@ -13,7 +13,8 @@ import java.util.List;
 public class LeastActiveLoadBalancer extends AbstractLoadBalancer {
 
     @Override
-    protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
+    protected Invoker doSelect(List<Invoker> invokers, RPCRequest request) {
+        
         return null;
     }
     

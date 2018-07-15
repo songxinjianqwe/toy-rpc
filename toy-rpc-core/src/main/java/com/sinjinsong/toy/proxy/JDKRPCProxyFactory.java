@@ -20,8 +20,15 @@ import java.util.UUID;
 @Slf4j
 public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
 
+    /**
+     * Invoker类型是ClusterInvoker，下层依赖于LoadBalancer
+     * @param invoker
+     * @param <T>
+     * @return
+     */
+    @Override
     public <T> T createProxy(Invoker<T> invoker) {
-        return (T) Proxy.newProxyInstance(
+       return (T) Proxy.newProxyInstance(
                 invoker.getInterface().getClassLoader(),
                 new Class<?>[]{invoker.getInterface()},
                 new InvocationHandler() {
@@ -57,6 +64,8 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
             public Class<T> getInterface() {
                 return type;
             }
+            
+            
 
             @Override
             protected RPCResponse doInvoke(RPCRequest rpcRequest) throws RPCException {

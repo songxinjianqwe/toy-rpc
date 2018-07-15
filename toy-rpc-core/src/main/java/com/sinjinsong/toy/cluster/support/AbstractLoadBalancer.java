@@ -1,8 +1,12 @@
 package com.sinjinsong.toy.cluster.support;
 
 
+import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.cluster.LoadBalancer;
+import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.protocol.api.Invoker;
+import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.client.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
@@ -26,7 +30,8 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * 192.168.1.2,Endpoint2
      * key : BService, value:   192.168.1.1,Endpoint1
      */
-    private Map<String, Map<String, Endpoint>> interfaceEndpoints = new ConcurrentHashMap<>();
+    private Map<String, ClusterInvoker> interfaceInvokers = new ConcurrentHashMap<>();
+
     /**
      * 客户端callback线程池
      */
@@ -34,52 +39,59 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     private Serializer serializer;
 
 
+    /**
+     * 分配address的形式
+     *
+     * @param invoker
+     * @param clusterConfig
+     * @param <T>
+     * @return
+     */
     @Override
-    public Endpoint select(RPCRequest request) {
-        // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
-        // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
-        List<String> newAddresses = registryConfig.getRegistryInstance().discover(request.getInterfaceName());
-        if (!interfaceEndpoints.containsKey(request.getInterfaceName())) {
-            interfaceEndpoints.put(request.getInterfaceName(), new ConcurrentHashMap<>());
+    public <T> Invoker<T> register(Invoker<T> invoker, ClusterConfig clusterConfig) {
+        AbstractInvoker atomicInvoker = (AbstractInvoker) invoker;
+        String interfaceName = invoker.getInterface().getName();
+        ClusterInvoker clusterInvoker;
+        List<String> newAddresses = registryConfig.getRegistryInstance().discover(interfaceName);
+        if (!interfaceInvokers.containsKey(invoker.getInterface())) {
+            clusterInvoker = new ClusterInvoker();
+            clusterInvoker.setInterfaceClass(invoker.getInterface());
+            clusterInvoker.setClusterConfig(clusterConfig);
+            Endpoint endpoint = new Endpoint(newAddresses.get(0), callbackPool, interfaceName, serializer);
+            atomicInvoker.setEndpoint(endpoint);
+            return clusterInvoker;
         }
-        Map<String, Endpoint> addressEndpoints = interfaceEndpoints.get(request.getInterfaceName());
-        Set<String> oldAddresses = addressEndpoints.keySet();
-
-        Set<String> intersect = new HashSet<>(newAddresses);
-        intersect.retainAll(oldAddresses);
-
-        for (String address : oldAddresses) {
-            if (!intersect.contains(address)) {
-                // 去掉一个Endpoint所管理的一个服务，如果某个Endpoint不管理任何服务，则关闭连接
-                addressEndpoints.get(address).closeIfNoServiceAvailable(request.getInterfaceName());
-                addressEndpoints.remove(address);
+        clusterInvoker = interfaceInvokers.get(invoker.getInterface());
+        
+        clusterInvoker.refresh(newAddresses);
+        
+        for (String newAddress : newAddresses) {
+            if (!clusterInvoker.containsAddress(newAddress)) {
+                Endpoint endpoint = new Endpoint(newAddresses.get(0), callbackPool, interfaceName, serializer);
+                atomicInvoker.setEndpoint(endpoint);
+                break;
             }
         }
-
-        for (String address : newAddresses) {
-            if (!intersect.contains(address)) {
-                Endpoint endpoint = null;
-                // 找其他服务的Map中是否包含该endpoint，如果包含，则说明已经连接了，复用该连接即可
-                for (Map<String, Endpoint> map : interfaceEndpoints.values()) {
-                    if (map != addressEndpoints && map.containsKey(address)) {
-                        endpoint = map.get(address);
-                        endpoint.addInterface(request.getInterfaceName());
-                    }
-                }
-                // 如果不包含，则建立连接
-                addressEndpoints.put(address, endpoint != null ? endpoint : new Endpoint(address, callbackPool, request.getInterfaceName(), serializer));
-            }
-        }
-
-        return doSelect(new ArrayList<>(addressEndpoints.values()), request);
+        return clusterInvoker;
     }
 
-    protected abstract Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request);
+    @Override
+    public Invoker select(RPCRequest request) {
+        // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
+        // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
+        ClusterInvoker clusterInvoker = interfaceInvokers.get(request.getInterfaceName());
+        clusterInvoker.refresh(registryConfig.getRegistryInstance().discover(request.getInterfaceName()));
+        return doSelect(clusterInvoker.getInvokers(), request);
+    }
+
+    
+    
+    protected abstract Invoker doSelect(List<Invoker> invokers, RPCRequest request);
 
     @Override
     public void close() {
         callbackPool.shutdown();
-        interfaceEndpoints.forEach((interfaceName, map) -> map.values().forEach(endpoint -> endpoint.closeIfNoServiceAvailable(interfaceName)));
+        interfaceInvokers.values().forEach(clusterInvoker -> clusterInvoker.close());
     }
 
 

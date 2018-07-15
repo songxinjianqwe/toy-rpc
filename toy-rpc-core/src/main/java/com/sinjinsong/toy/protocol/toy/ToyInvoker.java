@@ -35,6 +35,7 @@ public class ToyInvoker<T> extends AbstractInvoker<T> {
             log.info("sync...");
             invocation = new SyncInvocation();
         }
+        invocation.setInvoker(this);
         invocation.setReferenceConfig(referenceConfig);
         return invocation.invoke(rpcRequest);
     }

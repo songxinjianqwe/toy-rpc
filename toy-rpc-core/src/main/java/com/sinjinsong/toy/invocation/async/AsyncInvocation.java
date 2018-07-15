@@ -16,7 +16,7 @@ public class AsyncInvocation extends AbstractInvocation {
     
     @Override
     public RPCResponse invoke(RPCRequest request) throws RPCException {
-        Future<RPCResponse> future = execute(request);
+        Future<RPCResponse> future = invoker.getEndpoint().submit(request);
         RPCThreadLocalContext.getContext().setFuture(future);
         return null;
     }

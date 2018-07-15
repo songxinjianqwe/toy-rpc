@@ -1,10 +1,13 @@
 package com.sinjinsong.toy.config;
 
 import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,7 +35,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
 //    private transient volatile boolean destroyed;
 
     private static final Map<Class<?>, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
-
+    private Collection<Filter> filters;
+    
 
     /**
      * 同一个接口只会对应一个ReferenceConfig实例
@@ -46,13 +50,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
      * @param <T>
      * @return
      */
-    public static <T> ReferenceConfig<T> getSingletonByInterfaceName(Class<T> interfaceClass,
-                                                                     boolean isAsync,
-                                                                     boolean isCallback,
-                                                                     boolean isOneWay,
-                                                                     long timeout,
-                                                                     String callbackMethod,
-                                                                     int callbackParamIndex) {
+    public static <T> ReferenceConfig<T> createReferenceConfig(Class<T> interfaceClass,
+                                                               boolean isAsync,
+                                                               boolean isCallback,
+                                                               boolean isOneWay,
+                                                               long timeout,
+                                                               String callbackMethod,
+                                                               int callbackParamIndex,
+                                                               Collection<Filter> filters) {
         if (CACHE.containsKey(interfaceClass)) {
             if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
                 throw new RPCException("同一个接口只能以相同的配置引用" + interfaceClass);
@@ -75,6 +80,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                     .timeout(timeout)
                     .callbackMethod(callbackMethod)
                     .callbackParamIndex(callbackParamIndex)
+                    .filters(filters == null ? Collections.EMPTY_LIST : filters)
                     .build();
             CACHE.put(interfaceClass, config);
             return config;
@@ -110,7 +116,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         initialized = true;
 
+        // ToyInvoker
         invoker = protocolConfig.getProtocolInstance().refer(interfaceClass, this);
+        // ClusterInvoker
+        invoker = clusterConfig.getLoadBalanceInstance().register(invoker,clusterConfig);
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
 

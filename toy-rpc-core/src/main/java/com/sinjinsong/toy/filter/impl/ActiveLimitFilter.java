@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.filter.impl;
 
+import com.sinjinsong.toy.common.context.RPCStatus;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.Invoker;
@@ -14,13 +15,15 @@ public class ActiveLimitFilter implements Filter {
 
     @Override
     public RPCResponse invoke(Invoker<?> invoker, RPCRequest rpcRequest) throws RPCException {
-        //        Result result;
-//        try {
-//            RPCStatus.incCount(invoker.getUrl());
-//            result = invoker.invoke(invocation);
-//        }catch(RPCException e) {
-//            
-//        }
-        return null;
+        RPCResponse result = null;
+        try {
+            RPCStatus.incCount(rpcRequest.getInterfaceName(),rpcRequest.getMethodName(),invoker.getEndpoint().getAddress());
+            result = invoker.invoke(rpcRequest);
+        }catch(RPCException e) {
+            RPCStatus.decCount(rpcRequest.getInterfaceName(),rpcRequest.getMethodName(),invoker.getEndpoint().getAddress());
+            throw e;
+        }
+        RPCStatus.decCount(rpcRequest.getInterfaceName(),rpcRequest.getMethodName(),invoker.getEndpoint().getAddress());
+        return result;
     }
 }

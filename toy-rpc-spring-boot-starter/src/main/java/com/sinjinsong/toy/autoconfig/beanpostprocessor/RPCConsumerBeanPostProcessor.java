@@ -3,6 +3,7 @@ package com.sinjinsong.toy.autoconfig.beanpostprocessor;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.annotation.RPCReference;
+import com.sinjinsong.toy.filter.Filter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 
@@ -26,14 +27,15 @@ public class RPCConsumerBeanPostProcessor extends AbstractRPCBeanPostProcessor{
             Class<?> interfaceClass = field.getType();
             RPCReference reference = field.getAnnotation(RPCReference.class);
             if (reference != null) {
-                ReferenceConfig config = ReferenceConfig.getSingletonByInterfaceName(
+                ReferenceConfig config = ReferenceConfig.createReferenceConfig(
                         interfaceClass,
                         reference.async(),
                         reference.callback(),
                         reference.oneway(),
                         reference.timeout(),
                         reference.callbackMethod(),
-                        reference.callbackParamIndex()
+                        reference.callbackParamIndex(),
+                        ctx.getBeansOfType(Filter.class).values()
                 );
                 initConfig(config);
                 try {

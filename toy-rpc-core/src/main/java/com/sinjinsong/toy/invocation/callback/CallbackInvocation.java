@@ -3,7 +3,8 @@ package com.sinjinsong.toy.invocation.callback;
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.*;
+import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
@@ -30,7 +31,7 @@ public class CallbackInvocation extends AbstractInvocation {
 
         registerCallbackHandler(request,callbackInstance);
         try {
-            execute(request);
+            invoker.getEndpoint().submit(request);
         } catch (Exception e) {
             throw new RPCException("CLIENT异常", e);
         }

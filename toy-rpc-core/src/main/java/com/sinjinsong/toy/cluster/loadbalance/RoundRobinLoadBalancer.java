@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.transport.client.Endpoint;
+import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
 import java.util.List;
@@ -14,12 +14,12 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
     private int index = 0;
     
     @Override
-    protected Endpoint doSelect(List<Endpoint> endpoints, RPCRequest request) {
-         if(endpoints.size() == 0) {
+    protected Invoker doSelect(List<Invoker> invokers, RPCRequest request) {
+         if(invokers.size() == 0) {
             return null;
         }
-        Endpoint result = endpoints.get(index);
-        index = (index + 1) % endpoints.size();
+        Invoker result = invokers.get(index);
+        index = (index + 1) % invokers.size();
         return result;
     }
 }

@@ -12,8 +12,8 @@ import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 public class OneWayInvocation extends AbstractInvocation {
     
     @Override
-    public RPCResponse invoke(RPCRequest request) throws RPCException {
-        execute(request);
+    public RPCResponse invoke( RPCRequest request) throws RPCException {
+        invoker.getEndpoint().submit(request);
         return null;
     }
 }

@@ -44,7 +44,7 @@ public class Endpoint {
     private volatile boolean destroyed = false;
     private ExecutorService callbackPool;
     private Serializer serializer;
-
+    
     public Endpoint(String address, ExecutorService callbackPool, String interfaceName, Serializer serializer) {
         this.callbackPool = callbackPool;
         this.address = address;

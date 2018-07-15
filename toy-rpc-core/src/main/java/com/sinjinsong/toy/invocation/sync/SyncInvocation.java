@@ -41,7 +41,7 @@ public class SyncInvocation extends AbstractInvocation {
     }
     
     private RPCResponse executeAndWaitForResponse(RPCRequest request, Long timeout) throws Exception {
-        Future<RPCResponse> future = execute(request);
+        Future<RPCResponse> future = invoker.getEndpoint().submit(request);
         return future.get(timeout, TimeUnit.MILLISECONDS);
     }
     
