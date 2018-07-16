@@ -44,7 +44,6 @@ public abstract class AbstractProtocol implements Protocol {
 
     protected <T> Invoker<T> buildFilterChain(List<Filter> filters, Invoker<T> invoker) {
         return new AbstractInvoker<T>() {
-            
            private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal(){
                @Override
                protected Object initialValue() {
