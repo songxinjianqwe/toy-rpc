@@ -11,7 +11,9 @@ import com.sinjinsong.toy.transport.common.domain.RPCResponse;
  * @date 2018/7/7
  */
 public interface Invocation {
-    RPCResponse invoke( RPCRequest request) throws RPCException;
+    RPCResponse invoke(RPCRequest request) throws RPCException;
+
     void setReferenceConfig(ReferenceConfig config);
+
     void setInvoker(Invoker invoker);
 }

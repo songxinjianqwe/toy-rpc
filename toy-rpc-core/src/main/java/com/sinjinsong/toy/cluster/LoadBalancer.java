@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.cluster;
 
-import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 
@@ -11,7 +10,7 @@ import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 public interface LoadBalancer {
     Invoker select(RPCRequest request);
 
-    <T> Invoker<T> register(Invoker<T> invoker,ClusterConfig clusterConfig);
+    <T> Invoker<T> register(Class<T> interfaceClass);
 
     void close();
 }

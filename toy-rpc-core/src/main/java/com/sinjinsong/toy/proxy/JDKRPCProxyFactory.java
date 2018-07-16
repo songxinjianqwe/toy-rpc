@@ -1,6 +1,7 @@
 package com.sinjinsong.toy.proxy;
 
 import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
 import com.sinjinsong.toy.proxy.api.support.AbstractRPCProxyFactory;
@@ -20,14 +21,8 @@ import java.util.UUID;
 @Slf4j
 public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
 
-    /**
-     * Invoker类型是ClusterInvoker，下层依赖于LoadBalancer
-     * @param invoker
-     * @param <T>
-     * @return
-     */
     @Override
-    public <T> T createProxy(Invoker<T> invoker) {
+    protected <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker) {
        return (T) Proxy.newProxyInstance(
                 invoker.getInterface().getClassLoader(),
                 new Class<?>[]{invoker.getInterface()},
@@ -43,7 +38,8 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                         request.setParameterTypes(method.getParameterTypes());
                         request.setParameters(args);
                         // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
-                        RPCResponse response = invoker.invoke(request);
+                        // ClusterInvoker
+                        RPCResponse response = invoker.invoke(request,ReferenceConfig.getReferenceConfigByInterface(method.getDeclaringClass()));
                         if(response == null) {
                             return null;
                         }
@@ -65,11 +61,9 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                 return type;
             }
             
-            
-
             @Override
-            protected RPCResponse doInvoke(RPCRequest rpcRequest) throws RPCException {
-                RPCResponse response = new RPCResponse();
+            protected RPCResponse doInvoke(RPCRequest rpcRequest, ReferenceConfig referenceConfig) throws RPCException {
+                 RPCResponse response = new RPCResponse();
                 try {
                     Method method = proxy.getClass().getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());
                     response.setRequestId(rpcRequest.getRequestId());

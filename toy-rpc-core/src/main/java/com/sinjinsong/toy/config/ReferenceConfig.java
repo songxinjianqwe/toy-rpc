@@ -30,16 +30,15 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private int callbackParamIndex = 1;
 
     private transient volatile T ref;
-    private transient volatile Invoker<T> invoker;
     private transient volatile boolean initialized;
 //    private transient volatile boolean destroyed;
 
     private static final Map<Class<?>, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
     private Collection<Filter> filters;
     
-
+    
     /**
-     * 同一个接口只会对应一个ReferenceConfig实例
+     * 非单例，非接口粒度的单例，同一个服务接口多种配置可以对应多个不同的ReferenceConfig
      *
      * @param interfaceClass
      * @param isAsync
@@ -64,27 +63,20 @@ public class ReferenceConfig<T> extends AbstractConfig {
             }
             return (ReferenceConfig<T>) CACHE.get(interfaceClass);
         }
-        synchronized (ReferenceConfig.class) {
-            if (CACHE.containsKey(interfaceClass)) {
-                if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
-                    throw new RPCException("同一个接口只能以相同的配置引用" + interfaceClass);
-                }
-                return (ReferenceConfig<T>) CACHE.get(interfaceClass);
-            }
-            ReferenceConfig config = ReferenceConfig.builder()
-                    .interfaceName(interfaceClass.getName())
-                    .interfaceClass((Class<Object>) interfaceClass)
-                    .isAsync(isAsync)
-                    .isCallback(isCallback)
-                    .isOneWay(isOneWay)
-                    .timeout(timeout)
-                    .callbackMethod(callbackMethod)
-                    .callbackParamIndex(callbackParamIndex)
-                    .filters(filters == null ? Collections.EMPTY_LIST : filters)
-                    .build();
-            CACHE.put(interfaceClass, config);
-            return config;
-        }
+         
+        ReferenceConfig config = ReferenceConfig.builder()
+                .interfaceName(interfaceClass.getName())
+                .interfaceClass((Class<Object>) interfaceClass)
+                .isAsync(isAsync)
+                .isCallback(isCallback)
+                .isOneWay(isOneWay)
+                .timeout(timeout)
+                .callbackMethod(callbackMethod)
+                .callbackParamIndex(callbackParamIndex)
+                .filters(filters == null ? Collections.EMPTY_LIST : filters)
+                .build();
+        CACHE.put(interfaceClass, config);
+        return config;
     }
 
     private boolean isDiff(boolean isAsync, boolean isCallback, boolean isOneWay, long timeout, String callbackMethod, int callbackParamIndex) {
@@ -116,10 +108,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         initialized = true;
 
-        // ToyInvoker
-        invoker = protocolConfig.getProtocolInstance().refer(interfaceClass, this);
         // ClusterInvoker
-        invoker = clusterConfig.getLoadBalanceInstance().register(invoker,clusterConfig);
+        Invoker<T> invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
 
@@ -134,5 +124,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         return ref;
     }
-
+    
+    public static ReferenceConfig getReferenceConfigByInterface(Class<?> interfaceClass) {
+        return CACHE.get(interfaceClass);
+    } 
 }

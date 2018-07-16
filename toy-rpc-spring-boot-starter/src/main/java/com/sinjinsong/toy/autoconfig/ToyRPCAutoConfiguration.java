@@ -77,14 +77,17 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     }
 
     @Bean
-    public ClusterConfig clusterconfig(ApplicationConfig applicationConfig, RegistryConfig registryConfig) {
+    public ClusterConfig clusterconfig(RegistryConfig registryConfig,ProtocolConfig protocolConfig) {
         ClusterConfig clusterConfig = properties.getCluster();
         if (clusterConfig == null) {
             throw new RPCException("必须配置clusterConfig");
         }
         AbstractLoadBalancer loadBalancer = LoadBalanceType.valueOf(clusterConfig.getLoadbalance().toUpperCase()).getLoadBalancer();
-        loadBalancer.setSerializer(applicationConfig.getSerializerInstance());
         loadBalancer.setRegistryConfig(registryConfig);
+        loadBalancer.setProtocolConfig(protocolConfig);
+        loadBalancer.setClusterConfig(clusterConfig);
+        loadBalancer.setApplicationConfig(applicationConfig());
+        
         clusterConfig.setLoadBalanceInstance(loadBalancer);
         log.info("{}", clusterConfig);
         return clusterConfig;

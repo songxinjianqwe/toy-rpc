@@ -1,7 +1,6 @@
 package com.sinjinsong.toy.protocol.toy;
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
@@ -9,7 +8,6 @@ import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 
 /**
  * @author sinjinsong
@@ -31,15 +29,14 @@ public class ToyProtocol extends AbstractProtocol {
         }
         return exporter;
     }
-    
+
     @Override
-    public <T> Invoker<T> refer(Class<T> type, ReferenceConfig<T> referenceConfig) throws RPCException {
-        
+    public <T> Invoker<T> refer(Class<T> type) throws RPCException {
         ToyInvoker<T> invoker = new ToyInvoker<>();
-        invoker.setReferenceConfig(referenceConfig);
         invoker.setInterfaceClass(type);
         // TODO 注入Filters
-        Invoker<T> invokerWithFilters = buildFilterChain(new ArrayList<>(), invoker);
+        Invoker<T> invokerWithFilters = invoker;
+//        Invoker<T> invokerWithFilters = buildFilterChain(new ArrayList<>(), invoker);
         putInvoker(type, invokerWithFilters);
         return invokerWithFilters;
     }

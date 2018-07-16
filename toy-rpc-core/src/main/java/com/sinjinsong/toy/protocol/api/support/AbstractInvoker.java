@@ -12,10 +12,9 @@ import com.sinjinsong.toy.transport.common.domain.RPCResponse;
  * @date 2018/7/14
  */
 public abstract class AbstractInvoker<T> implements Invoker<T> {
-    protected ReferenceConfig<T> referenceConfig;
     protected Class<T> interfaceClass;
     protected Endpoint endpoint;
-
+    
     @Override
     public Class<T> getInterface() {
         return interfaceClass;
@@ -25,7 +24,15 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     public Endpoint getEndpoint() {
         return endpoint;
     }
-
+    
+    public void setInterfaceClass(Class<T> interfaceClass) {
+        this.interfaceClass = interfaceClass;
+    }
+    
+    @Override
+    public void setEndpoint(Endpoint endpoint) {
+        this.endpoint = endpoint;
+    }
 
     /**
      * @param rpcRequest
@@ -33,22 +40,10 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
      * @throws RPCException
      */
     @Override
-    public final RPCResponse invoke(RPCRequest rpcRequest) throws RPCException {
-        return doInvoke(rpcRequest);
+    public final RPCResponse invoke(RPCRequest rpcRequest,ReferenceConfig referenceConfig) throws RPCException {
+        return doInvoke(rpcRequest,referenceConfig);
     }
 
-    protected abstract RPCResponse doInvoke(RPCRequest rpcRequest) throws RPCException;
+    protected abstract RPCResponse doInvoke(RPCRequest rpcRequest,ReferenceConfig referenceConfig) throws RPCException;
 
-
-    public void setReferenceConfig(ReferenceConfig<T> referenceConfig) {
-        this.referenceConfig = referenceConfig;
-    }
-
-    public void setInterfaceClass(Class<T> interfaceClass) {
-        this.interfaceClass = interfaceClass;
-    }
-
-    public void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
-    }
 }

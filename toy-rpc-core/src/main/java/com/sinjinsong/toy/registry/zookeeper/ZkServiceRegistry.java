@@ -3,6 +3,7 @@ package com.sinjinsong.toy.registry.zookeeper;
 import com.sinjinsong.toy.common.constant.CharsetConst;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.registry.api.ClusterCallback;
 import com.sinjinsong.toy.registry.api.support.AbstractServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
@@ -12,8 +13,6 @@ import org.apache.zookeeper.Watcher;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -28,7 +27,6 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
     private static final String ZK_REGISTRY_PATH = "/toy";
     
     private volatile Thread discoveringThread;
-    private volatile Map<String, List<String>> addresses = new ConcurrentHashMap<>();
     
     public ZkServiceRegistry(RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
@@ -47,17 +45,14 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
      * @return
      */
     @Override
-    public List<String> discover(String interfaceName) {
+    public void discover(String interfaceName, ClusterCallback callback) {
         // 如果该接口对应的地址不存在，那么watchNode
-        if (!addresses.containsKey(interfaceName)) {
-            log.info("discovering...");
-            this.discoveringThread = Thread.currentThread();
-            watchNode(interfaceName);
-            log.info("开始Park... ");
-            LockSupport.parkNanos(this, TEN_SEC);
-            log.info("Park结束");
-        }
-        return addresses.get(interfaceName);
+        log.info("discovering...");
+        this.discoveringThread = Thread.currentThread();
+        watchNode(interfaceName,callback);
+        log.info("开始Park... ");
+        LockSupport.parkNanos(this, TEN_SEC);
+        log.info("Park结束");
     }
 
     /**
@@ -66,7 +61,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
      * /toy/AService/192.168.1.2:1221 -> 192.168.1.2:1221
      * /toy/BService/192.168.1.3:1221 -> 192.168.1.3:1221
      */
-    private void watchNode(String interfaceName) {
+    private void watchNode(String interfaceName,ClusterCallback callback) {
         try {
             List<String> interfaceNames = zkSupport.getChildren(ZK_REGISTRY_PATH, false);
             for (String i : interfaceNames) {
@@ -76,7 +71,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
                         @Override
                         public void process(WatchedEvent event) {
                             if (event.getType() == Event.EventType.NodeChildrenChanged) {
-                                watchNode(interfaceName);
+                                watchNode(interfaceName,callback);
                             }
                         }
                     });
@@ -87,7 +82,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
                         dataList.add(new String(bytes, CharsetConst.UTF_8));
                     }
                     log.info("node data: {}", dataList);
-                    this.addresses.put(interfaceName, dataList);
+                    callback.addresseChanged(dataList);
                 }
             }
             LockSupport.unpark(discoveringThread);

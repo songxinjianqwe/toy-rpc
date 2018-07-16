@@ -1,7 +1,6 @@
 package com.sinjinsong.toy.protocol.api;
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 
 /**
@@ -27,7 +26,7 @@ public interface Protocol {
      * @return
      * @throws RPCException
      */
-    <T> Invoker<T> refer(Class<T> type, ReferenceConfig<T> referenceConfig) throws RPCException;
+    <T> Invoker<T> refer(Class<T> type) throws RPCException;
     
     <T> ServiceConfig<T> getExportedServiceConfig(String interfaceMame) throws RPCException;
 }

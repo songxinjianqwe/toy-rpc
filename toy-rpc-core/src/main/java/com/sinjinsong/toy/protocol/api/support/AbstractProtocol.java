@@ -1,6 +1,7 @@
 package com.sinjinsong.toy.protocol.api.support;
 
 import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.Exporter;
@@ -45,15 +46,15 @@ public abstract class AbstractProtocol implements Protocol {
             }
 
             @Override
-            protected RPCResponse doInvoke(RPCRequest rpcRequest) throws RPCException {
+            protected RPCResponse doInvoke(RPCRequest rpcRequest,ReferenceConfig referenceConfig) throws RPCException {
                 for (int i = 0; i < filters.size() - 1; i++) {
                     Integer next = Integer.valueOf(i + 1);
                     filters.get(i).invoke(new AbstractInvoker<T>() {
                         @Override
-                        protected RPCResponse doInvoke(RPCRequest rpcRequest) throws RPCException {
-                            return filters.get(next).invoke(this, rpcRequest);
+                        protected RPCResponse doInvoke(RPCRequest rpcRequest,ReferenceConfig referenceConfig) throws RPCException {
+                            return filters.get(next).invoke(this,referenceConfig, rpcRequest);
                         }
-                    }, rpcRequest);
+                    }, referenceConfig,rpcRequest);
                 }
                 return null;
             }
