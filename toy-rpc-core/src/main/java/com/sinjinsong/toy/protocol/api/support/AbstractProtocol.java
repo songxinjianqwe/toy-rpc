@@ -45,7 +45,12 @@ public abstract class AbstractProtocol implements Protocol {
     protected <T> Invoker<T> buildFilterChain(List<Filter> filters, Invoker<T> invoker) {
         return new AbstractInvoker<T>() {
             
-           private AtomicInteger filterIndex = new AtomicInteger(0);
+           private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal(){
+               @Override
+               protected Object initialValue() {
+                   return new AtomicInteger(0);
+               }
+           };
             
             @Override
             public Class<T> getInterface() {
@@ -54,13 +59,13 @@ public abstract class AbstractProtocol implements Protocol {
             
             @Override
             protected RPCResponse doInvoke(Invocation invocation) throws RPCException {
-                log.info("filterIndex:{}",filterIndex.get());
+                log.info("filterIndex:{}",filterIndex.get().get());
                 Invocation originalInvocation = InvocationUtil.extractOriginalInvocation(invocation);
-                if(filterIndex.get() < filters.size()) {
+                if(filterIndex.get().get() < filters.size()) {
                     InvocationDelegate invocationDelegate = new InvocationDelegate(invocation,() -> doInvoke(originalInvocation));                    
-                    return filters.get(filterIndex.getAndIncrement()).invoke(invocationDelegate);
+                    return filters.get(filterIndex.get().getAndIncrement()).invoke(invocationDelegate);
                 }
-                filterIndex.set(0);
+                filterIndex.get().set(0);
                 return originalInvocation.invoke();
             }
         };
