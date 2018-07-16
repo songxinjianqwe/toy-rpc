@@ -9,7 +9,6 @@ import com.sinjinsong.toy.invoke.api.support.InvocationDelegate;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.Protocol;
-import com.sinjinsong.toy.transport.client.Endpoint;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,31 +45,22 @@ public abstract class AbstractProtocol implements Protocol {
     protected <T> Invoker<T> buildFilterChain(List<Filter> filters, Invoker<T> invoker) {
         return new AbstractInvoker<T>() {
             
-            private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal(){
-                @Override
-                protected AtomicInteger initialValue() {
-                    return new AtomicInteger(0);
-                }
-            };
+           private AtomicInteger filterIndex = new AtomicInteger(0);
             
             @Override
             public Class<T> getInterface() {
                 return invoker.getInterface();
             }
-
-            @Override
-            public Endpoint getEndpoint() {
-                return invoker.getEndpoint();
-            }
             
             @Override
             protected RPCResponse doInvoke(Invocation invocation) throws RPCException {
-                log.info("filterIndex:{}",filterIndex.get().get());
+                log.info("filterIndex:{}",filterIndex.get());
                 Invocation originalInvocation = InvocationUtil.extractOriginalInvocation(invocation);
-                if(filterIndex.get().get() < filters.size()) {
+                if(filterIndex.get() < filters.size()) {
                     InvocationDelegate invocationDelegate = new InvocationDelegate(invocation,() -> doInvoke(originalInvocation));                    
-                    return filters.get(filterIndex.get().getAndIncrement()).invoke(invocationDelegate);
+                    return filters.get(filterIndex.getAndIncrement()).invoke(invocationDelegate);
                 }
+                filterIndex.set(0);
                 return originalInvocation.invoke();
             }
         };
