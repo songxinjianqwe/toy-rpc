@@ -10,6 +10,7 @@ import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.filter.impl.ActiveLimitFilter;
 import com.sinjinsong.toy.protocol.toy.ToyProtocol;
 import com.sinjinsong.toy.proxy.JDKRPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
@@ -110,6 +111,11 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         return processor;
     }
 
+    @Bean
+    public ActiveLimitFilter activeLimitFilter() {
+        return new ActiveLimitFilter();
+    } 
+    
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         log.info("Spring容器启动完毕，且NEED_SERVER为{}",NEED_SERVER);

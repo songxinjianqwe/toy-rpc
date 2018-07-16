@@ -10,7 +10,7 @@ import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 public interface LoadBalancer {
     Invoker select(RPCRequest request);
 
-    <T> Invoker<T> register(Class<T> interfaceClass);
+    <T> ClusterInvoker<T> register(Class<T> interfaceClass);
 
     void close();
 }

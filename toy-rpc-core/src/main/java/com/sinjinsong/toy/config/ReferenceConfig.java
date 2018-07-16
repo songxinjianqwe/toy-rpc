@@ -1,14 +1,12 @@
 package com.sinjinsong.toy.config;
 
+import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
-import com.sinjinsong.toy.protocol.api.Invoker;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -34,7 +32,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
 //    private transient volatile boolean destroyed;
 
     private static final Map<Class<?>, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
-    private Collection<Filter> filters;
+    private List<Filter> filters;
     
     
     /**
@@ -73,7 +71,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                 .timeout(timeout)
                 .callbackMethod(callbackMethod)
                 .callbackParamIndex(callbackParamIndex)
-                .filters(filters == null ? Collections.EMPTY_LIST : filters)
+                .filters(filters == null ? Collections.EMPTY_LIST : new ArrayList(filters))
                 .build();
         CACHE.put(interfaceClass, config);
         return config;
@@ -109,7 +107,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         initialized = true;
 
         // ClusterInvoker
-        Invoker<T> invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
+        ClusterInvoker<T> invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
 
@@ -128,4 +126,49 @@ public class ReferenceConfig<T> extends AbstractConfig {
     public static ReferenceConfig getReferenceConfigByInterface(Class<?> interfaceClass) {
         return CACHE.get(interfaceClass);
     } 
+    
+    public static List<Filter> getFiltersByInterface(Class<?> interfaceClass) {
+        if(!CACHE.containsKey(interfaceClass)) {
+            throw new RPCException("ReferenceConfig未找到");
+        }
+        return CACHE.get(interfaceClass).getFilters();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ReferenceConfig<?> that = (ReferenceConfig<?>) o;
+        return isAsync == that.isAsync &&
+                isOneWay == that.isOneWay &&
+                isCallback == that.isCallback &&
+                timeout == that.timeout &&
+                callbackParamIndex == that.callbackParamIndex &&
+                Objects.equals(interfaceName, that.interfaceName) &&
+                Objects.equals(interfaceClass, that.interfaceClass) &&
+                Objects.equals(callbackMethod, that.callbackMethod) &&
+                Objects.equals(filters, that.filters);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(interfaceName, interfaceClass, isAsync, isOneWay, isCallback, timeout, callbackMethod, callbackParamIndex, filters);
+    }
+    
+    @Override
+    public String toString() {
+        return "ReferenceConfig{" +
+                "interfaceName='" + interfaceName + '\'' +
+                ", interfaceClass=" + interfaceClass +
+                ", isAsync=" + isAsync +
+                ", isOneWay=" + isOneWay +
+                ", isCallback=" + isCallback +
+                ", timeout=" + timeout +
+                ", callbackMethod='" + callbackMethod + '\'' +
+                ", callbackParamIndex=" + callbackParamIndex +
+                ", ref=" + ref +
+                ", initialized=" + initialized +
+                ", filters=" + filters +
+                '}';
+    }
 }

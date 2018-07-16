@@ -1,6 +1,7 @@
 package com.sinjinsong.toy.protocol.toy;
 
 import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
@@ -34,9 +35,7 @@ public class ToyProtocol extends AbstractProtocol {
     public <T> Invoker<T> refer(Class<T> type) throws RPCException {
         ToyInvoker<T> invoker = new ToyInvoker<>();
         invoker.setInterfaceClass(type);
-        // TODO 注入Filters
-        Invoker<T> invokerWithFilters = invoker;
-//        Invoker<T> invokerWithFilters = buildFilterChain(new ArrayList<>(), invoker);
+        Invoker<T> invokerWithFilters = buildFilterChain(ReferenceConfig.getFiltersByInterface(type), invoker);
         putInvoker(type, invokerWithFilters);
         return invokerWithFilters;
     }

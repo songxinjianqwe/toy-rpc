@@ -1,9 +1,8 @@
-package com.sinjinsong.toy.invocation.async;
+package com.sinjinsong.toy.invoke.async;
 
 import com.sinjinsong.toy.common.context.RPCThreadLocalContext;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 
 import java.util.concurrent.Future;
@@ -15,8 +14,8 @@ import java.util.concurrent.Future;
 public class AsyncInvocation extends AbstractInvocation {
     
     @Override
-    public RPCResponse invoke(RPCRequest request) throws RPCException {
-        Future<RPCResponse> future = invoker.getEndpoint().submit(request);
+    public RPCResponse invoke() throws RPCException {
+        Future<RPCResponse> future = invoker.getEndpoint().submit(rpcRequest);
         RPCThreadLocalContext.getContext().setFuture(future);
         return null;
     }

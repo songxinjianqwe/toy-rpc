@@ -2,10 +2,9 @@ package com.sinjinsong.toy.filter.impl;
 
 import com.sinjinsong.toy.common.context.RPCStatus;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.common.util.InvocationUtil;
 import com.sinjinsong.toy.filter.Filter;
-import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.invoke.api.Invocation;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 
 /**
@@ -13,18 +12,19 @@ import com.sinjinsong.toy.transport.common.domain.RPCResponse;
  * @date 2018/7/7
  */
 public class ActiveLimitFilter implements Filter {
-
+    
     @Override
-    public RPCResponse invoke(Invoker<?> invoker,ReferenceConfig referenceConfig,RPCRequest rpcRequest) throws RPCException {
+    public RPCResponse invoke(Invocation invocation) throws RPCException {
         RPCResponse result = null;
+        String address = InvocationUtil.extractAddressFromInvocation(invocation);
         try {
-            RPCStatus.incCount(rpcRequest.getInterfaceName(),rpcRequest.getMethodName(),invoker.getEndpoint().getAddress());
-            result = invoker.invoke(rpcRequest,referenceConfig);
+            RPCStatus.incCount(invocation.getInterfaceName(),invocation.getMethodName(),address);
+            result = invocation.invoke();
         }catch(RPCException e) {
-            RPCStatus.decCount(rpcRequest.getInterfaceName(),rpcRequest.getMethodName(),invoker.getEndpoint().getAddress());
+            RPCStatus.decCount(invocation.getInterfaceName(),invocation.getMethodName(),address);
             throw e;
         }
-        RPCStatus.decCount(rpcRequest.getInterfaceName(),rpcRequest.getMethodName(),invoker.getEndpoint().getAddress());
+        RPCStatus.decCount(invocation.getInterfaceName(),invocation.getMethodName(),address);
         return result;
     }
 }

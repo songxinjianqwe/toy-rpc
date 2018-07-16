@@ -1,11 +1,11 @@
-package com.sinjinsong.toy.invocation.callback;
+package com.sinjinsong.toy.invoke.callback;
 
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
+import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 
@@ -24,14 +24,14 @@ import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 public class CallbackInvocation extends AbstractInvocation {
 
     @Override
-    public RPCResponse invoke(RPCRequest request) throws RPCException {
-        Object callbackInstance = request.getParameters()[referenceConfig.getCallbackParamIndex()];
+    public RPCResponse invoke() throws RPCException {
+        Object callbackInstance = rpcRequest.getParameters()[referenceConfig.getCallbackParamIndex()];
         // 该实例无需序列化
-        request.getParameters()[referenceConfig.getCallbackParamIndex()] = null;
+        rpcRequest.getParameters()[referenceConfig.getCallbackParamIndex()] = null;
 
-        registerCallbackHandler(request,callbackInstance);
+        registerCallbackHandler(rpcRequest,callbackInstance);
         try {
-            invoker.getEndpoint().submit(request);
+            invoker.getEndpoint().submit(rpcRequest);
         } catch (Exception e) {
             throw new RPCException("CLIENT异常", e);
         }

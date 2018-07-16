@@ -2,7 +2,7 @@ package com.sinjinsong.toy.transport.client;
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.invocation.callback.CallbackInvocation;
+import com.sinjinsong.toy.invoke.callback.CallbackInvocation;
 import com.sinjinsong.toy.transport.common.domain.Message;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;

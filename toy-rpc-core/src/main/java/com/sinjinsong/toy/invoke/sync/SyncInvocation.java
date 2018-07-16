@@ -1,8 +1,8 @@
-package com.sinjinsong.toy.invocation.sync;
+package com.sinjinsong.toy.invoke.sync;
 
 import com.github.rholder.retry.*;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
+import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +19,15 @@ import java.util.concurrent.TimeUnit;
 public class SyncInvocation extends AbstractInvocation {
         
     @Override
-    public RPCResponse invoke(RPCRequest request) throws RPCException {
+    public RPCResponse invoke() throws RPCException {
         RPCResponse response = null;
         try {
-            response = executeAndWaitForResponse(request,referenceConfig.getTimeout());
+            response = executeAndWaitForResponse(rpcRequest,referenceConfig.getTimeout());
         } catch (Exception e) {
             e.printStackTrace();
             log.info("出错,FailOver!");
             try {
-                response = retry(referenceConfig.getTimeout(),request);
+                response = retry(referenceConfig.getTimeout(),rpcRequest);
             } catch (ExecutionException e1) {
                 e1.printStackTrace();
             } catch (RetryException e1) {

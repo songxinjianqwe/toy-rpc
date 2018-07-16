@@ -1,10 +1,9 @@
 package com.sinjinsong.toy.protocol.api.support;
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.invoke.api.Invocation;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.transport.client.Endpoint;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 
 /**
@@ -29,21 +28,20 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         this.interfaceClass = interfaceClass;
     }
     
-    @Override
     public void setEndpoint(Endpoint endpoint) {
         this.endpoint = endpoint;
     }
 
     /**
-     * @param rpcRequest
+     * @param invocation
      * @return
      * @throws RPCException
      */
     @Override
-    public final RPCResponse invoke(RPCRequest rpcRequest,ReferenceConfig referenceConfig) throws RPCException {
-        return doInvoke(rpcRequest,referenceConfig);
+    public final RPCResponse invoke(Invocation invocation) throws RPCException {
+        return doInvoke(invocation);
     }
-
-    protected abstract RPCResponse doInvoke(RPCRequest rpcRequest,ReferenceConfig referenceConfig) throws RPCException;
-
+    
+    protected abstract RPCResponse doInvoke(Invocation invocation) throws RPCException;
+    
 }
