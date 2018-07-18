@@ -3,8 +3,7 @@ package com.sinjinsong.toy.invoke.sync;
 import com.github.rholder.retry.*;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ExecutionException;
@@ -16,18 +15,18 @@ import java.util.concurrent.TimeUnit;
  * @date 2018/6/10
  */
 @Slf4j
-public class SyncInvocation extends AbstractInvocation {
+public abstract class SyncInvocation extends AbstractInvocation {
         
     @Override
     public RPCResponse invoke() throws RPCException {
         RPCResponse response = null;
         try {
-            response = executeAndWaitForResponse(rpcRequest,referenceConfig.getTimeout());
+            response = executeAndWaitForResponse(referenceConfig.getTimeout());
         } catch (Exception e) {
             e.printStackTrace();
             log.info("出错,FailOver!");
             try {
-                response = retry(referenceConfig.getTimeout(),rpcRequest);
+                response = retry(referenceConfig.getTimeout());
             } catch (ExecutionException e1) {
                 e1.printStackTrace();
             } catch (RetryException e1) {
@@ -40,8 +39,8 @@ public class SyncInvocation extends AbstractInvocation {
         return response;
     }
     
-    private RPCResponse executeAndWaitForResponse(RPCRequest request, Long timeout) throws Exception {
-        Future<RPCResponse> future = invoker.getEndpoint().submit(request);
+    private RPCResponse executeAndWaitForResponse(Long timeout) throws Exception {
+        Future<RPCResponse> future = doInvoke();
         return future.get(timeout, TimeUnit.MILLISECONDS);
     }
     
@@ -54,7 +53,7 @@ public class SyncInvocation extends AbstractInvocation {
      * @throws ExecutionException
      * @throws RetryException
      */
-    private RPCResponse retry(Long timeout, RPCRequest request) throws ExecutionException, RetryException {
+    private RPCResponse retry(Long timeout) throws ExecutionException, RetryException {
         Retryer<RPCResponse> retryer = RetryerBuilder.<RPCResponse>newBuilder()
                 .retryIfExceptionOfType(Exception.class) // 抛出IOException时重试 
                 .withWaitStrategy(WaitStrategies.incrementingWait(5, TimeUnit.SECONDS, 5, TimeUnit.SECONDS))
@@ -62,7 +61,7 @@ public class SyncInvocation extends AbstractInvocation {
                 .build();
         return retryer.call(() -> {
             log.info("重新连接中...");
-            return executeAndWaitForResponse(request,timeout);
+            return executeAndWaitForResponse(timeout);
         });
     }
 }

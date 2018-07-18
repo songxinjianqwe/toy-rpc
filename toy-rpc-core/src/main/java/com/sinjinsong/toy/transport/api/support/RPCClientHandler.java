@@ -1,12 +1,7 @@
-package com.sinjinsong.toy.transport.client;
+package com.sinjinsong.toy.transport.api.support;
 
-import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
-import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.invoke.callback.CallbackInvocation;
-import com.sinjinsong.toy.transport.common.domain.Message;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
-import com.sinjinsong.toy.transport.runner.RPCTaskRunner;
+import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.domain.Message;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -14,20 +9,17 @@ import io.netty.handler.timeout.IdleStateEvent;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-
 
 /**
  * Created by SinjinSong on 2017/7/31.
  */
 @Slf4j
+//TODO 可以share吗
 @ChannelHandler.Sharable
 @AllArgsConstructor
 public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
     private Endpoint endpoint;
-    private ExecutorService callbackPool;
-
+    
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");
@@ -65,16 +57,9 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         if (message.getType() == Message.PONG) {
             log.info("收到服务器的PONG心跳响应");
         } else if (message.getType() == Message.RESPONSE) {
-            RPCResponse response = message.getResponse();
-            CompletableFuture<RPCResponse> future = RPCThreadSharedContext.getAndRemoveResponseFuture(response.getRequestId());
-            future.complete(response);
+            endpoint.handleResponse(message.getResponse());
         } else if (message.getType() == Message.REQUEST) {
-            // callback
-            RPCRequest request = message.getRequest();
-            ServiceConfig serviceConfig = RPCThreadSharedContext.getAndRemoveHandler(
-                    CallbackInvocation.generateCallbackHandlerKey(request)
-            );
-            callbackPool.submit(new RPCTaskRunner(ctx, request, serviceConfig));
+            endpoint.handleRequest(message.getRequest(), ctx);
         }
     }
 }

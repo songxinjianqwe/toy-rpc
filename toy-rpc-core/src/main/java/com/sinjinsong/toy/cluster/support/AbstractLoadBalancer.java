@@ -8,7 +8,7 @@ import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 
 import java.util.List;
 import java.util.Map;

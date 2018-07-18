@@ -3,12 +3,13 @@ package com.sinjinsong.toy.proxy;
 import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
-import com.sinjinsong.toy.invoke.api.Invocation;
+import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
+import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
 import com.sinjinsong.toy.proxy.api.support.AbstractRPCProxyFactory;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -25,7 +26,7 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
 
     @Override
     protected <T> T doCreateProxy(Class<T> interfaceClass, ClusterInvoker<T> invoker) {
-       return (T) Proxy.newProxyInstance(
+        return (T) Proxy.newProxyInstance(
                 invoker.getInterface().getClassLoader(),
                 new Class<?>[]{invoker.getInterface()},
                 new InvocationHandler() {
@@ -41,8 +42,12 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                         request.setParameters(args);
                         // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
                         // ClusterInvoker
-                        RPCResponse response = invoker.invoke(request,ReferenceConfig.getReferenceConfigByInterface(method.getDeclaringClass()));
-                        if(response == null) {
+                        RPCInvokeParam invokeParam = RPCInvokeParam.builder()
+                                .rpcRequest(request)
+                                .referenceConfig(ReferenceConfig.getReferenceConfigByInterface(method.getDeclaringClass()))
+                                .build();
+                        RPCResponse response = invoker.invoke(invokeParam);
+                        if (response == null) {
                             return null;
                         }
                         if (response.hasError()) {
@@ -64,12 +69,12 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
             }
             
             @Override
-            protected RPCResponse doInvoke(Invocation invocation) throws RPCException {
-                 RPCResponse response = new RPCResponse();
+            public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
+               RPCResponse response = new RPCResponse();
                 try {
-                    Method method = proxy.getClass().getMethod(invocation.getMethodName(),invocation.getParameterTypes());
-                    response.setRequestId(invocation.getRequestId());
-                    response.setResult(method.invoke(proxy, invocation.getParameters()));
+                    Method method = proxy.getClass().getMethod(invokeParam.getMethodName(), invokeParam.getParameterTypes());
+                    response.setRequestId(invokeParam.getRequestId());
+                    response.setResult(method.invoke(proxy, invokeParam.getParameters()));
                 } catch (Exception e) {
                     response.setCause(e);
                 }

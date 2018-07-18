@@ -1,20 +1,16 @@
-package com.sinjinsong.toy.transport.server;
+package com.sinjinsong.toy.transport.api.support;
 
 
 import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.transport.common.domain.Message;
-import com.sinjinsong.toy.transport.runner.RPCTaskRunner;
+import com.sinjinsong.toy.transport.api.Server;
+import com.sinjinsong.toy.transport.api.domain.Message;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import static com.sinjinsong.toy.transport.common.domain.Message.PING;
-import static com.sinjinsong.toy.transport.common.domain.Message.REQUEST;
+import static com.sinjinsong.toy.transport.api.domain.Message.PING;
+import static com.sinjinsong.toy.transport.api.domain.Message.REQUEST;
 
 /**
  * Created by SinjinSong on 2017/7/29.
@@ -23,13 +19,11 @@ import static com.sinjinsong.toy.transport.common.domain.Message.REQUEST;
 @Slf4j
 public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
     private ProtocolConfig protocolConfig;
-    private ThreadPoolExecutor pool;
-    private int threads;    
+    private Server server;
     
-    public RPCServerHandler(ProtocolConfig protocolConfig) {
+    public RPCServerHandler(Server server, ProtocolConfig protocolConfig) {
+        this.server = server;
         this.protocolConfig = protocolConfig;
-        this.threads = protocolConfig.getThreads() != null ? protocolConfig.getThreads() : ProtocolConfig.DEFAULT_THREADS;
-        this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     @Override
@@ -44,7 +38,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);
         } else if (message.getType() == REQUEST) {
-            pool.submit(new RPCTaskRunner(ctx, message.getRequest(), protocolConfig.getProtocolInstance().getExportedServiceConfig(message.getRequest().getInterfaceName())));
+            server.handleRequest(message.getRequest(),ctx);
         }
     }
 
@@ -56,9 +50,10 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             ctx.close();
         }
     }
-    
+
     /**
      * 当超过规定时间，服务器未读取到来自客户端的请求，则关闭连接
+     *
      * @param ctx
      * @param evt
      * @throws Exception

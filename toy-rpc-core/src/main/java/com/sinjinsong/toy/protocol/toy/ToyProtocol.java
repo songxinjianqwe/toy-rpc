@@ -1,20 +1,25 @@
 package com.sinjinsong.toy.protocol.toy;
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.ReferenceConfig;
-import com.sinjinsong.toy.config.ServiceConfig;
+import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
+import com.sinjinsong.toy.serialize.api.Serializer;
+import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.toy.server.ToyServer;
+import com.sinjinsong.toy.transport.toy.client.ToyEndpoint;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author sinjinsong
  * @date 2018/7/7
  */
 public class ToyProtocol extends AbstractProtocol {
+
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker, ServiceConfig<T> serviceConfig) throws RPCException {
         ToyExporter<T> exporter = new ToyExporter<>();
@@ -35,8 +40,18 @@ public class ToyProtocol extends AbstractProtocol {
     public <T> Invoker<T> refer(Class<T> type) throws RPCException {
         ToyInvoker<T> invoker = new ToyInvoker<>();
         invoker.setInterfaceClass(type);
-        Invoker<T> invokerWithFilters = buildFilterChain(ReferenceConfig.getFiltersByInterface(type), invoker);
+        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getFiltersByInterface(type));
         putInvoker(type, invokerWithFilters);
         return invokerWithFilters;
+    }
+
+    @Override
+    public Endpoint openClient(String interfaceName, String address, ExecutorService callbackPool, Serializer serializer) {
+        return new ToyEndpoint(address, callbackPool, interfaceName, serializer);
+    }
+
+    @Override
+    public void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
+        new ToyServer(applicationConfig,clusterConfig,registry,protocolConfig).run();
     }
 }

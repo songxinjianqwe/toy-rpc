@@ -1,14 +1,19 @@
-package com.sinjinsong.toy.transport.client;
+package com.sinjinsong.toy.transport.toy.client;
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
 import com.sinjinsong.toy.common.exception.RPCException;
+import com.sinjinsong.toy.config.ServiceConfig;
+import com.sinjinsong.toy.invoke.callback.CallbackInvocation;
 import com.sinjinsong.toy.serialize.api.Serializer;
-import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
-import com.sinjinsong.toy.transport.common.codec.RPCEncoder;
-import com.sinjinsong.toy.transport.common.constant.FrameConstant;
-import com.sinjinsong.toy.transport.common.domain.Message;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.support.RPCClientHandler;
+import com.sinjinsong.toy.transport.toy.codec.RPCDecoder;
+import com.sinjinsong.toy.transport.toy.codec.RPCEncoder;
+import com.sinjinsong.toy.transport.api.constant.FrameConstant;
+import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.transport.toy.RPCTaskRunner;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -19,8 +24,6 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -30,13 +33,13 @@ import java.util.concurrent.Future;
 /**
  * @author sinjinsong
  * @date 2018/6/10
- * <p>
  * 相当于一个客户端连接，对应一个Channel
+ * 每个服务器的每个接口对应一个Endpoint
  */
 @Slf4j
-public class Endpoint {
+public class ToyEndpoint implements Endpoint {
     private String address;
-    private List<String> interfaces;
+    private String interfaceName;
     private Bootstrap bootstrap;
     private EventLoopGroup group;
     private Channel futureChannel;
@@ -44,12 +47,11 @@ public class Endpoint {
     private volatile boolean destroyed = false;
     private ExecutorService callbackPool;
     private Serializer serializer;
-    
-    public Endpoint(String address, ExecutorService callbackPool, String interfaceName, Serializer serializer) {
+
+    public ToyEndpoint(String address, ExecutorService callbackPool, String interfaceName, Serializer serializer) {
         this.callbackPool = callbackPool;
         this.address = address;
-        this.interfaces = new ArrayList<>();
-        this.interfaces.add(interfaceName);
+        this.interfaceName = interfaceName;
         this.serializer = serializer;
     }
 
@@ -71,7 +73,7 @@ public class Endpoint {
                                 // Message -> Message
                                 .addLast("RPCDecoder", new RPCDecoder(serializer))
 
-                                .addLast("RPCClientHandler", new RPCClientHandler(Endpoint.this, callbackPool));
+                                .addLast("RPCClientHandler", new RPCClientHandler(ToyEndpoint.this));
                     }
                 })
                 .option(ChannelOption.SO_KEEPALIVE, true);
@@ -94,24 +96,32 @@ public class Endpoint {
         return future.channel();
     }
 
+    
+    
+    
     /**
      * 连接失败或IO时失败均会调此方法处理异常
      */
+    @Override
     public void handleException() {
         log.info("连接失败策略为直接关闭，关闭客户端");
         close();
         throw new RPCException("连接失败,关闭客户端");
     }
 
+    @Override
+    public void handleRequest(RPCRequest request, ChannelHandlerContext ctx) {
+        // callback
+        ServiceConfig serviceConfig = RPCThreadSharedContext.getAndRemoveHandler(
+                CallbackInvocation.generateCallbackHandlerKey(request)
+        );
+        callbackPool.submit(new RPCTaskRunner(ctx, request, serviceConfig));
+    }
 
-    /**
-     * 如果该Endpoint不提供任何服务，则将其关闭
-     */
-    public void closeIfNoServiceAvailable(String interfaceName) {
-        interfaces.remove(interfaceName);
-        if (interfaces.size() == 0) {
-            close();
-        }
+    @Override
+    public void handleResponse(RPCResponse response) {
+        CompletableFuture<RPCResponse> future = RPCThreadSharedContext.getAndRemoveResponseFuture(response.getRequestId());
+        future.complete(response);
     }
 
     /**
@@ -120,6 +130,7 @@ public class Endpoint {
      * @param request
      * @return
      */
+    @Override
     public Future<RPCResponse> submit(RPCRequest request) {
         if (!initialized) {
             init();
@@ -136,6 +147,7 @@ public class Endpoint {
     /**
      * 如果该Endpoint不提供任何服务，则将其关闭
      */
+    @Override
     public void close() {
         try {
             if (this.futureChannel != null) {
@@ -149,31 +161,30 @@ public class Endpoint {
         }
     }
 
+    @Override
     public String getAddress() {
         return address;
-    }
-
-    public void addInterface(String interfaceName) {
-        this.interfaces.add(interfaceName);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Endpoint endpoint = (Endpoint) o;
+        ToyEndpoint endpoint = (ToyEndpoint) o;
         return initialized == endpoint.initialized &&
+                destroyed == endpoint.destroyed &&
                 Objects.equals(address, endpoint.address) &&
-                Objects.equals(interfaces, endpoint.interfaces) &&
+                Objects.equals(interfaceName, endpoint.interfaceName) &&
                 Objects.equals(bootstrap, endpoint.bootstrap) &&
                 Objects.equals(group, endpoint.group) &&
                 Objects.equals(futureChannel, endpoint.futureChannel) &&
-                Objects.equals(callbackPool, endpoint.callbackPool);
+                Objects.equals(callbackPool, endpoint.callbackPool) &&
+                Objects.equals(serializer, endpoint.serializer);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(address, interfaces, bootstrap, group, futureChannel, initialized, callbackPool);
+        return Objects.hash(address, interfaceName, bootstrap, group, futureChannel, initialized, destroyed, callbackPool, serializer);
     }
+
 }

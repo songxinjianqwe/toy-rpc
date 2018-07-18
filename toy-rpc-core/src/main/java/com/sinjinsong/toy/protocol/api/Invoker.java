@@ -2,9 +2,7 @@ package com.sinjinsong.toy.protocol.api;
 
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.invoke.api.Invocation;
-import com.sinjinsong.toy.transport.client.Endpoint;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 
 /**
  * @author sinjinsong
@@ -14,8 +12,10 @@ public interface Invoker<T> {
 
     Class<T> getInterface();
 
-    RPCResponse invoke(Invocation invocation) throws RPCException;
+    RPCResponse invoke(InvokeParam invokeParam) throws RPCException;
     
-    Endpoint getEndpoint();
-   
+    String getAddress();
+    
+    void close();
+    
 }

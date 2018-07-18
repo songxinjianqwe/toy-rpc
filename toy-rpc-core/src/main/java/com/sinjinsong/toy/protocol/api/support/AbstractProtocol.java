@@ -1,21 +1,14 @@
 package com.sinjinsong.toy.protocol.api.support;
 
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.common.util.InvocationUtil;
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.filter.Filter;
-import com.sinjinsong.toy.invoke.api.Invocation;
-import com.sinjinsong.toy.invoke.api.support.InvocationDelegate;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.Protocol;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author sinjinsong
@@ -42,31 +35,5 @@ public abstract class AbstractProtocol implements Protocol {
         return (ServiceConfig<T>) exporters.get(interfaceMame).getServiceConfig();
     }
 
-    protected <T> Invoker<T> buildFilterChain(List<Filter> filters, Invoker<T> invoker) {
-        return new AbstractInvoker<T>() {
-           private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal(){
-               @Override
-               protected Object initialValue() {
-                   return new AtomicInteger(0);
-               }
-           };
-            
-            @Override
-            public Class<T> getInterface() {
-                return invoker.getInterface();
-            }
-            
-            @Override
-            protected RPCResponse doInvoke(Invocation invocation) throws RPCException {
-                log.info("filterIndex:{}",filterIndex.get().get());
-                Invocation originalInvocation = InvocationUtil.extractOriginalInvocation(invocation);
-                if(filterIndex.get().get() < filters.size()) {
-                    InvocationDelegate invocationDelegate = new InvocationDelegate(invocation,() -> doInvoke(originalInvocation));                    
-                    return filters.get(filterIndex.get().getAndIncrement()).invoke(invocationDelegate);
-                }
-                filterIndex.get().set(0);
-                return originalInvocation.invoke();
-            }
-        };
-    }
+   
 }

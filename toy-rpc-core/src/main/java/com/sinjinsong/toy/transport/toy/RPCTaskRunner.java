@@ -1,9 +1,9 @@
-package com.sinjinsong.toy.transport.runner;
+package com.sinjinsong.toy.transport.toy;
 
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.transport.common.domain.Message;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 

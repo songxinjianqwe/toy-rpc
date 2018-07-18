@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.cluster;
 
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 
 /**
  * @author sinjinsong

@@ -2,8 +2,9 @@ package com.sinjinsong.toy.sample.spring.client.filter;
 
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
-import com.sinjinsong.toy.invoke.api.Invocation;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.protocol.api.InvokeParam;
+import com.sinjinsong.toy.protocol.api.Invoker;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,12 +15,11 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class BizLogFilter implements Filter {
-    
     @Override
-    public RPCResponse invoke(Invocation invocation) throws RPCException {
-        log.info("Biz Logger: invocation:{} start!",invocation);
-        RPCResponse response = invocation.invoke();
-        log.info("Biz Logger: invocation:{} complele!",invocation);
+    public RPCResponse invoke(Invoker invoker, InvokeParam invokeParam) throws RPCException {
+         log.info("Biz Logger: invokeParam:{} start!",invokeParam);
+        RPCResponse response = invoker.invoke(invokeParam);
+        log.info("Biz Logger: invokeParam:{} complele!",invokeParam);
         return response;
     }
 }

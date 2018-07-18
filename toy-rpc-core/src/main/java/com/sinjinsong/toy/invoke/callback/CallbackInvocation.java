@@ -6,8 +6,8 @@ import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
-import com.sinjinsong.toy.transport.common.domain.RPCResponse;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 
 /**
  * @author sinjinsong
@@ -21,7 +21,7 @@ import com.sinjinsong.toy.transport.common.domain.RPCResponse;
  * 这里约定，客户端rpc服务器，服务器不会影响该request；服务器转而会rpc服务器，两个request的id是一样的。
  * 通过这个相同的requestid来定位callback实例
  */
-public class CallbackInvocation extends AbstractInvocation {
+public abstract class CallbackInvocation extends AbstractInvocation {
 
     @Override
     public RPCResponse invoke() throws RPCException {
@@ -31,7 +31,7 @@ public class CallbackInvocation extends AbstractInvocation {
 
         registerCallbackHandler(rpcRequest,callbackInstance);
         try {
-            invoker.getEndpoint().submit(rpcRequest);
+           doInvoke();
         } catch (Exception e) {
             throw new RPCException("CLIENT异常", e);
         }

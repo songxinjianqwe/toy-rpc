@@ -1,17 +1,18 @@
-package com.sinjinsong.toy.transport.server;
+package com.sinjinsong.toy.transport.toy.server;
 
 import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
-import com.sinjinsong.toy.transport.common.codec.RPCDecoder;
-import com.sinjinsong.toy.transport.common.codec.RPCEncoder;
-import com.sinjinsong.toy.transport.common.constant.FrameConstant;
+import com.sinjinsong.toy.transport.api.Server;
+import com.sinjinsong.toy.transport.api.constant.FrameConstant;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.transport.toy.RPCTaskRunner;
+import com.sinjinsong.toy.transport.api.support.RPCServerHandler;
+import com.sinjinsong.toy.transport.toy.codec.RPCDecoder;
+import com.sinjinsong.toy.transport.toy.codec.RPCEncoder;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -22,25 +23,34 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by SinjinSong on 2017/7/29.
  */
 @Slf4j
-public class RPCServer {
+public class ToyServer implements Server {
     private RegistryConfig registry;
     private ProtocolConfig protocolConfig;
     private ApplicationConfig applicationConfig;
     private ClusterConfig clusterConfig;
-    
-    public RPCServer(ApplicationConfig applicationConfig,ClusterConfig clusterConfig,RegistryConfig registry,
+    private ThreadPoolExecutor pool;
+    private int threads;
+
+    public ToyServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry,
                      ProtocolConfig protocolConfig) {
         this.applicationConfig = applicationConfig;
         this.clusterConfig = clusterConfig;
         this.registry = registry;
         this.protocolConfig = protocolConfig;
+
+        this.threads = protocolConfig.getThreads() != null ? protocolConfig.getThreads() : ProtocolConfig.DEFAULT_THREADS;
+        this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
+    @Override
     public void run() {
         //两个事件循环器，第一个用于接收客户端连接，第二个用于处理客户端的读写请求
         //是线程组，持有一组线程
@@ -72,7 +82,7 @@ public class RPCServer {
                                     .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(FrameConstant.MAX_FRAME_LENGTH, FrameConstant.LENGTH_FIELD_OFFSET, FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT, FrameConstant.INITIAL_BYTES_TO_STRIP))
                                     // Message -> Message
                                     .addLast("RPCDecoder", new RPCDecoder(applicationConfig.getSerializerInstance()))
-                                    .addLast("RPCServerHandler", new RPCServerHandler(protocolConfig));
+                                    .addLast("RPCServerHandler", new RPCServerHandler(ToyServer.this, protocolConfig));
                         }
                     })
                     //服务器配置项
@@ -112,5 +122,10 @@ public class RPCServer {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    public void handleRequest(RPCRequest request, ChannelHandlerContext ctx) {
+        pool.submit(new RPCTaskRunner(ctx, request, protocolConfig.getProtocolInstance().getExportedServiceConfig(request.getInterfaceName())));
     }
 }

@@ -15,7 +15,6 @@ import com.sinjinsong.toy.protocol.toy.ToyProtocol;
 import com.sinjinsong.toy.proxy.JDKRPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
-import com.sinjinsong.toy.transport.server.RPCServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +77,7 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     }
 
     @Bean
-    public ClusterConfig clusterconfig(RegistryConfig registryConfig,ProtocolConfig protocolConfig) {
+    public ClusterConfig clusterconfig(RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
         ClusterConfig clusterConfig = properties.getCluster();
         if (clusterConfig == null) {
             throw new RPCException("必须配置clusterConfig");
@@ -88,7 +87,7 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         loadBalancer.setProtocolConfig(protocolConfig);
         loadBalancer.setClusterConfig(clusterConfig);
         loadBalancer.setApplicationConfig(applicationConfig());
-        
+
         clusterConfig.setLoadBalanceInstance(loadBalancer);
         log.info("{}", clusterConfig);
         return clusterConfig;
@@ -114,18 +113,18 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     @Bean
     public ActiveLimitFilter activeLimitFilter() {
         return new ActiveLimitFilter();
-    } 
-    
+    }
+
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        log.info("Spring容器启动完毕，且NEED_SERVER为{}",NEED_SERVER);
+        log.info("Spring容器启动完毕，且NEED_SERVER为{}", NEED_SERVER);
         if (NEED_SERVER) {
-            new RPCServer(
+            ctx.getBean(ProtocolConfig.class).getProtocolInstance().openServer(
                     ctx.getBean(ApplicationConfig.class),
                     ctx.getBean(ClusterConfig.class),
                     ctx.getBean(RegistryConfig.class),
                     ctx.getBean(ProtocolConfig.class)
-            ).run();
+            );
         }
     }
 

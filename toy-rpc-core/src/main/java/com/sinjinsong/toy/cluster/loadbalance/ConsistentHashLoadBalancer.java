@@ -2,7 +2,7 @@ package com.sinjinsong.toy.cluster.loadbalance;
 
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.common.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
@@ -76,7 +76,7 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private void add(Invoker invoker) {
         for (int i = 0; i < REPLICA_NUMBER / 4; i++) {
             // 根据md5算法为每4个结点生成一个消息摘要，摘要长为16字节128位。
-            byte[] digest = md5(invoker.getEndpoint().getAddress() + i);
+            byte[] digest = md5(invoker.getAddress() + i);
             // 随后将128位分为4部分，0-31,32-63,64-95,95-128，并生成4个32位数，存于long中，long的高32位都为0
             // 并作为虚拟结点的key。
             for (int h = 0; h < 4; h++) {
@@ -89,7 +89,7 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private void remove(Invoker invoker) {
         for (int i = 0; i < REPLICA_NUMBER / 4; i++) {
             // 根据md5算法为每4个结点生成一个消息摘要，摘要长为16字节128位。
-            byte[] digest = md5(invoker.getEndpoint().getAddress() + i);
+            byte[] digest = md5(invoker.getAddress() + i);
             // 随后将128位分为4部分，0-31,32-63,64-95,95-128，并生成4个32位数，存于long中，long的高32位都为0
             // 并作为虚拟结点的key。
             for (int h = 0; h < 4; h++) {
