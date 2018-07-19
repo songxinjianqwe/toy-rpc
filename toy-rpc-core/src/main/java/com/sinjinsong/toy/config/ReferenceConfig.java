@@ -1,8 +1,8 @@
 package com.sinjinsong.toy.config;
 
-import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
+import com.sinjinsong.toy.protocol.api.Invoker;
 import lombok.Builder;
 import lombok.Data;
 
@@ -107,7 +107,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         initialized = true;
 
         // ClusterInvoker
-        ClusterInvoker<T> invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
+        Invoker<T> invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
 

@@ -2,10 +2,7 @@ package com.sinjinsong.toy.protocol.api;
 
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.*;
-import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.api.Endpoint;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author sinjinsong
@@ -34,8 +31,8 @@ public interface Protocol {
 
     <T> ServiceConfig<T> getExportedServiceConfig(String interfaceMame) throws RPCException;
     
-    Endpoint openClient(String interfaceName, String address, ExecutorService callbackPool, Serializer serializer);
+    Endpoint openClient(String address,ApplicationConfig applicationConfig);
     
-    void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry,
+    void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig,
                     ProtocolConfig protocolConfig);
 } 

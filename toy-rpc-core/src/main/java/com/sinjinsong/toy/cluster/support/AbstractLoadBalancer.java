@@ -13,8 +13,6 @@ import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author sinjinsong
@@ -35,12 +33,6 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * key : BService, value:   192.168.1.1,Endpoint1
      */
     private Map<String, ClusterInvoker> interfaceInvokers = new ConcurrentHashMap<>();
-    
-    /**
-     * 客户端callback线程池
-     */
-    private ExecutorService callbackPool = Executors.newSingleThreadExecutor();
-
     /**
      * 分配address的形式
      *
@@ -49,11 +41,11 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * @return
      */
     @Override
-    public <T> ClusterInvoker<T> register(Class<T> interfaceClass) {
+    public <T> Invoker<T> register(Class<T> interfaceClass) {
         String interfaceName = interfaceClass.getName();
         ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceName)) {
-            clusterInvoker = new ClusterInvoker(interfaceClass,applicationConfig,clusterConfig,registryConfig,protocolConfig,callbackPool);
+            clusterInvoker = new ClusterInvoker(interfaceClass,applicationConfig,clusterConfig,registryConfig,protocolConfig);
             interfaceInvokers.put(interfaceName,clusterInvoker);
             return clusterInvoker;
         }
@@ -73,7 +65,6 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     @Override
     public void close() {
-        callbackPool.shutdown();
         interfaceInvokers.values().forEach(clusterInvoker -> clusterInvoker.close());
     }
 

@@ -1,6 +1,7 @@
-package com.sinjinsong.toy.transport.toy;
+package com.sinjinsong.toy.transport.api.support;
 
 import com.sinjinsong.toy.config.ServiceConfig;
+import com.sinjinsong.toy.transport.api.MessageConverter;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
@@ -19,11 +20,13 @@ public class RPCTaskRunner implements Runnable {
     private ChannelHandlerContext ctx;
     private RPCRequest request;
     private ServiceConfig serviceConfig;
+    private MessageConverter messageConverter;
     
-    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request,ServiceConfig serviceConfig) {
+    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request,ServiceConfig serviceConfig,MessageConverter messageConverter) {
         this.ctx = ctx;
         this.request = request;
         this.serviceConfig = serviceConfig;
+        this.messageConverter = messageConverter;
     }
 
     @Override
@@ -47,8 +50,10 @@ public class RPCTaskRunner implements Runnable {
             response.setCause(t);
         }
         log.info("服务器已调用完毕服务，结果为: {}", response);
+        Object data = messageConverter.convert2Object(Message.buildResponse(response),null);
+        log.info("转换后的消息体为:{}",data);
         // 这里调用ctx的write方法并不是同步的，也是异步的，将该写入操作放入到pipeline中
-        ctx.writeAndFlush(Message.buildResponse(response));
+        ctx.writeAndFlush(data);
     }
 
     /**

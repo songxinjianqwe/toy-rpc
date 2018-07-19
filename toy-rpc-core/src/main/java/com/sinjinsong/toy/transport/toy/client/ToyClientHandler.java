@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.transport.api.support;
+package com.sinjinsong.toy.transport.toy.client;
 
 import com.sinjinsong.toy.transport.api.Endpoint;
 import com.sinjinsong.toy.transport.api.domain.Message;
@@ -14,10 +14,9 @@ import lombok.extern.slf4j.Slf4j;
  * Created by SinjinSong on 2017/7/31.
  */
 @Slf4j
-//TODO 可以share吗
 @ChannelHandler.Sharable
 @AllArgsConstructor
-public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
+public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
     private Endpoint endpoint;
     
     @Override
@@ -25,7 +24,7 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         log.info("客户端捕获到异常");
         cause.printStackTrace();
         log.info("与服务器{} 的连接断开", endpoint.getAddress());
-        endpoint.handleException();
+        endpoint.handleException(cause);
     }
 
     @Override
@@ -57,9 +56,9 @@ public class RPCClientHandler extends SimpleChannelInboundHandler<Message> {
         if (message.getType() == Message.PONG) {
             log.info("收到服务器的PONG心跳响应");
         } else if (message.getType() == Message.RESPONSE) {
-            endpoint.handleResponse(message.getResponse());
+            endpoint.handleRPCResponse(message.getResponse());
         } else if (message.getType() == Message.REQUEST) {
-            endpoint.handleRequest(message.getRequest(), ctx);
+            endpoint.handleCallbackRequest(message.getRequest(), ctx);
         }
     }
 }

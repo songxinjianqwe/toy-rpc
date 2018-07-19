@@ -21,6 +21,5 @@ public class ProtocolConfig {
     private Integer port;
     private Integer threads;
     
-    
     private Protocol protocolInstance;
 }

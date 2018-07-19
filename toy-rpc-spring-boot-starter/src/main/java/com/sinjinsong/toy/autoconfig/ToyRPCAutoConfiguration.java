@@ -5,13 +5,14 @@ import com.sinjinsong.toy.autoconfig.beanpostprocessor.RPCConsumerBeanPostProces
 import com.sinjinsong.toy.autoconfig.beanpostprocessor.RPCProviderBeanPostProcessor;
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
 import com.sinjinsong.toy.common.enumeration.LoadBalanceType;
+import com.sinjinsong.toy.common.enumeration.ProtocolType;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.filter.impl.ActiveLimitFilter;
-import com.sinjinsong.toy.protocol.toy.ToyProtocol;
+import com.sinjinsong.toy.protocol.api.Protocol;
 import com.sinjinsong.toy.proxy.JDKRPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
@@ -71,7 +72,8 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         if (protocolConfig == null) {
             throw new RPCException("必须配置protocolConfig");
         }
-        protocolConfig.setProtocolInstance(new ToyProtocol());
+        Protocol protocol = ProtocolType.valueOf(protocolConfig.getType().toUpperCase()).getProtocol();
+        protocolConfig.setProtocolInstance(protocol);
         log.info("{}", protocolConfig);
         return protocolConfig;
     }

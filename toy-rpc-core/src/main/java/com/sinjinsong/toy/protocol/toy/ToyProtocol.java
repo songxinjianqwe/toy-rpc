@@ -5,14 +5,12 @@ import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
-import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.api.Endpoint;
-import com.sinjinsong.toy.transport.toy.server.ToyServer;
 import com.sinjinsong.toy.transport.toy.client.ToyEndpoint;
+import com.sinjinsong.toy.transport.toy.server.ToyServer;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author sinjinsong
@@ -46,12 +44,16 @@ public class ToyProtocol extends AbstractProtocol {
     }
 
     @Override
-    public Endpoint openClient(String interfaceName, String address, ExecutorService callbackPool, Serializer serializer) {
-        return new ToyEndpoint(address, callbackPool, interfaceName, serializer);
+    public Endpoint openClient(String address, ApplicationConfig applicationConfig) {
+        ToyEndpoint toyEndpoint = new ToyEndpoint();
+        toyEndpoint.init(applicationConfig, address);
+        return toyEndpoint;
     }
 
     @Override
     public void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
-        new ToyServer(applicationConfig,clusterConfig,registry,protocolConfig).run();
+        ToyServer toyServer = new ToyServer();
+        toyServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
+        toyServer.run();
     }
 }

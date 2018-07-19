@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author sinjinsong
@@ -29,15 +28,13 @@ public class ClusterInvoker<T> implements Invoker<T> {
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
     private ApplicationConfig applicationConfig;
-    private ExecutorService callbackPool;
 
-    public ClusterInvoker(Class<T> interfaceClass, ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig, ExecutorService callbackPool) {
+    public ClusterInvoker(Class<T> interfaceClass, ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
         this.interfaceClass = interfaceClass;
         this.clusterConfig = clusterConfig;
         this.registryConfig = registryConfig;
         this.protocolConfig = protocolConfig;
         this.applicationConfig = applicationConfig;
-        this.callbackPool = callbackPool;
         init();
     }
 
@@ -71,7 +68,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
             if (!intersect.contains(address)) {
                 // 最后是决定，不管一个服务器提供多少个接口，对每个接口建立一个连接，否则管理起来太麻烦
                 Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
-                Endpoint endpoint = protocolConfig.getProtocolInstance().openClient(interfaceClass.getName(), address, callbackPool, applicationConfig.getSerializerInstance());
+                Endpoint endpoint = protocolConfig.getProtocolInstance().openClient(address, applicationConfig);
                 // TODO refactor this
                 ((AbstractInvoker) invoker).setEndpoint(endpoint);
                 addressInvokers.put(address, invoker);

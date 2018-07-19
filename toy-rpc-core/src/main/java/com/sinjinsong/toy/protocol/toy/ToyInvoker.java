@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Slf4j
 public class ToyInvoker<T> extends AbstractInvoker<T> {
     @Override
-    protected Function<RPCRequest, Future<RPCResponse>> process() {
-        return rpcRequest -> endpoint.submit(rpcRequest);
+    protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
+        return rpcRequest -> getEndpoint().submit(rpcRequest);
     }
 }

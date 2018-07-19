@@ -1,12 +1,12 @@
-package com.sinjinsong.toy.transport.api.support;
+package com.sinjinsong.toy.transport.toy.server;
 
 
-import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.transport.api.Server;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.sinjinsong.toy.transport.api.domain.Message.PING;
@@ -16,16 +16,11 @@ import static com.sinjinsong.toy.transport.api.domain.Message.REQUEST;
  * Created by SinjinSong on 2017/7/29.
  * 实际的业务处理器，单例
  */
+@AllArgsConstructor
 @Slf4j
-public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
-    private ProtocolConfig protocolConfig;
+public class ToyServerHandler extends SimpleChannelInboundHandler<Message> {
     private Server server;
     
-    public RPCServerHandler(Server server, ProtocolConfig protocolConfig) {
-        this.server = server;
-        this.protocolConfig = protocolConfig;
-    }
-
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         log.info("接收到客户端的连接");
@@ -38,7 +33,7 @@ public class RPCServerHandler extends SimpleChannelInboundHandler<Message> {
             log.info("收到客户端PING心跳请求，发送PONG心跳响应");
             ctx.writeAndFlush(Message.PONG_MSG);
         } else if (message.getType() == REQUEST) {
-            server.handleRequest(message.getRequest(),ctx);
+            server.handleRPCRequest(message.getRequest(),ctx);
         }
     }
 

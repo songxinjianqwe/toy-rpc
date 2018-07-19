@@ -27,12 +27,12 @@ import java.util.function.Function;
  */
 @Slf4j
 public abstract class AbstractInvoker<T> implements Invoker<T> {
-    protected Class<T> interfaceClass;
-    protected Endpoint endpoint;
+    private Class<T> interfaceClass;
+    private Endpoint endpoint;
     
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
-        Function<RPCRequest, Future<RPCResponse>> logic = process();
+        Function<RPCRequest, Future<RPCResponse>> logic = getProcessor();
         // 如果提交任务失败，则删掉该Endpoint，再次提交的话必须重新创建Endpoint
         AbstractInvocation invocation;
         ReferenceConfig referenceConfig = InvokeParamUtil.extractReferenceConfigFromInvokeParam(invokeParam);
@@ -70,8 +70,12 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         invocation.setRpcRequest(rpcRequest);
         return invocation.invoke();
     }
-    
-    protected Function<RPCRequest,Future<RPCResponse>> process() {
+
+    /**
+     * 如果没有重写invoke方法，则必须重写该方法
+     * @return
+     */
+    protected Function<RPCRequest,Future<RPCResponse>> getProcessor() {
         return null;
     }
 
@@ -128,6 +132,10 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         };
     }
 
+    public Endpoint getEndpoint() {
+        return endpoint;
+    }
+    
     @Override
     public Class<T> getInterface() {
         return interfaceClass;

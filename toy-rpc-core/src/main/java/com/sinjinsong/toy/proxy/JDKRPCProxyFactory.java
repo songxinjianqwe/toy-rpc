@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.proxy;
 
-import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
@@ -25,7 +24,7 @@ import java.util.UUID;
 public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
 
     @Override
-    protected <T> T doCreateProxy(Class<T> interfaceClass, ClusterInvoker<T> invoker) {
+    protected <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker) {
         return (T) Proxy.newProxyInstance(
                 invoker.getInterface().getClassLoader(),
                 new Class<?>[]{invoker.getInterface()},

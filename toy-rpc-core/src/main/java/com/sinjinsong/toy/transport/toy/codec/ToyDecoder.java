@@ -15,12 +15,13 @@ import java.util.List;
  * Created by SinjinSong on 2017/7/30.
  */
 @Slf4j
-public class RPCDecoder extends ByteToMessageDecoder {
- private Serializer serializer;
-    public RPCDecoder(Serializer serializer) {
+public class ToyDecoder extends ByteToMessageDecoder {
+    private Serializer serializer;
+
+    public ToyDecoder(Serializer serializer) {
         this.serializer = serializer;
     }
-    
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         byte type = in.readByte();

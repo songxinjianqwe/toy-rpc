@@ -17,9 +17,9 @@ public interface Endpoint {
 
     String getAddress();
 
-    void handleException();
+    void handleException(Throwable throwable);
     
-    void handleRequest(RPCRequest request,ChannelHandlerContext ctx);
+    void handleCallbackRequest(RPCRequest request, ChannelHandlerContext ctx);
     
-    void handleResponse(RPCResponse response);
+    void handleRPCResponse(RPCResponse response);
 }

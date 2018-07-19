@@ -11,9 +11,9 @@ import lombok.extern.slf4j.Slf4j;
  * Created by SinjinSong on 2017/7/30.
  */
 @Slf4j
-public class RPCEncoder extends MessageToByteEncoder {
+public class ToyEncoder extends MessageToByteEncoder {
     private Serializer serializer;
-    public RPCEncoder(Serializer serializer) {
+    public ToyEncoder(Serializer serializer) {
         this.serializer = serializer;
     }
     

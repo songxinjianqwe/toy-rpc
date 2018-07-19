@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.proxy.api.support;
 
-import com.sinjinsong.toy.cluster.ClusterInvoker;
+import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.proxy.api.RPCProxyFactory;
 
 import java.util.Map;
@@ -14,7 +14,7 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
     protected Map<Class<?>, Object> cache = new ConcurrentHashMap<>();
         
     @Override
-    public <T> T createProxy(ClusterInvoker<T> invoker) {
+    public <T> T createProxy(Invoker<T> invoker) {
         if (cache.containsKey(invoker.getInterface())) {
             return (T) cache.get(invoker.getInterface());
         }
@@ -23,5 +23,5 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
         return t;
     }
 
-    protected abstract <T> T doCreateProxy(Class<T> interfaceClass,ClusterInvoker<T> invoker);
+    protected abstract <T> T doCreateProxy(Class<T> interfaceClass,Invoker<T> invoker);
 }
