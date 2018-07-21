@@ -44,7 +44,7 @@ public abstract class CallbackInvocation extends AbstractInvocation {
         ServiceConfig config = ServiceConfig.builder()
                 .interfaceName(interfaceClass.getName())
                 .interfaceClass((Class<Object>) interfaceClass)
-                .isCallback(false)
+                .isCallbackInterface(true)
                 .ref(callbackInstance).build();
         RPCThreadSharedContext.registerHandler(generateCallbackHandlerKey(request, referenceConfig),
                 config);

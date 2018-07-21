@@ -1,6 +1,7 @@
 package com.sinjinsong.toy.registry.zookeeper;
 
 import com.sinjinsong.toy.common.constant.CharsetConst;
+import com.sinjinsong.toy.common.exception.RPCException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
@@ -46,13 +47,17 @@ public class ZkSupport {
         }
     }
 
-    public void createNode(String data, String path) {
+    public void createNodeIfAbsent(String data, String path) {
         try {
             byte[] bytes = data.getBytes(CharsetConst.UTF_8);
             zookeeper.create(path + "/" + data, bytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
             log.info("建立数据节点 ({} => {})", path, data);
         } catch (KeeperException e) {
-            e.printStackTrace();
+            if (e instanceof KeeperException.NodeExistsException) {
+                throw new RPCException("ZK路径 " + path + " 已经存在:" + data + ",建议重启解决");
+            } else {
+                e.printStackTrace();
+            }
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
@@ -69,7 +74,7 @@ public class ZkSupport {
 
     public byte[] getData(String path, boolean watch, Stat stat)
             throws KeeperException, InterruptedException {
-        return zookeeper.getData(path,watch,stat);
+        return zookeeper.getData(path, watch, stat);
     }
 
     /**

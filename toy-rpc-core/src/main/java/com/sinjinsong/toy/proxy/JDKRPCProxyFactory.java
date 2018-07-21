@@ -31,7 +31,17 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                 new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        
                         // 创建并初始化 RPC 请求
+                        if ("toString".equals(method.getName()) && method.getParameterTypes().length == 0) {
+                            return invoker.toString();
+                        }
+                        if ("hashCode".equals(method.getName()) && method.getParameterTypes().length == 0) {
+                            return invoker.hashCode();
+                        }
+                        if ("equals".equals(method.getName()) && method.getParameterTypes().length == 1) {
+                            return invoker.equals(args[0]);
+                        }
                         RPCRequest request = new RPCRequest();
                         log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
                         request.setRequestId(UUID.randomUUID().toString());

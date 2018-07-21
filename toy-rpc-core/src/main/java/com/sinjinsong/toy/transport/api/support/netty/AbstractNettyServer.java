@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.transport.api.support.netty;
 
 import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.transport.api.MessageConverter;
+import com.sinjinsong.toy.transport.api.converter.ServerMessageConverter;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.support.AbstractServer;
 import com.sinjinsong.toy.transport.api.support.RPCTaskRunner;
@@ -26,14 +26,14 @@ public abstract class AbstractNettyServer extends AbstractServer {
     private ThreadPoolExecutor pool;
     private int threads;
     private ChannelInitializer channelInitializer;
-    private MessageConverter messageConverter;
+    private ServerMessageConverter serverMessageConverter;
     
     @Override
     protected void doInit() {
         this.threads = getProtocolConfig().getThreads() != null ? getProtocolConfig().getThreads() : ProtocolConfig.DEFAULT_THREADS;
         this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
         this.channelInitializer = initPipeline();
-        this.messageConverter = initConverter();
+        this.serverMessageConverter = initConverter();
     }
     
     
@@ -42,7 +42,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
      * 与将Message转为Object类型的data相关
      * @return
      */
-    protected abstract MessageConverter initConverter();
+    protected abstract ServerMessageConverter initConverter();
     
     @Override
     public void run() {
@@ -100,7 +100,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
 
     @Override
     public void handleRPCRequest(RPCRequest request, ChannelHandlerContext ctx) {
-        pool.submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().getExportedServiceConfig(request.getInterfaceName()),messageConverter));
+        pool.submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().getExportedServiceConfig(request.getInterfaceName()), serverMessageConverter));
     }
 
 }

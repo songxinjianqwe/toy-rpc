@@ -1,11 +1,10 @@
 package com.sinjinsong.toy.transport.toy.client;
 
-import com.sinjinsong.toy.transport.api.MessageConverter;
 import com.sinjinsong.toy.transport.api.constant.FrameConstant;
+import com.sinjinsong.toy.transport.api.converter.ClientMessageConverter;
 import com.sinjinsong.toy.transport.api.support.netty.AbstractNettyEndpoint;
 import com.sinjinsong.toy.transport.toy.codec.ToyDecoder;
 import com.sinjinsong.toy.transport.toy.codec.ToyEncoder;
-import com.sinjinsong.toy.transport.toy.converter.ToyMessageConverter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -22,10 +21,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ToyEndpoint extends AbstractNettyEndpoint {
-
-
+    
     @Override
     protected ChannelInitializer initPipeline() {
+        log.info("ToyEndpoint initPipeline...");
         return new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel channel) throws Exception {
@@ -46,7 +45,7 @@ public class ToyEndpoint extends AbstractNettyEndpoint {
     }
 
     @Override
-    protected MessageConverter initConverter() {
-        return ToyMessageConverter.getInstance();
+    protected ClientMessageConverter initConverter() {
+        return ClientMessageConverter.DEFAULT_IMPL;
     }
 }

@@ -79,9 +79,30 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         return null;
     }
 
+    /**
+     * 最终给ClusterInvoker的invoker，是用户接触到的invoker
+     * @param filters
+     * @param <T>
+     * @return
+     */
     public <T> Invoker<T> buildFilterChain(List<Filter> filters) {
         AbstractInvoker<T> actualInvoker = (AbstractInvoker<T>) this;
         return new AbstractInvoker<T>() {
+            // 比较的时候就是在比较interfaceClass
+            @Override
+            public int hashCode() {
+                return actualInvoker.interfaceClass.hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if(obj instanceof Invoker) {
+                    Invoker rhs = (Invoker) obj;
+                    return actualInvoker.interfaceClass.equals(rhs.getInterface());
+                }
+                return false;
+            }
+            
             @Override
             public Class<T> getInterface() {
                 return actualInvoker.getInterface();
@@ -90,6 +111,11 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             @Override
             public void setEndpoint(Endpoint endpoint) {
                 actualInvoker.setEndpoint(endpoint);
+            }
+
+            @Override
+            public Endpoint getEndpoint() {
+                return actualInvoker.getEndpoint();
             }
 
             @Override
@@ -143,7 +169,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
     @Override
     public String getAddress() {
-        return endpoint.getAddress();
+        return getEndpoint().getAddress();
     }
 
     public void setInterfaceClass(Class<T> interfaceClass) {
@@ -156,6 +182,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
     @Override
     public void close() {
-        endpoint.close();
+        // 如果是重写了getEndpoint方法而非
+        getEndpoint().close();
     }
 }

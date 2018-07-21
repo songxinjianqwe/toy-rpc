@@ -59,6 +59,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
 
         for (String address : oldAddresses) {
             if (!intersect.contains(address)) {
+                // 只要让服务器进入debug，就会从zk中移除，然后就会触发这段代码
                 addressInvokers.get(address).close();
                 addressInvokers.remove(address);
             }

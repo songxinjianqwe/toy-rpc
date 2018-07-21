@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.transport.api.support;
 
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.transport.api.MessageConverter;
+import com.sinjinsong.toy.transport.api.converter.MessageConverter;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
@@ -21,8 +21,8 @@ public class RPCTaskRunner implements Runnable {
     private RPCRequest request;
     private ServiceConfig serviceConfig;
     private MessageConverter messageConverter;
-    
-    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request,ServiceConfig serviceConfig,MessageConverter messageConverter) {
+
+    public RPCTaskRunner(ChannelHandlerContext ctx, RPCRequest request, ServiceConfig serviceConfig, MessageConverter messageConverter) {
         this.ctx = ctx;
         this.request = request;
         this.serviceConfig = serviceConfig;
@@ -31,8 +31,8 @@ public class RPCTaskRunner implements Runnable {
 
     @Override
     public void run() {
-        // callback的无需响应
-        if(serviceConfig != null && serviceConfig.isCallback()) {
+        // callback的会以代理的方式调用
+        if (serviceConfig.isCallback()) {
             try {
                 handle(request);
             } catch (Throwable t) {
@@ -49,11 +49,14 @@ public class RPCTaskRunner implements Runnable {
             t.printStackTrace();
             response.setCause(t);
         }
-        log.info("服务器已调用完毕服务，结果为: {}", response);
-        Object data = messageConverter.convert2Object(Message.buildResponse(response),null);
-        log.info("转换后的消息体为:{}",data);
-        // 这里调用ctx的write方法并不是同步的，也是异步的，将该写入操作放入到pipeline中
-        ctx.writeAndFlush(data);
+        log.info("已调用完毕服务，结果为: {}", response);
+        if (!serviceConfig.isCallbackInterface()) {
+            // 如果自己这个接口是一个回调接口，则无需响应
+            Object data = messageConverter.convert2Object(Message.buildResponse(response));
+            log.info("转换后的消息体为:{}", data);
+            // 这里调用ctx的write方法并不是同步的，也是异步的，将该写入操作放入到pipeline中
+            ctx.writeAndFlush(data);
+        }
     }
 
     /**
@@ -73,9 +76,9 @@ public class RPCTaskRunner implements Runnable {
 
         Method method = serviceClass.getMethod(methodName, parameterTypes);
         method.setAccessible(true);
-        
+
         // 针对callback参数，要将其设置为代理对象
-        if (serviceConfig != null && serviceConfig.isCallback()) {
+        if (serviceConfig.isCallback()) {
             Class<?> interfaceClass = parameterTypes[serviceConfig.getCallbackParamIndex()];
             parameters[serviceConfig.getCallbackParamIndex()] = Proxy.newProxyInstance(
                     interfaceClass.getClassLoader(),
@@ -87,7 +90,7 @@ public class RPCTaskRunner implements Runnable {
                                 // 创建并初始化 RPC 请求
                                 RPCRequest callbackRequest = new RPCRequest();
                                 log.info("调用callback：{} {}", method.getDeclaringClass().getName(), method.getName());
-                                log.info("requestId {}",request.getRequestId());
+                                log.info("requestId: {}", request.getRequestId());
                                 // 这里requestId是一样的
                                 callbackRequest.setRequestId(request.getRequestId());
                                 callbackRequest.setInterfaceName(method.getDeclaringClass().getName());
@@ -95,10 +98,11 @@ public class RPCTaskRunner implements Runnable {
                                 callbackRequest.setParameterTypes(method.getParameterTypes());
                                 callbackRequest.setParameters(args);
                                 // 发起callback请求
-                                ctx.writeAndFlush(Message.buildRequest(callbackRequest));
+                                Object data = messageConverter.convert2Object(Message.buildRequest(callbackRequest));
+                                ctx.writeAndFlush(data);
                                 return null;
-                            }else {
-                                return method.invoke(proxy,args);
+                            } else {
+                                return method.invoke(proxy, args);
                             }
                         }
                     }

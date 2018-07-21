@@ -1,11 +1,10 @@
 package com.sinjinsong.toy.transport.toy.server;
 
-import com.sinjinsong.toy.transport.api.MessageConverter;
+import com.sinjinsong.toy.transport.api.converter.ServerMessageConverter;
 import com.sinjinsong.toy.transport.api.constant.FrameConstant;
 import com.sinjinsong.toy.transport.api.support.netty.AbstractNettyServer;
 import com.sinjinsong.toy.transport.toy.codec.ToyDecoder;
 import com.sinjinsong.toy.transport.toy.codec.ToyEncoder;
-import com.sinjinsong.toy.transport.toy.converter.ToyMessageConverter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -45,7 +44,7 @@ public class ToyServer extends AbstractNettyServer {
     }
 
     @Override
-    protected MessageConverter initConverter() {
-        return ToyMessageConverter.getInstance();
+    protected ServerMessageConverter initConverter() {
+        return ServerMessageConverter.DEFAULT_IMPL;
     }
 }

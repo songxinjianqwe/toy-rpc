@@ -4,7 +4,8 @@ import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.invoke.callback.CallbackInvocation;
-import com.sinjinsong.toy.transport.api.MessageConverter;
+import com.sinjinsong.toy.transport.api.converter.ClientMessageConverter;
+import com.sinjinsong.toy.transport.api.converter.MessageConverter;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
@@ -26,12 +27,12 @@ import java.util.concurrent.Future;
 @Slf4j
 public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
     private Bootstrap bootstrap;
-    private EventLoopGroup group;
     private Channel futureChannel;
+    private EventLoopGroup group;
     private volatile boolean initialized = false;
     private volatile boolean destroyed = false;
     private MessageConverter converter;
-
+    
     /**
      * 与Handler相关
      * @return
@@ -42,7 +43,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
      * 与将Message转为Object类型的data相关
      * @return
      */
-    protected abstract MessageConverter initConverter();
+    protected abstract ClientMessageConverter initConverter();
     
     private void initClient() {
         this.converter = initConverter();
@@ -116,7 +117,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         log.info("客户端发起请求: {},请求的服务器为: {}", request, getAddress());
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();
         RPCThreadSharedContext.registerResponseFuture(request.getRequestId(), responseFuture);
-        Object data = converter.convert2Object(Message.buildRequest(request),getAddress());
+        Object data = converter.convert2Object(Message.buildRequest(request));
         log.info("转换后的消息体为:{}",data);
         this.futureChannel.writeAndFlush(data);
         log.info("请求已发送至{}", getAddress());
@@ -136,7 +137,9 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            group.shutdownGracefully();
+            if(group != null) {
+                group.shutdownGracefully();
+            }
         }
     }
 }

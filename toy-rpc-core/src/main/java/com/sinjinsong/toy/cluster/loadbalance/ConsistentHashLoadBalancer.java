@@ -17,13 +17,13 @@ import java.util.*;
 @Slf4j
 public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private TreeMap<Long, Invoker> hashCircle = new TreeMap<>();
-    private List<Invoker> cachedEndpoints;
+    private List<Invoker> cachedInvokers;
     private static final int REPLICA_NUMBER = 160;
 
 
     @Override
     protected Invoker doSelect(List<Invoker> invokers, RPCRequest request) {
-        if (cachedEndpoints == null || invokers.hashCode() != cachedEndpoints.hashCode()) {
+        if (cachedInvokers == null || invokers.hashCode() != cachedInvokers.hashCode()) {
             buildHashCircle(invokers);
         }
         if (hashCircle.size() == 0) {
@@ -43,21 +43,22 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
 
     /**
      * //TODO Invoker 的equals和hashCode可靠吗
+     * 目前看起来是用interfaceClass的equals和hashCode
      * @param invokers
      */
     private void buildHashCircle(List<Invoker> invokers) {
-        if (cachedEndpoints == null) {
-            cachedEndpoints = invokers;
+        if (cachedInvokers == null) {
+            cachedInvokers = invokers;
             for (Invoker invoker : invokers) {
                 add(invoker);
             }
         } else {
             
-            log.info("旧地址列表为:[}", cachedEndpoints);
+            log.info("旧地址列表为:[}", cachedInvokers);
             log.info("新地址列表为:{}", invokers);
             Set<Invoker> intersect = new HashSet<>(invokers);
-            intersect.retainAll(cachedEndpoints);
-            for (Invoker invoker : cachedEndpoints) {
+            intersect.retainAll(cachedInvokers);
+            for (Invoker invoker : cachedInvokers) {
                 if (!intersect.contains(invoker)) {
                     remove(invoker);
                 }
@@ -68,7 +69,7 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
                     add(invoker);
                 }
             }
-            this.cachedEndpoints = invokers;
+            this.cachedInvokers = invokers;
         }
         log.info("更新后地址列表为:{}", new HashSet(hashCircle.values()));
     }

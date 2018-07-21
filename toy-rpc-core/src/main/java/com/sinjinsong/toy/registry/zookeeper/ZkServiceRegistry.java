@@ -105,7 +105,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
         } catch (KeeperException | InterruptedException e) {
             throw new RPCException("ZK故障",e);
         }
-        zkSupport.createNode(address, path);
+        zkSupport.createNodeIfAbsent(address, path);
     }
 
     @Override

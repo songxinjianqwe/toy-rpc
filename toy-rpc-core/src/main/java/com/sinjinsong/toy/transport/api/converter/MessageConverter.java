@@ -1,12 +1,12 @@
-package com.sinjinsong.toy.transport.api;
+package com.sinjinsong.toy.transport.api.converter;
 
 import com.sinjinsong.toy.transport.api.domain.Message;
 
 /**
  * @author sinjinsong
- * @date 2018/7/19
+ * @date 2018/7/21
  */
 public interface MessageConverter {
-    Object convert2Object(Message message,String address);
+    Object convert2Object(Message message);
     Message convert2Message(Object obj);
 }
