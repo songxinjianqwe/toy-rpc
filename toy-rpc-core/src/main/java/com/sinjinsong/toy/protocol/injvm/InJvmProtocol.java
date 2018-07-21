@@ -5,7 +5,7 @@ import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
-import com.sinjinsong.toy.transport.api.Endpoint;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
  * @author sinjinsong
  * @date 2018/7/18
  */
+@Slf4j
 public class InJvmProtocol extends AbstractProtocol {
 
     @Override
@@ -37,18 +38,16 @@ public class InJvmProtocol extends AbstractProtocol {
         InJvmInvoker<T> invoker = new InJvmInvoker<>();
         invoker.setInterfaceClass(type);
         invoker.setProtocol(this);
-        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getFiltersByInterface(type));
-        putInvoker(type, invokerWithFilters);
+        // 对于RemoteInvoker来说，这一步是在initEndpoint的时候做的，如果非要要在refer时做，那么这时候
+        // 返回的包装后的Invoker只是AbstractInvoker类型，无法根据是否为RemoveInvoker来决定
+        // 是否初始化Endpoint
+        // 后果就是返回了一个AbstractInvoker，跳过了初始化Endpoint的阶段
+        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getReferenceConfigByInterface(type).getFilters());
         return invokerWithFilters;
     }
     
     @Override
-    public Endpoint openClient(String address, ApplicationConfig applicationConfig) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
-        throw new UnsupportedOperationException();
+    public void doOnApplicationLoadComplete(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
+        log.info("http protocol doOnApplicationLoadComplete...");
     }
 }

@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.autoconfig.beanpostprocessor;
 
-import com.sinjinsong.toy.autoconfig.ToyRPCAutoConfiguration;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.config.annotation.RPCService;
@@ -27,7 +26,6 @@ public class RPCProviderBeanPostProcessor extends AbstractRPCBeanPostProcessor {
         } else {
             throw new RPCException("该服务" + beanClass + "未实现任何服务接口");
         }
-        ToyRPCAutoConfiguration.NEED_SERVER = Boolean.TRUE;
         RPCService rpcService = beanClass.getAnnotation(RPCService.class);
         ServiceConfig<Object> config = ServiceConfig.builder()
                 .interfaceName(interfaceClass.getName())

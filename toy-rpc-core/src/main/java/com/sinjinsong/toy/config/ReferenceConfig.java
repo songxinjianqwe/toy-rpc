@@ -99,7 +99,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return false;
     }
 
-
     private void init() {
         if (initialized) {
             return;
@@ -127,13 +126,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
         return CACHE.get(interfaceClass);
     } 
     
-    public static List<Filter> getFiltersByInterface(Class<?> interfaceClass) {
-        if(!CACHE.containsKey(interfaceClass)) {
-            throw new RPCException("ReferenceConfig未找到");
-        }
-        return CACHE.get(interfaceClass).getFilters();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

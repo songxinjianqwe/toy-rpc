@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author sinjinsong
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class ProtocolConfig {
     public static final Integer DEFAULT_THREADS = Integer.valueOf(100);
     public static final Integer DEFAULT_PORT = Integer.valueOf(8000);

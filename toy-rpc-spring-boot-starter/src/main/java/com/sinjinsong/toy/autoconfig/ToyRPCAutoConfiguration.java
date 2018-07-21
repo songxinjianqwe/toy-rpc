@@ -33,8 +33,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 @EnableConfigurationProperties(RPCProperties.class)
 @Configuration
 @Slf4j
-public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware {
-    public static Boolean NEED_SERVER = Boolean.FALSE;
+public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefreshedEvent>,ApplicationContextAware {
     @Autowired
     private RPCProperties properties;
     private ApplicationContext ctx;
@@ -124,16 +123,13 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        log.info("Spring容器启动完毕，且NEED_SERVER为{}", NEED_SERVER);
-        ProtocolConfig protocolConfig = ctx.getBean(ProtocolConfig.class);
-        if (NEED_SERVER && ProtocolType.valueOf(protocolConfig.getType().toUpperCase()) != ProtocolType.INJVM) {
-            ctx.getBean(ProtocolConfig.class).getProtocolInstance().openServer(
-                    ctx.getBean(ApplicationConfig.class),
-                    ctx.getBean(ClusterConfig.class),
-                    ctx.getBean(RegistryConfig.class),
-                    ctx.getBean(ProtocolConfig.class)
-            );
-        }
+        log.info("Spring容器启动完毕");
+        ctx.getBean(ProtocolConfig.class).getProtocolInstance().doOnApplicationLoadComplete(
+                ctx.getBean(ApplicationConfig.class),
+                ctx.getBean(ClusterConfig.class),
+                ctx.getBean(RegistryConfig.class),
+                ctx.getBean(ProtocolConfig.class)
+        );
     }
 
     @Override

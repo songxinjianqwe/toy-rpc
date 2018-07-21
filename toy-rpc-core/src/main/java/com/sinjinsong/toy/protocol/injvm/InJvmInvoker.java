@@ -17,7 +17,7 @@ public class InJvmInvoker<T> extends AbstractInvoker<T> {
     
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
-        Object serviceBean = protocol.getExportedServiceConfig(invokeParam.getInterfaceName()).getRef();
+        Object serviceBean = protocol.referLocalService(invokeParam.getInterfaceName()).getRef();
         Class<?> serviceClass = serviceBean.getClass();
         String methodName = invokeParam.getMethodName();
         Class<?>[] parameterTypes = invokeParam.getParameterTypes();
@@ -35,7 +35,7 @@ public class InJvmInvoker<T> extends AbstractInvoker<T> {
         }
         return response;
     }
-
+    
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
     }

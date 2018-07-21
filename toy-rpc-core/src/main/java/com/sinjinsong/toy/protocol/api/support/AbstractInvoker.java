@@ -88,6 +88,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
      * @return
      */
     public <T> Invoker<T> buildFilterChain(List<Filter> filters) {
+        // refer 得到的，包含了endpoint
         AbstractInvoker<T> actualInvoker = (AbstractInvoker<T>) this;
         return new AbstractInvoker<T>() {
             // 比较的时候就是在比较interfaceClass
@@ -95,7 +96,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             public int hashCode() {
                 return actualInvoker.getInterface().hashCode();
             }
-
+            
             @Override
             public boolean equals(Object obj) {
                 if (obj instanceof Invoker) {
@@ -109,17 +110,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             public Class<T> getInterface() {
                 return actualInvoker.getInterface();
             }
-
-//            @Override
-//            public void setEndpoint(Endpoint endpoint) {
-//                actualInvoker.setEndpoint(endpoint);
-//            }
-//
-//            @Override
-//            public Endpoint getEndpoint() {
-//                return actualInvoker.getEndpoint();
-//            }
-
+            
             @Override
             public String getAddress() {
                 return actualInvoker.getAddress();
@@ -177,6 +168,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     @Override
     public String getAddress() {
         try {
+            log.info("getAddress->localAddress");
             return InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();

@@ -5,9 +5,8 @@ import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
-import com.sinjinsong.toy.transport.api.Endpoint;
-import com.sinjinsong.toy.transport.toy.client.ToyEndpoint;
 import com.sinjinsong.toy.transport.toy.server.ToyServer;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -16,6 +15,7 @@ import java.net.UnknownHostException;
  * @author sinjinsong
  * @date 2018/7/7
  */
+@Slf4j
 public class ToyProtocol extends AbstractProtocol {
 
     @Override
@@ -38,22 +38,17 @@ public class ToyProtocol extends AbstractProtocol {
     public <T> Invoker<T> refer(Class<T> type) throws RPCException {
         ToyInvoker<T> invoker = new ToyInvoker<>();
         invoker.setInterfaceClass(type);
-        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getFiltersByInterface(type));
-        putInvoker(type, invokerWithFilters);
-        return invokerWithFilters;
+        return invoker;
     }
 
-    @Override
-    public Endpoint openClient(String address, ApplicationConfig applicationConfig) {
-        ToyEndpoint toyEndpoint = new ToyEndpoint();
-        toyEndpoint.init(applicationConfig, address);
-        return toyEndpoint;
-    }
 
     @Override
-    public void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
-        ToyServer toyServer = new ToyServer();
-        toyServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
-        toyServer.run();
+    public void doOnApplicationLoadComplete(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
+        log.info("http protocol doOnApplicationLoadComplete...");
+        if (isExporterExists()) {
+            ToyServer toyServer = new ToyServer();
+            toyServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
+            toyServer.run();
+        }
     }
 }

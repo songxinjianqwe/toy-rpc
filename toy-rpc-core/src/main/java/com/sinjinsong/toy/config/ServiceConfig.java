@@ -8,7 +8,7 @@ import lombok.Data;
 /**
  * @author sinjinsong
  * @date 2018/7/7
- * 
+ * <p>
  * 暴露服务配置
  */
 @Data
@@ -24,11 +24,14 @@ public class ServiceConfig<T> extends AbstractConfig {
     private int callbackParamIndex = 1;
     private boolean isCallbackInterface;
     private T ref;
+
+    private Exporter<T> exporter;
     
-    private Exporter<T> exporter; 
-    
+    // 这里无法像ReferenceConfig一样搞一个静态cache，都从这里来发现暴露的服务
+    // 因为有可能一个invoker在export之后unexport，所以从全局cache取，未必是exported
+    // 建议还是从Protocol里取比较好
     public void export() {
         Invoker<T> invoker = applicationConfig.getProxyFactoryInstance().getInvoker(ref, interfaceClass);
-        exporter = protocolConfig.getProtocolInstance().export(invoker,this);
+        exporter = protocolConfig.getProtocolInstance().export(invoker, this);
     }
 }

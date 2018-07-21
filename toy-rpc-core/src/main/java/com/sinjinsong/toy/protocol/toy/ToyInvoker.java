@@ -1,8 +1,11 @@
 package com.sinjinsong.toy.protocol.toy;
 
+import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteInvoker;
+import com.sinjinsong.toy.transport.api.Endpoint;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.transport.toy.client.ToyEndpoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Future;
@@ -18,5 +21,12 @@ public class ToyInvoker<T> extends AbstractRemoteInvoker<T> {
     @Override
     protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
         return rpcRequest -> getEndpoint().submit(rpcRequest);
+    }
+    
+    @Override
+    protected Endpoint doInitEndpoint(String address, ApplicationConfig applicationConfig) {
+        ToyEndpoint toyEndpoint = new ToyEndpoint();
+        toyEndpoint.init(applicationConfig, address);
+        return toyEndpoint;
     }
 }

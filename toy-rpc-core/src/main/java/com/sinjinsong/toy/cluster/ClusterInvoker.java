@@ -9,7 +9,6 @@ import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteInvoker;
-import com.sinjinsong.toy.transport.api.Endpoint;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,8 +70,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
                 Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
                 // TODO refactor this
                 if(invoker instanceof AbstractRemoteInvoker) {
-                    Endpoint endpoint = protocolConfig.getProtocolInstance().openClient(address, applicationConfig);
-                    ((AbstractRemoteInvoker) invoker).setEndpoint(endpoint);
+                    ((AbstractRemoteInvoker) invoker).initEndpoint(address, applicationConfig);
                 }
                 addressInvokers.put(address, invoker);
             }

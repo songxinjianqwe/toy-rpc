@@ -92,7 +92,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
 
     @Override
     public void handleRPCRequest(RPCRequest request, ChannelHandlerContext ctx) {
-        getProtocolConfig().getExecutor().getExecutorInstance().submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().getExportedServiceConfig(request.getInterfaceName()), serverMessageConverter));
+        getProtocolConfig().getExecutor().getExecutorInstance().submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().referLocalService(request.getInterfaceName()), serverMessageConverter));
     }
 
 }
