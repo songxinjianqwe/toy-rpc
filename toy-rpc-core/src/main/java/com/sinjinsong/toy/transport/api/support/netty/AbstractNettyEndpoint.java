@@ -46,7 +46,8 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
      * @return
      */
     protected abstract ClientMessageConverter initConverter();
-
+    
+    
     private synchronized void initClient() {
         if(initialized) {
             return;
@@ -123,7 +124,6 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();
         RPCThreadSharedContext.registerResponseFuture(request.getRequestId(), responseFuture);
         Object data = converter.convert2Object(Message.buildRequest(request));
-        log.info("转换后的消息体为:{}", data);
         this.futureChannel.writeAndFlush(data);
         log.info("请求已发送至{}", getAddress());
         return responseFuture;

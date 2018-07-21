@@ -53,7 +53,6 @@ public class RPCTaskRunner implements Runnable {
         if (!serviceConfig.isCallbackInterface()) {
             // 如果自己这个接口是一个回调接口，则无需响应
             Object data = messageConverter.convert2Object(Message.buildResponse(response));
-            log.info("转换后的消息体为:{}", data);
             // 这里调用ctx的write方法并不是同步的，也是异步的，将该写入操作放入到pipeline中
             ctx.writeAndFlush(data);
         }

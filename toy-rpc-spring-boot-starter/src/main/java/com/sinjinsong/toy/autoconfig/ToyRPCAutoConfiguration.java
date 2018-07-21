@@ -4,13 +4,12 @@ package com.sinjinsong.toy.autoconfig;
 import com.sinjinsong.toy.autoconfig.beanpostprocessor.RPCConsumerBeanPostProcessor;
 import com.sinjinsong.toy.autoconfig.beanpostprocessor.RPCProviderBeanPostProcessor;
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
+import com.sinjinsong.toy.common.enumeration.ExecutorType;
 import com.sinjinsong.toy.common.enumeration.LoadBalanceType;
 import com.sinjinsong.toy.common.enumeration.ProtocolType;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.ApplicationConfig;
-import com.sinjinsong.toy.config.ClusterConfig;
-import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.config.*;
+import com.sinjinsong.toy.executor.api.TaskExecutor;
 import com.sinjinsong.toy.filter.impl.ActiveLimitFilter;
 import com.sinjinsong.toy.protocol.api.Protocol;
 import com.sinjinsong.toy.proxy.JDKRPCProxyFactory;
@@ -74,6 +73,13 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         }
         Protocol protocol = ProtocolType.valueOf(protocolConfig.getType().toUpperCase()).getProtocol();
         protocolConfig.setProtocolInstance(protocol);
+
+        ExecutorConfig executorConfig = protocolConfig.getExecutor();
+        if (executorConfig != null) {
+            TaskExecutor executor = ExecutorType.valueOf(executorConfig.getType().toUpperCase()).getExecutor();
+            executor.init(executorConfig.getThreads());
+            executorConfig.setExecutorInstance(executor);
+        }
         log.info("{}", protocolConfig);
         return protocolConfig;
     }
@@ -94,7 +100,6 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         log.info("{}", clusterConfig);
         return clusterConfig;
     }
-
 
     @Bean
     public RPCConsumerBeanPostProcessor rpcConsumerBeanPostProcessor(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, ProtocolConfig protocolConfig, RegistryConfig registryConfig) {
@@ -134,7 +139,6 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.ctx = applicationContext;
     }
-
 }
 
 

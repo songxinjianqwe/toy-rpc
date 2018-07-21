@@ -24,15 +24,15 @@ public abstract class SyncInvocation extends AbstractInvocation {
             response = executeAndWaitForResponse(referenceConfig.getTimeout());
         } catch (Exception e) {
             e.printStackTrace();
-            log.info("出错,FailOver!");
+            log.info("出错,FailOver! requestId:{}",rpcRequest.getRequestId());
             try {
                 response = retry(referenceConfig.getTimeout());
             } catch (ExecutionException e1) {
                 e1.printStackTrace();
             } catch (RetryException e1) {
                 e1.printStackTrace();
-                log.info("超过出错重试次数，不再重试");
-                throw new RPCException("超过出错重试次数",e1);
+                log.info("超过出错重试次数，不再重试  requestId:{}",rpcRequest.getRequestId());
+                throw new RPCException(e1,"超过出错重试次数 requestId:{}",rpcRequest.getRequestId());
             }
         }
         log.info("客户端读到响应:{}",response);
@@ -57,10 +57,10 @@ public abstract class SyncInvocation extends AbstractInvocation {
         Retryer<RPCResponse> retryer = RetryerBuilder.<RPCResponse>newBuilder()
                 .retryIfExceptionOfType(Exception.class) // 抛出IOException时重试 
                 .withWaitStrategy(WaitStrategies.incrementingWait(5, TimeUnit.SECONDS, 5, TimeUnit.SECONDS))
-                .withStopStrategy(StopStrategies.stopAfterAttempt(5)) // 重试5次后停止  
+                .withStopStrategy(StopStrategies.stopAfterAttempt(3)) // 重试5次后停止  
                 .build();
         return retryer.call(() -> {
-            log.info("重新连接中...");
+            log.info("开始本次重试...");
             return executeAndWaitForResponse(timeout);
         });
     }

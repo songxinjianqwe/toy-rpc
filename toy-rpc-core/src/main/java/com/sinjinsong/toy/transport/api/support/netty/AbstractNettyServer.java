@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.transport.api.support.netty;
 
-import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.transport.api.converter.ServerMessageConverter;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.support.AbstractServer;
@@ -13,9 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author sinjinsong
@@ -23,15 +19,11 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public abstract class AbstractNettyServer extends AbstractServer {
-    private ThreadPoolExecutor pool;
-    private int threads;
     private ChannelInitializer channelInitializer;
     private ServerMessageConverter serverMessageConverter;
     
     @Override
     protected void doInit() {
-        this.threads = getProtocolConfig().getThreads() != null ? getProtocolConfig().getThreads() : ProtocolConfig.DEFAULT_THREADS;
-        this.pool = new ThreadPoolExecutor(threads, threads, 6L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(100), new ThreadPoolExecutor.CallerRunsPolicy());
         this.channelInitializer = initPipeline();
         this.serverMessageConverter = initConverter();
     }
@@ -100,7 +92,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
 
     @Override
     public void handleRPCRequest(RPCRequest request, ChannelHandlerContext ctx) {
-        pool.submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().getExportedServiceConfig(request.getInterfaceName()), serverMessageConverter));
+        getProtocolConfig().getExecutor().getExecutorInstance().submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().getExportedServiceConfig(request.getInterfaceName()), serverMessageConverter));
     }
 
 }

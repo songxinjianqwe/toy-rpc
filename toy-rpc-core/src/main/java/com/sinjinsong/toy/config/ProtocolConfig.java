@@ -19,7 +19,7 @@ public class ProtocolConfig {
     public static final Integer DEFAULT_PORT = Integer.valueOf(8000);
     private String type;
     private Integer port;
-    private Integer threads;
     
     private Protocol protocolInstance;
+    private ExecutorConfig executor;
 }

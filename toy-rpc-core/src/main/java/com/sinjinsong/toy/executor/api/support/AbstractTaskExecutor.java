@@ -7,7 +7,4 @@ import com.sinjinsong.toy.executor.api.TaskExecutor;
  * @date 2018/7/19
  */
 public abstract class AbstractTaskExecutor implements TaskExecutor {
-    private int threads;
-
-    
 }
