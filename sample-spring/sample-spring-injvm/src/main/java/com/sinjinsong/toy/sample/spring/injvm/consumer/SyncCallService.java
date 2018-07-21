@@ -25,5 +25,4 @@ public class SyncCallService {
         log.info("sync:{}",helloService.hello(new User("4")));
         
     }
-    
 }
