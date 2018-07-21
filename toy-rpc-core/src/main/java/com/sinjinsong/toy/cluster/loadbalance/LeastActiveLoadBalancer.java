@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * @author sinjinsong
  * @date 2018/3/15
+ * 对异步和回调方式作用不明显，主要是用于同步调用方式
  */
 @Slf4j
 public class LeastActiveLoadBalancer extends AbstractLoadBalancer {
