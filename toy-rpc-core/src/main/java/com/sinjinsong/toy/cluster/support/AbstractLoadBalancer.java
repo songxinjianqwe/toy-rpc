@@ -25,7 +25,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     private ProtocolConfig protocolConfig;
     private ApplicationConfig applicationConfig;
     private ClusterConfig clusterConfig;
-    
+
     /**
      * key是接口名，value的key是IP地址，value是Endpoint
      * <p>
@@ -35,6 +35,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * key : BService, value:   192.168.1.1,Endpoint1
      */
     private Map<String, ClusterInvoker> interfaceInvokers = new ConcurrentHashMap<>();
+
     /**
      * 分配address的形式
      *
@@ -47,8 +48,8 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         String interfaceName = interfaceClass.getName();
         ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceName)) {
-            clusterInvoker = new ClusterInvoker(interfaceClass,applicationConfig,clusterConfig,registryConfig,protocolConfig);
-            interfaceInvokers.put(interfaceName,clusterInvoker);
+            clusterInvoker = new ClusterInvoker(interfaceClass, applicationConfig, clusterConfig, registryConfig, protocolConfig);
+            interfaceInvokers.put(interfaceName, clusterInvoker);
             return clusterInvoker;
         }
         return interfaceInvokers.get(interfaceName);
@@ -60,11 +61,11 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
         ClusterInvoker clusterInvoker = interfaceInvokers.get(request.getInterfaceName());
         Invoker invoker = doSelect(clusterInvoker.getInvokers(), request);
-        log.info("LoadBalance:{},chosen invoker:{}",this.getClass().getSimpleName(),invoker.getAddress());
+        log.info("LoadBalance:{},chosen invoker:{},requestId:" + request.getRequestId(), this.getClass().getSimpleName(), invoker.getAddress());
         return invoker;
     }
     
-    
+
     protected abstract Invoker doSelect(List<Invoker> invokers, RPCRequest request);
 
     @Override
@@ -76,7 +77,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     public void setRegistryConfig(RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
     }
-    
+
     public void setProtocolConfig(ProtocolConfig protocolConfig) {
         this.protocolConfig = protocolConfig;
     }

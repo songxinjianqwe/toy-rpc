@@ -9,11 +9,13 @@ import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteInvoker;
+import com.sinjinsong.toy.registry.api.ServiceURL;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author sinjinsong
@@ -38,9 +40,43 @@ public class ClusterInvoker<T> implements Invoker<T> {
     }
 
     private void init() {
-        this.registryConfig.getRegistryInstance().discover(interfaceClass.getName(), (newAddresses -> {
-            refresh(newAddresses);
+        this.registryConfig.getRegistryInstance().discover(interfaceClass.getName(), (newServiceURLs -> {
+            removeNotExisted(newServiceURLs);
+        }), (serviceURL -> {
+            addOrUpdate(serviceURL);
         }));
+    }
+
+    /**
+     * addr1,addr2,addr3 -> addr2?weight=20,addr3,addr4
+     * <p>
+     * 1) addOrUpdate(addr2) -> updateConfig(addr2)
+     * 2) addOrUpdate(addr3) -> updateConfig(addr3)
+     * 3) addOrUpdate(addr4) -> add(addr4)
+     * 4) removeNotExisted(addr2,addr3,addr4) -> remove(addr1)
+     *
+     * @param serviceURL
+     */
+    private synchronized void addOrUpdate(ServiceURL serviceURL) {
+        // 地址多了/更新
+        // 更新
+        if (addressInvokers.containsKey(serviceURL.getAddress())) {
+            // 怎么更新？
+            // 现在invoker类型是封装后的AbstractInvoker类型，未必会对应一个Endpoint
+            // 虽然我们知道只有远程服务才有可能会更新
+            // TODO 
+            addressInvokers.get(serviceURL.getAddress());
+            
+        } else {
+            // 添加
+            Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
+            // TODO refactor this
+            // 最后是决定，不管一个服务器提供多少个接口，对每个接口建立一个连接，否则管理起来太麻烦
+            if (invoker instanceof AbstractRemoteInvoker) {
+                invoker = ((AbstractRemoteInvoker) invoker).initEndpoint(serviceURL, applicationConfig);
+            }
+            addressInvokers.put(serviceURL.getAddress(), invoker);
+        }
     }
 
     public List<Invoker> getInvokers() {
@@ -48,35 +84,26 @@ public class ClusterInvoker<T> implements Invoker<T> {
     }
 
     /**
-     * @param newAddresses
+     * 在该方法调用前，会将新的加进来，所以这里只需要去掉新的没有的。
+     * 旧的一定包含了新的，遍历旧的，如果不在新的里面，则需要删掉
+     *
+     * @param newServiceURLs
      */
-    public synchronized void refresh(List<String> newAddresses) {
-        Set<String> oldAddresses = addressInvokers.keySet();
+    public synchronized void removeNotExisted(List<ServiceURL> newServiceURLs) {
+        Map<String, ServiceURL> newAddressesMap = newServiceURLs.stream().collect(Collectors.toMap(
+                url -> url.getAddress(), url -> url
+        ));
 
-        Set<String> intersect = new HashSet<>(newAddresses);
-        intersect.retainAll(oldAddresses);
-
-        for (String address : oldAddresses) {
-            if (!intersect.contains(address)) {
-                // 只要让服务器进入debug，就会从zk中移除，然后就会触发这段代码
-                addressInvokers.get(address).close();
-                addressInvokers.remove(address);
-            }
-        }
-
-        for (String address : newAddresses) {
-            if (!intersect.contains(address)) {
-                // 最后是决定，不管一个服务器提供多少个接口，对每个接口建立一个连接，否则管理起来太麻烦
-                Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
-                // TODO refactor this
-                if(invoker instanceof AbstractRemoteInvoker) {
-                    ((AbstractRemoteInvoker) invoker).initEndpoint(address, applicationConfig);
-                }
-                addressInvokers.put(address, invoker);
+        // 地址少了
+        for(Iterator<Map.Entry<String,Invoker<T>>> it = addressInvokers.entrySet().iterator(); it.hasNext();){
+            Map.Entry<String,Invoker<T>> curr = it.next();
+            if(!newAddressesMap.containsKey(curr.getKey())) {
+                curr.getValue().close();
+                it.remove();
             }
         }
     }
-    
+
     @Override
     public void close() {
         //TODO 
@@ -96,9 +123,9 @@ public class ClusterInvoker<T> implements Invoker<T> {
         log.error("未找到可用服务器");
         throw new RPCException("未找到可用服务器");
     }
-    
+
     @Override
-    public String getAddress() {
+    public ServiceURL getServiceURL() {
         throw new UnsupportedOperationException();
     }
 }

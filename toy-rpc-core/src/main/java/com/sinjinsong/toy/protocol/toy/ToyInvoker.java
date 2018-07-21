@@ -2,6 +2,7 @@ package com.sinjinsong.toy.protocol.toy;
 
 import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteInvoker;
+import com.sinjinsong.toy.registry.api.ServiceURL;
 import com.sinjinsong.toy.transport.api.Endpoint;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
@@ -24,9 +25,9 @@ public class ToyInvoker<T> extends AbstractRemoteInvoker<T> {
     }
     
     @Override
-    protected Endpoint doInitEndpoint(String address, ApplicationConfig applicationConfig) {
+    protected Endpoint doInitEndpoint(ServiceURL serviceURL, ApplicationConfig applicationConfig) {
         ToyEndpoint toyEndpoint = new ToyEndpoint();
-        toyEndpoint.init(applicationConfig, address);
+        toyEndpoint.init(applicationConfig, serviceURL);
         return toyEndpoint;
     }
 }

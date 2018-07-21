@@ -11,12 +11,11 @@ import com.sinjinsong.toy.invoke.oneway.OneWayInvocation;
 import com.sinjinsong.toy.invoke.sync.SyncInvocation;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
+import com.sinjinsong.toy.registry.api.ServiceURL;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -96,7 +95,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             public int hashCode() {
                 return actualInvoker.getInterface().hashCode();
             }
-            
+
             @Override
             public boolean equals(Object obj) {
                 if (obj instanceof Invoker) {
@@ -110,10 +109,10 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             public Class<T> getInterface() {
                 return actualInvoker.getInterface();
             }
-            
+
             @Override
-            public String getAddress() {
-                return actualInvoker.getAddress();
+            public ServiceURL getServiceURL() {
+                return actualInvoker.getServiceURL();
             }
 
             @Override
@@ -140,8 +139,8 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
                         }
 
                         @Override
-                        public String getAddress() {
-                            return actualInvoker.getAddress();
+                        public ServiceURL getServiceURL() {
+                            return actualInvoker.getServiceURL();
                         }
 
                         @Override
@@ -166,18 +165,12 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     }
 
     @Override
-    public String getAddress() {
-        try {
-            log.info("getAddress->localAddress");
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public ServiceURL getServiceURL() {
+        return ServiceURL.DEFAULT_SERVICE_URL;
     }
 
     @Override
     public void close() {
-
+        
     }
 }

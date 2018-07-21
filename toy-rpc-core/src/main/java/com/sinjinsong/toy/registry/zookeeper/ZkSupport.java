@@ -72,9 +72,8 @@ public class ZkSupport {
         return zookeeper.getChildren(path, watch);
     }
 
-    public byte[] getData(String path, boolean watch, Stat stat)
-            throws KeeperException, InterruptedException {
-        return zookeeper.getData(path, watch, stat);
+    public byte[] getData(String path,Watcher watcher) throws KeeperException, InterruptedException {
+        return zookeeper.getData(path,watcher,null);
     }
 
     /**

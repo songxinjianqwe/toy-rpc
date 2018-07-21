@@ -7,6 +7,6 @@ import java.util.List;
  * @date 2018/7/16
  */
 @FunctionalInterface
-public interface ClusterCallback {
-    void addresseChanged(List<String> newAddresses);
+public interface ServiceURLRemovalCallback {
+    void removeNotExisted(List<ServiceURL> newAddresses);
 }

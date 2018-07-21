@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.transport.api;
 
+import com.sinjinsong.toy.registry.api.ServiceURL;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,7 +16,7 @@ public interface Endpoint {
 
     void close();
 
-    String getAddress();
+    ServiceURL getServiceURL();
 
     void handleException(Throwable throwable);
     
