@@ -32,20 +32,25 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
     private volatile boolean initialized = false;
     private volatile boolean destroyed = false;
     private MessageConverter converter;
-    
+
     /**
      * 与Handler相关
+     *
      * @return
      */
     protected abstract ChannelInitializer initPipeline();
 
     /**
      * 与将Message转为Object类型的data相关
+     *
      * @return
      */
     protected abstract ClientMessageConverter initConverter();
-    
-    private void initClient() {
+
+    private synchronized void initClient() {
+        if(initialized) {
+            return;
+        }
         this.converter = initConverter();
         this.group = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
@@ -90,7 +95,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         ServiceConfig serviceConfig = RPCThreadSharedContext.getAndRemoveHandler(
                 CallbackInvocation.generateCallbackHandlerKey(request)
         );
-        new RPCTaskRunner(ctx, request, serviceConfig,converter).run();
+        new RPCTaskRunner(ctx, request, serviceConfig, converter).run();
     }
 
     @Override
@@ -118,7 +123,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();
         RPCThreadSharedContext.registerResponseFuture(request.getRequestId(), responseFuture);
         Object data = converter.convert2Object(Message.buildRequest(request));
-        log.info("转换后的消息体为:{}",data);
+        log.info("转换后的消息体为:{}", data);
         this.futureChannel.writeAndFlush(data);
         log.info("请求已发送至{}", getAddress());
         return responseFuture;
@@ -137,7 +142,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            if(group != null) {
+            if (group != null) {
                 group.shutdownGracefully();
             }
         }

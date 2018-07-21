@@ -15,11 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RPCStatus {
     private static final Map<String, Integer> ACTIVE_COUNT = new ConcurrentHashMap<>();
 
-    public static int getCount(String interfaceName, String methodName, String address) {
-        return ACTIVE_COUNT.get(generateKey(interfaceName, methodName, address));
+    public synchronized static int getCount(String interfaceName, String methodName, String address) {
+        Integer count = ACTIVE_COUNT.get(generateKey(interfaceName, methodName, address));
+        return count == null ? 0 : count;
     }
     
-    public static void incCount(String interfaceName, String methodName, String address) {
+    public synchronized static void incCount(String interfaceName, String methodName, String address) {
         String key = generateKey(interfaceName, methodName, address);
         if (ACTIVE_COUNT.containsKey(key)) {
             ACTIVE_COUNT.put(key, ACTIVE_COUNT.get(key) + 1);
@@ -28,7 +29,7 @@ public class RPCStatus {
         }
     }
     
-    public static void decCount(String interfaceName, String methodName, String address) {
+    public synchronized static void decCount(String interfaceName, String methodName, String address) {
         String key = generateKey(interfaceName, methodName, address);
         ACTIVE_COUNT.put(key, ACTIVE_COUNT.get(key) - 1);
     }

@@ -7,6 +7,9 @@ import com.sinjinsong.toy.sample.spring.api.service.HelloServiceWithCallback;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * @author sinjinsong
  * @date 2018/6/10
@@ -39,5 +42,17 @@ public class CallbackCallService {
             log.info("callback4: {}", result);
         });
 
+    }
+    
+    public void concurrentTest() throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(5);
+        for (int i = 0; i < 20; i++) {
+            String currentUsername = String.valueOf(i + 1);
+            pool.submit(() -> {
+                helloServiceWithCallback.hello(new User(currentUsername), result -> {
+                    log.info("callback{}:{}", currentUsername, result);
+                });
+            });
+        }
     }
 }

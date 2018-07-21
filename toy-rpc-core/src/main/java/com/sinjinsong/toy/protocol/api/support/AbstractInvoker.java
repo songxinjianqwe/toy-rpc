@@ -132,7 +132,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
             @Override
             public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
-                log.info("filterIndex:{}", filterIndex.get().get());
+                log.info("filterIndex:{}, invokeParam:{}", filterIndex.get().get(),invokeParam);
                 final Invoker<T> invokerWrappedFilters = this;
                 if (filterIndex.get().get() < filters.size()) {
                     return filters.get(filterIndex.get().getAndIncrement()).invoke(new AbstractInvoker() {

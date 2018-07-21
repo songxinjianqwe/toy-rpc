@@ -1,7 +1,6 @@
 package com.sinjinsong.toy.sample.spring.client.call;
 
 import com.sinjinsong.toy.common.context.RPCThreadLocalContext;
-import com.sinjinsong.toy.config.annotation.RPCReference;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import java.util.concurrent.Future;
 @Slf4j
 @Service
 public class AsyncCallService {
-    @RPCReference(async=true)  
+//    @RPCReference(async=true)  
     private HelloService helloService;
     
     public void test() throws Exception {

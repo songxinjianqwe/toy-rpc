@@ -12,6 +12,11 @@ import com.sinjinsong.toy.sample.spring.api.service.HelloService;
 public class HelloServiceImpl implements HelloService {
     @Override
     public String hello(User user) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return "Hello, " + user.getUsername();
     }
 }

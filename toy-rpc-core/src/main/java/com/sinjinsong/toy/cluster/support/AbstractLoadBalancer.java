@@ -9,6 +9,7 @@ import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author sinjinsong
  * @date 2018/6/10
  */
+@Slf4j
 public abstract class AbstractLoadBalancer implements LoadBalancer {
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
@@ -57,7 +59,9 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
         // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
         ClusterInvoker clusterInvoker = interfaceInvokers.get(request.getInterfaceName());
-        return doSelect(clusterInvoker.getInvokers(), request);
+        Invoker invoker = doSelect(clusterInvoker.getInvokers(), request);
+        log.info("LoadBalance:{},chosen invoker:{}",this.getClass().getSimpleName(),invoker.getAddress());
+        return invoker;
     }
     
     

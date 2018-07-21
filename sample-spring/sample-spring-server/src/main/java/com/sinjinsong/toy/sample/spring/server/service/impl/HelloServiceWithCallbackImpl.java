@@ -14,6 +14,11 @@ import com.sinjinsong.toy.sample.spring.api.service.HelloServiceWithCallback;
 public class HelloServiceWithCallbackImpl implements HelloServiceWithCallback {
     @Override
     public void hello(User user, HelloCallback callback) {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         callback.callback("Hello, " + user.getUsername());
     }
 }
