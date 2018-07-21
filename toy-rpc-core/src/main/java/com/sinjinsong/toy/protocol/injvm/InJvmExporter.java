@@ -6,7 +6,7 @@ import com.sinjinsong.toy.protocol.api.support.AbstractExporter;
  * @author sinjinsong
  * @date 2018/7/18
  */
-public class InJvmExpoter<T> extends AbstractExporter<T> {
+public class InJvmExporter<T> extends AbstractExporter<T> {
 
     @Override
     public void unexport() {

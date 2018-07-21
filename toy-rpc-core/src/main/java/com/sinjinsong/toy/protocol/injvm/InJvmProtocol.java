@@ -7,6 +7,9 @@ import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
 import com.sinjinsong.toy.transport.api.Endpoint;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 /**
  * @author sinjinsong
  * @date 2018/7/18
@@ -15,21 +18,37 @@ public class InJvmProtocol extends AbstractProtocol {
 
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker, ServiceConfig<T> serviceConfig) throws RPCException {
-        return null;
+        InJvmExporter<T> exporter = new InJvmExporter<>();
+        exporter.setInvoker(invoker);
+        exporter.setServiceConfig(serviceConfig);
+        putExporter(invoker.getInterface(), exporter);
+        // export
+        try {
+            int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
+            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
+        } catch (UnknownHostException e) {
+            throw new RPCException("获取本地Host失败", e);
+        }
+        return exporter;
     }
 
     @Override
     public <T> Invoker<T> refer(Class<T> type) throws RPCException {
-        return null;
+        InJvmInvoker<T> invoker = new InJvmInvoker<>();
+        invoker.setInterfaceClass(type);
+        invoker.setProtocol(this);
+        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getFiltersByInterface(type));
+        putInvoker(type, invokerWithFilters);
+        return invokerWithFilters;
     }
-
+    
     @Override
     public Endpoint openClient(String address, ApplicationConfig applicationConfig) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void openServer(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
-
+        throw new UnsupportedOperationException();
     }
 }

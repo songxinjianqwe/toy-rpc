@@ -17,6 +17,7 @@
         <module>sample-spring-api</module>
         <module>sample-spring-client</module>
         <module>sample-spring-server</module>
+        <module>sample-spring-injvm</module>
     </modules>
 
     <properties>

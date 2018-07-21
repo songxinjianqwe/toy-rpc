@@ -125,7 +125,8 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         log.info("Spring容器启动完毕，且NEED_SERVER为{}", NEED_SERVER);
-        if (NEED_SERVER) {
+        ProtocolConfig protocolConfig = ctx.getBean(ProtocolConfig.class);
+        if (NEED_SERVER && ProtocolType.valueOf(protocolConfig.getType().toUpperCase()) != ProtocolType.INJVM) {
             ctx.getBean(ProtocolConfig.class).getProtocolInstance().openServer(
                     ctx.getBean(ApplicationConfig.class),
                     ctx.getBean(ClusterConfig.class),

@@ -8,7 +8,7 @@ import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
+import com.sinjinsong.toy.protocol.api.support.AbstractRemoteInvoker;
 import com.sinjinsong.toy.transport.api.Endpoint;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -69,9 +69,11 @@ public class ClusterInvoker<T> implements Invoker<T> {
             if (!intersect.contains(address)) {
                 // 最后是决定，不管一个服务器提供多少个接口，对每个接口建立一个连接，否则管理起来太麻烦
                 Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
-                Endpoint endpoint = protocolConfig.getProtocolInstance().openClient(address, applicationConfig);
                 // TODO refactor this
-                ((AbstractInvoker) invoker).setEndpoint(endpoint);
+                if(invoker instanceof AbstractRemoteInvoker) {
+                    Endpoint endpoint = protocolConfig.getProtocolInstance().openClient(address, applicationConfig);
+                    ((AbstractRemoteInvoker) invoker).setEndpoint(endpoint);
+                }
                 addressInvokers.put(address, invoker);
             }
         }

@@ -11,11 +11,12 @@ import com.sinjinsong.toy.invoke.oneway.OneWayInvocation;
 import com.sinjinsong.toy.invoke.sync.SyncInvocation;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.api.Endpoint;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,12 +24,11 @@ import java.util.function.Function;
 
 /**
  * @author sinjinsong
- * @date 2018/7/14
+ * @date 2018/7/21
  */
 @Slf4j
 public abstract class AbstractInvoker<T> implements Invoker<T> {
     private Class<T> interfaceClass;
-    private Endpoint endpoint;
     
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
@@ -73,14 +73,16 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
     /**
      * 如果没有重写invoke方法，则必须重写该方法
+     *
      * @return
      */
-    protected Function<RPCRequest,Future<RPCResponse>> getProcessor() {
+    protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
         return null;
     }
 
     /**
      * 最终给ClusterInvoker的invoker，是用户接触到的invoker
+     *
      * @param filters
      * @param <T>
      * @return
@@ -91,36 +93,41 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             // 比较的时候就是在比较interfaceClass
             @Override
             public int hashCode() {
-                return actualInvoker.interfaceClass.hashCode();
+                return actualInvoker.getInterface().hashCode();
             }
 
             @Override
             public boolean equals(Object obj) {
-                if(obj instanceof Invoker) {
+                if (obj instanceof Invoker) {
                     Invoker rhs = (Invoker) obj;
-                    return actualInvoker.interfaceClass.equals(rhs.getInterface());
+                    return actualInvoker.getInterface().equals(rhs.getInterface());
                 }
                 return false;
             }
-            
+
             @Override
             public Class<T> getInterface() {
                 return actualInvoker.getInterface();
             }
 
-            @Override
-            public void setEndpoint(Endpoint endpoint) {
-                actualInvoker.setEndpoint(endpoint);
-            }
-
-            @Override
-            public Endpoint getEndpoint() {
-                return actualInvoker.getEndpoint();
-            }
+//            @Override
+//            public void setEndpoint(Endpoint endpoint) {
+//                actualInvoker.setEndpoint(endpoint);
+//            }
+//
+//            @Override
+//            public Endpoint getEndpoint() {
+//                return actualInvoker.getEndpoint();
+//            }
 
             @Override
             public String getAddress() {
                 return actualInvoker.getAddress();
+            }
+
+            @Override
+            public void close() {
+                actualInvoker.close();
             }
 
             private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal() {
@@ -132,7 +139,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
             @Override
             public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
-                log.info("filterIndex:{}, invokeParam:{}", filterIndex.get().get(),invokeParam);
+                log.info("filterIndex:{}, invokeParam:{}", filterIndex.get().get(), invokeParam);
                 final Invoker<T> invokerWrappedFilters = this;
                 if (filterIndex.get().get() < filters.size()) {
                     return filters.get(filterIndex.get().getAndIncrement()).invoke(new AbstractInvoker() {
@@ -158,31 +165,27 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         };
     }
 
-    public Endpoint getEndpoint() {
-        return endpoint;
-    }
-    
     @Override
     public Class<T> getInterface() {
         return interfaceClass;
-    }
-
-    @Override
-    public String getAddress() {
-        return getEndpoint().getAddress();
     }
 
     public void setInterfaceClass(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
     }
 
-    public void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
+    @Override
+    public String getAddress() {
+        try {
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
     public void close() {
-        // 如果是重写了getEndpoint方法而非
-        getEndpoint().close();
+
     }
 }

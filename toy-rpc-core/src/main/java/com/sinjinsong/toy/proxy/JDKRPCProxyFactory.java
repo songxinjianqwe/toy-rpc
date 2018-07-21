@@ -43,7 +43,7 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                             return invoker.equals(args[0]);
                         }
                         RPCRequest request = new RPCRequest();
-                        log.info("调用远程服务：{} {}", method.getDeclaringClass().getName(), method.getName());
+                        log.info("调用服务：{} {}", method.getDeclaringClass().getName(), method.getName());
                         request.setRequestId(UUID.randomUUID().toString());
                         request.setInterfaceName(method.getDeclaringClass().getName());
                         request.setMethodName(method.getName());
@@ -89,6 +89,7 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                 }
                 return response;
             }
+
         };
     }
 }
