@@ -115,7 +115,8 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         log.info("RPCProviderBeanPostProcessor init");
         return processor;
     }
-
+    
+//    @ConditionalOnProperty(value="rpc.")
     @Bean
     public ActiveLimitFilter activeLimitFilter() {
         return new ActiveLimitFilter();

@@ -1,9 +1,6 @@
 package com.sinjinsong.toy.common.enumeration;
 
-import com.sinjinsong.toy.cluster.loadbalance.ConsistentHashLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.LeastActiveLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.RandomLoadBalancer;
-import com.sinjinsong.toy.cluster.loadbalance.RoundRobinLoadBalancer;
+import com.sinjinsong.toy.cluster.loadbalance.*;
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
 
 /**
@@ -14,7 +11,9 @@ public enum LoadBalanceType {
     LEAST_ACTIVE(new LeastActiveLoadBalancer()),
     RANDOM(new RandomLoadBalancer()),
     CONSITITENT_HASH(new ConsistentHashLoadBalancer()),
-    ROUND_ROBIN(new RoundRobinLoadBalancer());
+    ROUND_ROBIN(new RoundRobinLoadBalancer()),
+    WEIGHTED_RANDOM(new WeightedRandomLoadBalancer());
+    
     private AbstractLoadBalancer loadBalancer;
     
     LoadBalanceType(AbstractLoadBalancer loadBalancer) {

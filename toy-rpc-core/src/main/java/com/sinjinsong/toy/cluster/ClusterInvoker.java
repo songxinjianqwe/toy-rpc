@@ -59,7 +59,6 @@ public class ClusterInvoker<T> implements Invoker<T> {
      * @param serviceURL
      */
     private synchronized void addOrUpdate(ServiceURL serviceURL) {
-        log.info("registry updated#addOrUpdate:{}",serviceURL);
         // 地址多了/更新
         // 更新
         if (addressInvokers.containsKey(serviceURL.getAddress())) {

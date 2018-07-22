@@ -17,7 +17,7 @@ import java.util.*;
 @ToString
 public final class ServiceURL {
     private String address;
-    private volatile Map<Key, List<String>> params = new HashMap<>();
+    private Map<Key, List<String>> params = new HashMap<>();
 
     public static ServiceURL DEFAULT_SERVICE_URL;
 
@@ -56,7 +56,7 @@ public final class ServiceURL {
      * @return
      */
     public List<String> getKey(Key key) {
-        return params.containsKey(key) ? key.getDefaultValues() : params.get(key);
+        return params.containsKey(key) ?  params.get(key) : key.getDefaultValues();
     }
 
     private ServiceURL() {
@@ -75,9 +75,6 @@ public final class ServiceURL {
         if (urlSlices.length > 1) {
             String params = urlSlices[1];
             String[] urlParams = params.split("&");
-            if (serviceURL.params == null) {
-                serviceURL.params = new HashMap<>();
-            }
             for (String param : urlParams) {
                 String[] kv = param.split("=");
                 String key = kv[0];
