@@ -21,8 +21,8 @@ import java.util.UUID;
  * @date 2018/3/10
  */
 @Slf4j
-public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
-
+public class JdkRPCProxyFactory extends AbstractRPCProxyFactory {
+    
     @Override
     protected <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker) {
         return (T) Proxy.newProxyInstance(
@@ -60,7 +60,7 @@ public class JDKRPCProxyFactory extends AbstractRPCProxyFactory {
                             return null;
                         }
                         if (response.hasError()) {
-                            throw new RPCException("invocation failed", response.getCause());
+                            throw new RPCException( response.getCause(),"invocation failed");
                         } else {
                             return response.getResult();
                         }

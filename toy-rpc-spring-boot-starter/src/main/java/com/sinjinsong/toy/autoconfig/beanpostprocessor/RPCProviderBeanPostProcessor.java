@@ -24,7 +24,7 @@ public class RPCProviderBeanPostProcessor extends AbstractRPCBeanPostProcessor {
         if (interfaces.length >= 1) {
             interfaceClass = interfaces[0];
         } else {
-            throw new RPCException("该服务" + beanClass + "未实现任何服务接口");
+            throw new RPCException("该服务 {} 未实现任何服务接口",beanClass);
         }
         RPCService rpcService = beanClass.getAnnotation(RPCService.class);
         ServiceConfig<Object> config = ServiceConfig.builder()

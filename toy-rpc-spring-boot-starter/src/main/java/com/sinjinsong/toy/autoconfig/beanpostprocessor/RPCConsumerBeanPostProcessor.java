@@ -41,7 +41,7 @@ public class RPCConsumerBeanPostProcessor extends AbstractRPCBeanPostProcessor{
                 try {
                     field.set(bean,config.get());
                 } catch (IllegalAccessException e) {
-                    throw new RPCException("set proxy failed",e);
+                    throw new RPCException(e,"set proxy failed");
                 }
                 log.info("注入依赖:{}",interfaceClass);
             }

@@ -33,8 +33,8 @@ public class ReferenceConfig<T> extends AbstractConfig {
 
     private static final Map<Class<?>, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
     private List<Filter> filters;
-    
-    
+
+
     /**
      * 非单例，非接口粒度的单例，同一个服务接口多种配置可以对应多个不同的ReferenceConfig
      *
@@ -57,11 +57,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
                                                                Collection<Filter> filters) {
         if (CACHE.containsKey(interfaceClass)) {
             if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
-                throw new RPCException("同一个接口只能以相同的配置引用" + interfaceClass);
+                throw new RPCException("同一个接口只能以相同的配置引用:{}", interfaceClass);
             }
             return (ReferenceConfig<T>) CACHE.get(interfaceClass);
         }
-         
+
         ReferenceConfig config = ReferenceConfig.builder()
                 .interfaceName(interfaceClass.getName())
                 .interfaceClass((Class<Object>) interfaceClass)
@@ -81,19 +81,19 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (this.isAsync != isAsync) {
             return true;
         }
-        if(this.isCallback != isCallback) {
+        if (this.isCallback != isCallback) {
             return false;
         }
-        if(this.isOneWay != isOneWay){
+        if (this.isOneWay != isOneWay) {
             return true;
         }
-        if(this.timeout != timeout) {
+        if (this.timeout != timeout) {
             return true;
         }
-        if(this.callbackMethod != callbackMethod) {
+        if (this.callbackMethod != callbackMethod) {
             return true;
         }
-        if(this.callbackParamIndex != callbackParamIndex) {
+        if (this.callbackParamIndex != callbackParamIndex) {
             return true;
         }
         return false;
@@ -121,11 +121,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         return ref;
     }
-    
+
     public static ReferenceConfig getReferenceConfigByInterface(Class<?> interfaceClass) {
         return CACHE.get(interfaceClass);
-    } 
-    
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -146,7 +146,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
     public int hashCode() {
         return Objects.hash(interfaceName, interfaceClass, isAsync, isOneWay, isCallback, timeout, callbackMethod, callbackParamIndex, filters);
     }
-    
+
     @Override
     public String toString() {
         return "ReferenceConfig{" +

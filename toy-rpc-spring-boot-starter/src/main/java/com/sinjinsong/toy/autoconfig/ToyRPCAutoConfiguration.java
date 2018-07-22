@@ -7,14 +7,14 @@ import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
 import com.sinjinsong.toy.common.enumeration.ExecutorType;
 import com.sinjinsong.toy.common.enumeration.LoadBalanceType;
 import com.sinjinsong.toy.common.enumeration.ProtocolType;
+import com.sinjinsong.toy.common.enumeration.SerializerType;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.executor.api.TaskExecutor;
 import com.sinjinsong.toy.filter.impl.ActiveLimitFilter;
 import com.sinjinsong.toy.protocol.api.Protocol;
-import com.sinjinsong.toy.proxy.JDKRPCProxyFactory;
+import com.sinjinsong.toy.proxy.JdkRPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
-import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +58,8 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
             throw new RPCException("必须配置applicationConfig");
         }
         // TODO 根据类型创建proxyFactory和serializer
-        application.setProxyFactoryInstance(new JDKRPCProxyFactory());
-        application.setSerializerInstance(new ProtostuffSerializer());
+        application.setProxyFactoryInstance(new JdkRPCProxyFactory());
+        application.setSerializerInstance(SerializerType.valueOf(application.getSerialize().toUpperCase()).getSerializer());
         log.info("{}", application);
         return application;
     }

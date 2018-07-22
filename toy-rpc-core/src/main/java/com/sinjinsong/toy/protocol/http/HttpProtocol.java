@@ -29,7 +29,7 @@ public class HttpProtocol extends AbstractProtocol {
             int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
             serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
-            throw new RPCException("获取本地Host失败", e);
+            throw new RPCException(e,"获取本地Host失败");
         }
         return exporter;
     }

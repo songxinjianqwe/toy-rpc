@@ -20,15 +20,15 @@ public abstract class AbstractProtocol implements Protocol {
     protected void putExporter(Class<?> interfaceClass, Exporter<?> exporter) {
         this.exporters.put(interfaceClass.getName(), exporter);
     }
-    
+
     protected boolean isExporterExists() {
         return !exporters.isEmpty();
     }
-    
+
     @Override
     public <T> ServiceConfig<T> referLocalService(String interfaceMame) throws RPCException {
         if (!exporters.containsKey(interfaceMame)) {
-            throw new RPCException("未找到暴露的服务" + interfaceMame);
+            throw new RPCException("未找到暴露的服务:{}", interfaceMame);
         }
         return (ServiceConfig<T>) exporters.get(interfaceMame).getServiceConfig();
     }

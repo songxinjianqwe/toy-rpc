@@ -2,13 +2,14 @@ package com.sinjinsong.toy.transport.api.domain;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * Created by SinjinSong on 2017/7/30.
  */
 @Data
-public class RPCRequest {
+public class RPCRequest implements Serializable {
     private String requestId;
     private String interfaceName;
     private String methodName;

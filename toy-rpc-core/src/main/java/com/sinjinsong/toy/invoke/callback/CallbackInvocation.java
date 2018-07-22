@@ -33,7 +33,7 @@ public abstract class CallbackInvocation extends AbstractInvocation {
         try {
            doInvoke();
         } catch (Exception e) {
-            throw new RPCException("CLIENT异常", e);
+            throw new RPCException(e,"CLIENT异常");
         }
         return null;
     }

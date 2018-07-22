@@ -54,7 +54,7 @@ public class ZkSupport {
             log.info("建立数据节点 ({} => {})", path, data);
         } catch (KeeperException e) {
             if (e instanceof KeeperException.NodeExistsException) {
-                throw new RPCException("ZK路径 " + path + " 已经存在:" + data + ",建议重启解决");
+                throw new RPCException("ZK路径 {} 已经存在 : {},建议重启解决", path, data);
             } else {
                 e.printStackTrace();
             }
@@ -72,8 +72,8 @@ public class ZkSupport {
         return zookeeper.getChildren(path, watch);
     }
 
-    public byte[] getData(String path,Watcher watcher) throws KeeperException, InterruptedException {
-        return zookeeper.getData(path,watcher,null);
+    public byte[] getData(String path, Watcher watcher) throws KeeperException, InterruptedException {
+        return zookeeper.getData(path, watcher, null);
     }
 
     /**

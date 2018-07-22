@@ -118,7 +118,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
             initialized = true;
         }
         if (destroyed) {
-            throw new RPCException("当前Endpoint:" + getServiceURL().getAddress() + "关闭后仍在提交任务");
+            throw new RPCException("当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
         }
         log.info("客户端发起请求: {},请求的服务器为: {}", request,getServiceURL().getAddress());
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();
