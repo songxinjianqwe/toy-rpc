@@ -55,7 +55,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                                                                long timeout,
                                                                String callbackMethod,
                                                                int callbackParamIndex,
-                                                               Collection<Filter> filters) {
+                                                               List<Filter> filters) {
         if (CACHE.containsKey(interfaceClass)) {
             if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
                 throw new RPCException(ErrorEnum.SAME_INTERFACE_ONLY_CAN_BE_REFERED_IN_THE_SAME_WAY,"同一个接口只能以相同的配置引用:{}", interfaceClass);
@@ -72,7 +72,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                 .timeout(timeout)
                 .callbackMethod(callbackMethod)
                 .callbackParamIndex(callbackParamIndex)
-                .filters(filters == null ? Collections.EMPTY_LIST : new ArrayList(filters))
+                .filters(filters)
                 .build();
         CACHE.put(interfaceClass, config);
         return config;

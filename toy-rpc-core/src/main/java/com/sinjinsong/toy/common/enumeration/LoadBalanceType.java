@@ -2,12 +2,13 @@ package com.sinjinsong.toy.common.enumeration;
 
 import com.sinjinsong.toy.cluster.loadbalance.*;
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
+import com.sinjinsong.toy.common.enumeration.support.ExtensionBaseType;
 
 /**
  * @author sinjinsong
  * @date 2018/7/14
  */
-public enum LoadBalanceType {
+public enum LoadBalanceType implements ExtensionBaseType<AbstractLoadBalancer> {
     LEAST_ACTIVE(new LeastActiveLoadBalancer()),
     RANDOM(new RandomLoadBalancer()),
     CONSITITENT_HASH(new ConsistentHashLoadBalancer()),
@@ -19,8 +20,9 @@ public enum LoadBalanceType {
     LoadBalanceType(AbstractLoadBalancer loadBalancer) {
         this.loadBalancer = loadBalancer;
     }
-    
-    public AbstractLoadBalancer getLoadBalancer() {
+
+    @Override
+    public AbstractLoadBalancer getInstance() {
         return loadBalancer;
     }
 }

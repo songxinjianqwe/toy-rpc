@@ -15,7 +15,7 @@ public class RPCException extends RuntimeException {
         this.errorEnum = errorEnum;
     }
 
-    public RPCException(ErrorEnum errorEnum, Throwable cause, String message, Object... args) {
+    public RPCException(Throwable cause, ErrorEnum errorEnum, String message, Object... args) {
         super(PlaceHolderUtil.replace(message, args), cause);
         this.errorEnum = errorEnum;
     }

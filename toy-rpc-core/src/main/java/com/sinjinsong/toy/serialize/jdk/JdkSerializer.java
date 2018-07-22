@@ -26,7 +26,7 @@ public class JdkSerializer implements Serializer {
             oos.close();
             return bytes;
         } catch (Throwable e) {
-            throw new RPCException(ErrorEnum.SERIALIZER_ERROR,e, "序列化异常:{}", obj);
+            throw new RPCException(e,ErrorEnum.SERIALIZER_ERROR, "序列化异常:{}", obj);
         }
     }
 
@@ -38,7 +38,7 @@ public class JdkSerializer implements Serializer {
             Object o = ois.readObject();
             return cls.cast(o);
         } catch (Throwable e) {
-            throw new RPCException(ErrorEnum.SERIALIZER_ERROR,e, "反序列化异常:{}", cls);
+            throw new RPCException(e,ErrorEnum.SERIALIZER_ERROR, "反序列化异常:{}", cls);
         }
     }
 }

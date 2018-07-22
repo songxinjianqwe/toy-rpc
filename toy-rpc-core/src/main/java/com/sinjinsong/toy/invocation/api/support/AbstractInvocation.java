@@ -42,7 +42,7 @@ public abstract class AbstractInvocation implements Invocation {
             response = doInvoke();
         } catch (Throwable e) {
             e.printStackTrace();
-            throw new RPCException(ErrorEnum.TRANSPORT_FAILURE, e, "transport异常");
+            throw new RPCException(e,ErrorEnum.TRANSPORT_FAILURE, "transport异常");
         }
         return response;
     }

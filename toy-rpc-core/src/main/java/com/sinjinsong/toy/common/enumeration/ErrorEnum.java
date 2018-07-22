@@ -18,9 +18,12 @@ public enum ErrorEnum {
     SERVICE_INVOCATION_FAILURE("服务调用失败"),
     REGISTRY_ERROR("注册中心故障"),
     SERIALIZER_ERROR("序列化故障"),
-    CONFIG_ERROR("用户配置错误"),
+    APP_CONFIG_FILE_ERROR("application配置文件错误"),
     AUTOWIRE_REFERENCE_PROXY_ERROR("注册proxy实例失败"),
     SERVICE_DID_NOT_IMPLEMENT_ANY_INTERFACE("该服务未实现任何服务接口"),
+    VALUE_OF_MUST_BE_APPLIED_TO_EXTENSION_BASE_TYPE("调用valueOf的枚举必须实现ExtensionBaseTyp接口"),
+    NO_SUPPORTED_INSTANCE("接口没有可用实现类"),
+    EXTENSION_CONFIG_FILE_ERROR("toy扩展配置文件错误")
     ;
     private String errorCode;
 

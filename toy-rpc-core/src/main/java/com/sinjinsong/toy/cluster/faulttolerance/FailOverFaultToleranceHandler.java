@@ -43,7 +43,7 @@ public class FailOverFaultToleranceHandler implements FaultToleranceHandler {
         } catch (RetryException e1) {
             e1.printStackTrace();
             log.info("超过出错重试次数，不再重试  requestId:{}", invokeParam.getRequestId());
-            throw new RPCException(ErrorEnum.RETRY_EXCEED_MAX_TIMES, e1, "超过出错重试次数 requestId:{}", invokeParam.getRequestId());
+            throw new RPCException(e1,ErrorEnum.RETRY_EXCEED_MAX_TIMES, "超过出错重试次数 requestId:{}", invokeParam.getRequestId());
         }
         return null;
     }
