@@ -23,6 +23,4 @@ public interface Endpoint {
     void handleCallbackRequest(RPCRequest request, ChannelHandlerContext ctx);
     
     void handleRPCResponse(RPCResponse response);
-    
-    
 }

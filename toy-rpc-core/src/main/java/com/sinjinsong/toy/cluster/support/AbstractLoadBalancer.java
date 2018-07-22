@@ -44,7 +44,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * @return
      */
     @Override
-    public <T> Invoker<T> register(Class<T> interfaceClass) {
+    public <T> Invoker<T> referCluster(Class<T> interfaceClass) {
         String interfaceName = interfaceClass.getName();
         ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceClass.getName())) {
@@ -56,7 +56,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     }
     
     @Override
-    public Invoker register(String interfaceName) {
+    public Invoker referCluster(String interfaceName) {
         ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceName)) {
             clusterInvoker = new ClusterInvoker(null, interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);

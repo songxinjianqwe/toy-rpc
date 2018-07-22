@@ -71,7 +71,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-
+        
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             String host = InetAddress.getLocalHost().getHostAddress();

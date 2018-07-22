@@ -111,9 +111,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
         // ClusterInvoker
         Invoker<T> invoker;
         if (interfaceClass != null) {
-            invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
+            invoker = clusterConfig.getLoadBalanceInstance().referCluster(interfaceClass);
         } else {
-            invoker = clusterConfig.getLoadBalanceInstance().register(interfaceName);
+            invoker = clusterConfig.getLoadBalanceInstance().referCluster(interfaceName);
         }
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }

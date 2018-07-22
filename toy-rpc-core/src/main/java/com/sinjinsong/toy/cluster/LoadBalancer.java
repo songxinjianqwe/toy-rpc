@@ -12,9 +12,9 @@ import java.util.List;
 public interface LoadBalancer {
     Invoker select(List<Invoker> invokers, RPCRequest request);
 
-    <T> Invoker<T> register(Class<T> interfaceClass);
+    <T> Invoker<T> referCluster(Class<T> interfaceClass);
     
-    Invoker register(String interfaceName);
+    Invoker referCluster(String interfaceName);
     
     void close();
 }
