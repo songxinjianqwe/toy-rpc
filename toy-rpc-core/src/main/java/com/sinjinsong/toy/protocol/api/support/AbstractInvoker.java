@@ -88,38 +88,10 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
      */
     public <T> Invoker<T> buildFilterChain(List<Filter> filters) {
         // refer 得到的，包含了endpoint
-        AbstractInvoker<T> actualInvoker = (AbstractInvoker<T>) this;
-        return new AbstractInvoker<T>() {
+        
+        return new InvokerDelegate<T>((Invoker<T>) this) {
             // 比较的时候就是在比较interfaceClass
-            @Override
-            public int hashCode() {
-                return actualInvoker.getInterface().hashCode();
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (obj instanceof Invoker) {
-                    Invoker rhs = (Invoker) obj;
-                    return actualInvoker.getInterface().equals(rhs.getInterface());
-                }
-                return false;
-            }
-
-            @Override
-            public Class<T> getInterface() {
-                return actualInvoker.getInterface();
-            }
-
-            @Override
-            public ServiceURL getServiceURL() {
-                return actualInvoker.getServiceURL();
-            }
-
-            @Override
-            public void close() {
-                actualInvoker.close();
-            }
-
+                
             private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal() {
                 @Override
                 protected Object initialValue() {
@@ -135,12 +107,12 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
                     return filters.get(filterIndex.get().getAndIncrement()).invoke(new AbstractInvoker() {
                         @Override
                         public Class<T> getInterface() {
-                            return actualInvoker.getInterface();
+                            return getDelegate().getInterface();
                         }
 
                         @Override
                         public ServiceURL getServiceURL() {
-                            return actualInvoker.getServiceURL();
+                            return getDelegate().getServiceURL();
                         }
 
                         @Override
@@ -150,7 +122,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
                     }, invokeParam);
                 }
                 filterIndex.get().set(0);
-                return actualInvoker.invoke(invokeParam);
+                return getDelegate().invoke(invokeParam);
             }
         };
     }

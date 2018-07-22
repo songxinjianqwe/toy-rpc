@@ -24,4 +24,8 @@ public abstract class AbstractEndpoint implements Endpoint {
     public ServiceURL getServiceURL() {
         return serviceURL;
     }
+    
+    public void updateServiceConfig(ServiceURL serviceURL) {
+        this.serviceURL = serviceURL;
+    }
 }

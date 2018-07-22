@@ -4,7 +4,9 @@ import com.sinjinsong.toy.transport.api.support.netty.AbstractNettyEndpoint;
 import com.sinjinsong.toy.transport.http.conveter.HttpClientMessageConverter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestEncoder;
+import io.netty.handler.codec.http.HttpResponseDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,4 +37,6 @@ public class HttpEndpoint extends AbstractNettyEndpoint {
     protected HttpClientMessageConverter initConverter() {
         return HttpClientMessageConverter.getInstance(getApplicationConfig().getSerializerInstance());
     }
+
+
 }

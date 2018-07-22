@@ -32,7 +32,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
     private volatile boolean initialized = false;
     private volatile boolean destroyed = false;
     private MessageConverter converter;
-
+    
     /**
      * 与Handler相关
      *
@@ -70,7 +70,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
 
     private Channel connect() throws Exception {
         ChannelFuture future;
-        String address = getAddress();
+        String address = getServiceURL().getAddress();
         String host = address.split(":")[0];
         Integer port = Integer.parseInt(address.split(":")[1]);
         future = bootstrap.connect(host, port).sync();
@@ -118,14 +118,14 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
             initialized = true;
         }
         if (destroyed) {
-            throw new RPCException("当前Endpoint:" + getAddress() + "关闭后仍在提交任务");
+            throw new RPCException("当前Endpoint:" + getServiceURL().getAddress() + "关闭后仍在提交任务");
         }
-        log.info("客户端发起请求: {},请求的服务器为: {}", request, getAddress());
+        log.info("客户端发起请求: {},请求的服务器为: {}", request,getServiceURL().getAddress());
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();
         RPCThreadSharedContext.registerResponseFuture(request.getRequestId(), responseFuture);
         Object data = converter.convert2Object(Message.buildRequest(request));
         this.futureChannel.writeAndFlush(data);
-        log.info("请求已发送至{}", getAddress());
+        log.info("请求已发送至{}",getServiceURL().getAddress());
         return responseFuture;
     }
 

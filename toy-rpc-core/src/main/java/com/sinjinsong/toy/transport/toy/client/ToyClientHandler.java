@@ -23,13 +23,13 @@ public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");
         cause.printStackTrace();
-        log.info("与服务器{} 的连接断开", endpoint.getAddress());
+        log.info("与服务器{} 的连接断开", endpoint.getServiceURL().getAddress());
         endpoint.handleException(cause);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("客户端与服务器{}通道已开启...", endpoint.getAddress());
+        log.info("客户端与服务器{}通道已开启...", endpoint.getServiceURL().getAddress());
     }
 
     /**
@@ -42,7 +42,7 @@ public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
-            log.info("超过指定时间未发送数据，客户端主动发送心跳信息至{}", endpoint.getAddress());
+            log.info("超过指定时间未发送数据，客户端主动发送心跳信息至{}", endpoint.getServiceURL().getAddress());
             ctx.writeAndFlush(Message.PING_MSG);
         } else {
             super.userEventTriggered(ctx, evt);
@@ -51,7 +51,7 @@ public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
-        log.info("接收到服务器 {} 响应: {}", endpoint.getAddress(), message);
+        log.info("接收到服务器 {} 响应: {}", endpoint.getServiceURL().getAddress(), message);
         //服务器不会PING客户端
         if (message.getType() == Message.PONG) {
             log.info("收到服务器的PONG心跳响应");

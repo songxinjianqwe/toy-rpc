@@ -20,15 +20,15 @@ public class ActiveLimitFilter implements Filter {
         RPCResponse result = null;
         try {
             log.info("starting,incCount...,{}",invokerParam);
-            RPCStatus.incCount(invokerParam.getInterfaceName(), invokerParam.getMethodName(), invoker.getAddress());
+            RPCStatus.incCount(invokerParam.getInterfaceName(), invokerParam.getMethodName(), invoker.getServiceURL().getAddress());
             result = invoker.invoke(invokerParam);
         } catch (RPCException e) {
             log.info("catch exception,decCount...,{}",invokerParam);
-            RPCStatus.decCount(invokerParam.getInterfaceName(), invokerParam.getMethodName(), invoker.getAddress());
+            RPCStatus.decCount(invokerParam.getInterfaceName(), invokerParam.getMethodName(), invoker.getServiceURL().getAddress());
             throw e;
         }
         log.info("finished,decCount...,{}",invokerParam);
-        RPCStatus.decCount(invokerParam.getInterfaceName(), invokerParam.getMethodName(), invoker.getAddress());
+        RPCStatus.decCount(invokerParam.getInterfaceName(), invokerParam.getMethodName(), invoker.getServiceURL().getAddress());
         return result;
     }
 }

@@ -17,12 +17,8 @@ import java.util.*;
 @ToString
 public final class ServiceURL {
     private String address;
-    private volatile Map<Key, List<String>> params;
+    private volatile Map<Key, List<String>> params = new HashMap<>();
 
-    public void updateParams(ServiceURL newServiceURL) {
-        this.params = newServiceURL.params;
-    }
-    
     public static ServiceURL DEFAULT_SERVICE_URL;
 
     static {

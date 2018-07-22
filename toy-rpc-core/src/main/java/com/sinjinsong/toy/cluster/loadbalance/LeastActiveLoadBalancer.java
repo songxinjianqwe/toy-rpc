@@ -21,8 +21,8 @@ public class LeastActiveLoadBalancer extends AbstractLoadBalancer {
         Invoker target = null;
         int least = 0;
         for (Invoker invoker : invokers) {
-            int current = RPCStatus.getCount(request.getInterfaceName(), request.getMethodName(), invoker.getAddress());
-            log.info("requestId:" + request.getRequestId() + ",invoker:{},count:{}", invoker.getAddress(), Integer.valueOf(current));
+            int current = RPCStatus.getCount(request.getInterfaceName(), request.getMethodName(), invoker.getServiceURL().getAddress());
+            log.info("requestId:" + request.getRequestId() + ",invoker:{},count:{}", invoker.getServiceURL().getAddress(), Integer.valueOf(current));
             if (target == null || current < least) {
                 target = invoker;
                 least = current;

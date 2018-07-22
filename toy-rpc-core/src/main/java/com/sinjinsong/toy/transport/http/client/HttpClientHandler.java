@@ -22,13 +22,13 @@ public class HttpClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("客户端与服务器{}通道已开启...", endpoint.getAddress());
+        log.info("客户端与服务器{}通道已开启...", endpoint.getServiceURL().getAddress());
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Message message = converter.convertResponse2Message(msg);
-        log.info("接收到服务器 {} 响应: {}", endpoint.getAddress(), message.getResponse());
+        log.info("接收到服务器 {} 响应: {}", endpoint.getServiceURL().getAddress(), message.getResponse());
         if (message.getType() == Message.RESPONSE) {
             endpoint.handleRPCResponse(message.getResponse());
         } else if (message.getType() == Message.REQUEST) {

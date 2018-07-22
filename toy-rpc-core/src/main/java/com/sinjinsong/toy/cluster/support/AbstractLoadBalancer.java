@@ -61,7 +61,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
         ClusterInvoker clusterInvoker = interfaceInvokers.get(request.getInterfaceName());
         Invoker invoker = doSelect(clusterInvoker.getInvokers(), request);
-        log.info("LoadBalance:{},chosen invoker:{},requestId:" + request.getRequestId(), this.getClass().getSimpleName(), invoker.getAddress());
+        log.info("LoadBalance:{},chosen invoker:{},requestId:" + request.getRequestId(), this.getClass().getSimpleName(), invoker.getServiceURL().getAddress());
         return invoker;
     }
     

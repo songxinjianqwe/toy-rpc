@@ -19,15 +19,27 @@ import java.util.function.Function;
  */
 @Slf4j
 public class ToyInvoker<T> extends AbstractRemoteInvoker<T> {
+    private ToyEndpoint toyEndpoint;
+    
     @Override
     protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
         return rpcRequest -> getEndpoint().submit(rpcRequest);
     }
     
     @Override
-    protected Endpoint doInitEndpoint(ServiceURL serviceURL, ApplicationConfig applicationConfig) {
+    protected void doInitEndpoint(ServiceURL serviceURL, ApplicationConfig applicationConfig) {
         ToyEndpoint toyEndpoint = new ToyEndpoint();
         toyEndpoint.init(applicationConfig, serviceURL);
+        this.toyEndpoint = toyEndpoint;
+    }
+
+    @Override
+    public void updateServiceConfig(ServiceURL serviceURL) {
+        this.toyEndpoint.updateServiceConfig(serviceURL);
+    }
+
+    @Override
+    protected Endpoint getEndpoint() {
         return toyEndpoint;
     }
 }

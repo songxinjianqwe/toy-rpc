@@ -18,21 +18,27 @@ import java.util.function.Function;
  */
 @Slf4j
 public class HttpInvoker<T> extends AbstractRemoteInvoker<T> {
-
+    private HttpEndpoint endpoint;
+    
     @Override
     protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
         return rpcRequest -> getEndpoint().submit(rpcRequest);
     }
 
     @Override
-    protected Endpoint doInitEndpoint(ServiceURL serviceURL, ApplicationConfig applicationConfig) {
+    protected void doInitEndpoint(ServiceURL serviceURL, ApplicationConfig applicationConfig) {
         HttpEndpoint httpEndpoint = new HttpEndpoint();
         httpEndpoint.init(applicationConfig, serviceURL);
-        return httpEndpoint;
+        this.endpoint = httpEndpoint;
     }
-    
+
     @Override
-    public ServiceURL getServiceURL() {
-        return null;
+    public void updateServiceConfig(ServiceURL serviceURL) {
+        this.endpoint.updateServiceConfig(serviceURL);
+    }
+
+    @Override
+    protected Endpoint getEndpoint() {
+        return endpoint;
     }
 }
