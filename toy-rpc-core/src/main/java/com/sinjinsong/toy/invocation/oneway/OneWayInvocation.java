@@ -11,7 +11,7 @@ public abstract class OneWayInvocation extends AbstractInvocation {
     
     @Override
     protected RPCResponse doInvoke() throws Throwable {
-        getResponseFuture();
+        doCustomProcess();
         return null;
     }
 }

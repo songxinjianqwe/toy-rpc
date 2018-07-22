@@ -12,11 +12,10 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2018/7/22
  */
 @Slf4j
-public class FailFastFaultToleranceHandler implements FaultToleranceHandler {
-
+public class FailSafeFaultToleranceHandler implements FaultToleranceHandler {
     @Override
     public RPCResponse handle(ClusterInvoker clusterInvoker, InvokeParam invokeParam, RPCException e) {
-        log.error("出错,FailFast! requestId:{}", invokeParam.getRequestId());
-        throw e;
+        log.error("出错,FailSafe! requestId:{}", invokeParam.getRequestId());
+        return null;
     }
 }

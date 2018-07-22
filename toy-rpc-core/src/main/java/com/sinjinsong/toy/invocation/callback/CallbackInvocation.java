@@ -18,7 +18,9 @@ import com.sinjinsong.toy.transport.api.domain.RPCResponse;
  * 虽然方法是在客户端被调用的，但占用了服务端的CPU，是在服务端的线程中完成的。
  * 简言之就是客户端RPC服务器，服务器RPC客户端。
  * 这里约定，客户端rpc服务器，服务器不会影响该request；服务器转而会rpc服务器，两个request的id是一样的。
- * 通过这个相同的requestid来定位callback实例
+ * 通过这个相同的requestid来定位callback实例。
+ * 
+ * 注意！如果调用失败，则callback不会被调用
  */
 public abstract class CallbackInvocation extends AbstractInvocation {
     
@@ -31,7 +33,7 @@ public abstract class CallbackInvocation extends AbstractInvocation {
         rpcRequest.getParameters()[referenceConfig.getCallbackParamIndex()] = null;
 
         registerCallbackHandler(rpcRequest, callbackInstance);
-        getResponseFuture();
+        doCustomProcess();
         return null;
     }
     

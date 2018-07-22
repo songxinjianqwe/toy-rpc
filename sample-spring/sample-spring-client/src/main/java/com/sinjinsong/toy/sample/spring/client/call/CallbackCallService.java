@@ -55,4 +55,11 @@ public class CallbackCallService {
             });
         }
     }
+    
+    public void testOnceCall() throws Exception {
+        helloServiceWithCallback.hello(new User("1"), result -> {
+            log.info("callback1: {}", result);
+        });
+
+    }
 }

@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.cluster;
 
+import com.sinjinsong.toy.common.context.RPCThreadLocalInvoker;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.common.util.InvokeParamUtil;
@@ -15,7 +16,10 @@ import com.sinjinsong.toy.registry.api.ServiceURL;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -132,6 +136,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
         Invoker invoker = clusterConfig.getLoadBalanceInstance().select(getInvokers(), InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
         if (invoker != null) {
+            RPCThreadLocalInvoker.getContext().setInvoker(invoker);
             try {
                 // 这里只会抛出RPCException
                 RPCResponse response = invoker.invoke(invokeParam);
@@ -146,50 +151,38 @@ public class ClusterInvoker<T> implements Invoker<T> {
                 // 第一次就OK
                 return response;
             } catch (RPCException e) {
-                Map<String, Invoker> excludedInvokers = new HashMap<>();
-                excludedInvokers.put(invoker.getServiceURL().getAddress(), invoker);
                 // 重试后OK
                 // 在这里再抛出异常，就没有返回值了
-                return clusterConfig.getFaultToleranceHandlerInstance().handle(excludedInvokers, this, invokeParam);
+                
+                return clusterConfig.getFaultToleranceHandlerInstance().handle(this, invokeParam,e);
             }
         } else {
             log.error("未找到可用服务器");
             throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE, "未找到可用服务器");
         }
     }
-
+    
     /**
      * 这里不需要捕获invoker#invoke的异常，会由retryer来捕获
      *
-     * @param excludedInvokers
+     * @param availableInvokers
      * @param invokeParam
      * @return
      */
-    public RPCResponse invoke(Map<String, Invoker> excludedInvokers, InvokeParam invokeParam) {
-        List<Invoker> invokers = getInvokers();
-        for (Iterator<Invoker> it = invokers.iterator(); it.hasNext(); ) {
-            if (excludedInvokers.containsKey(it.next().getServiceURL().getAddress())) {
-                it.remove();
-            }
-        }
-        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(invokers, InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
+    public RPCResponse invokeForFaultTolerance(List<Invoker> availableInvokers, InvokeParam invokeParam) {
+        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(availableInvokers, InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
         if (invoker != null) {
-            try {
-                // 这里只会抛出RPCException
-                RPCResponse response = invoker.invoke(invokeParam);
-                if(response == null) {
-                    return null;
-                }
-                // 不管是传输时候抛异常，还是服务端抛出异常，都算异常
-                if (response.hasError()) {
-                    throw new RPCException(ErrorEnum.SERVICE_INVOCATION_FAILURE, response.getCause(), "invocation failed");
-                }
-                return response;
-            } catch (RPCException e) {
-                // 再次调用失败，添加到排除列表中
-                excludedInvokers.put(invoker.getServiceURL().getAddress(), invoker);
-                throw e;
+            RPCThreadLocalInvoker.getContext().setInvoker(invoker);
+            // 这里只会抛出RPCException
+            RPCResponse response = invoker.invoke(invokeParam);
+            if(response == null) {
+                return null;
             }
+            // 不管是传输时候抛异常，还是服务端抛出异常，都算异常
+            if (response.hasError()) {
+                throw new RPCException(ErrorEnum.SERVICE_INVOCATION_FAILURE, response.getCause(), "invocation failed");
+            }
+            return response;
         } else {
             log.error("未找到可用服务器");
             throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE, "未找到可用服务器");

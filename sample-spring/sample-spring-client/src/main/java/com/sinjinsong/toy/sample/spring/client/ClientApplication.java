@@ -33,7 +33,9 @@ public class ClientApplication implements CommandLineRunner {
         syncCallService.testOnceCall();
 //        syncCallService.concurrentTest();
 //        syncCallService.test();
+//        asyncCallService.testOnceCall();
 //        asyncCallService.test();
 //        callbackCallService.test();
+//        callbackCallService.testOnceCall();
     }
 }

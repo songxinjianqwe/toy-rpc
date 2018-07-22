@@ -7,15 +7,15 @@ import java.util.concurrent.Future;
  * @date 2018/6/10
  * 线程私有！
  */
-public class RPCThreadLocalContext<T> {
-    private static final ThreadLocal<RPCThreadLocalContext> RPC_CONTEXT = new ThreadLocal() {
+public class RPCThreadLocalFuture<T> {
+    private static final ThreadLocal<RPCThreadLocalFuture> RPC_CONTEXT = new ThreadLocal() {
         @Override
         protected Object initialValue() {
-            return new RPCThreadLocalContext();
+            return new RPCThreadLocalFuture();
         }
     };
 
-    private RPCThreadLocalContext() {
+    private RPCThreadLocalFuture() {
     }
 
     private Future<T> future;
@@ -24,7 +24,7 @@ public class RPCThreadLocalContext<T> {
         this.future = future;
     }
 
-    public static RPCThreadLocalContext getContext() {
+    public static RPCThreadLocalFuture getContext() {
         return RPC_CONTEXT.get();
     }
 

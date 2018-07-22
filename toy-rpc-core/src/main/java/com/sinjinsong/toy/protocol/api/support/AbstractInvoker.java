@@ -44,28 +44,28 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         if (referenceConfig.isAsync()) {
             invocation = new AsyncInvocation() {
                 @Override
-                protected Future<RPCResponse> getResponseFuture() {
+                protected Future<RPCResponse> doCustomProcess() {
                     return logic.apply(rpcRequest);
                 }
             };
         } else if (referenceConfig.isCallback()) {
             invocation = new CallbackInvocation() {
                 @Override
-                protected Future<RPCResponse> getResponseFuture() {
+                protected Future<RPCResponse> doCustomProcess() {
                     return logic.apply(rpcRequest);
                 }
             };
         } else if (referenceConfig.isOneWay()) {
             invocation = new OneWayInvocation() {
                 @Override
-                protected Future<RPCResponse> getResponseFuture() {
+                protected Future<RPCResponse> doCustomProcess() {
                     return logic.apply(rpcRequest);
                 }
             };
         } else {
             invocation = new SyncInvocation() {
                 @Override
-                protected Future<RPCResponse> getResponseFuture() {
+                protected Future<RPCResponse> doCustomProcess() {
                     return logic.apply(rpcRequest);
                 }
             };

@@ -19,6 +19,7 @@ public class HelloServiceWithCallbackImpl implements HelloServiceWithCallback {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+//        throw new RuntimeException("provider side error");
         callback.callback("Hello, " + user.getUsername());
     }
 }

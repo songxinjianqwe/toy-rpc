@@ -34,7 +34,7 @@ ReferenceConfig#get ->   RPCProxyFactory#createProxy && ReferenceConfig#refer ->
 
 proxy#invoke -> invoker#invoker 
 1) filter.invoke 
-2) getResponseFuture -> invokeHandler#invoke -> loadBalancer#select && endpoint#submit
+2) doCustomProcess -> invokeHandler#invoke -> loadBalancer#select && endpoint#submit
 
 ### Provider
 

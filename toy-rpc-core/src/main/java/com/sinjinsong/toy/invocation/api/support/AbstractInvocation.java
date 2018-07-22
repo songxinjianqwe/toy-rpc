@@ -27,14 +27,14 @@ public abstract class AbstractInvocation implements Invocation {
     public final void setRpcRequest(RPCRequest rpcRequest) {
         this.rpcRequest = rpcRequest;
     }
-
+    
     /**
      * 留给Sync/Oneway/Async/Callback的子类去覆盖，用来获取远程调用结果
      *
      * @return
      */
-    protected abstract Future<RPCResponse> getResponseFuture();
-
+    protected abstract Future<RPCResponse> doCustomProcess();
+    
     @Override
     public final RPCResponse invoke() throws RPCException {
         RPCResponse response;
@@ -42,7 +42,7 @@ public abstract class AbstractInvocation implements Invocation {
             response = doInvoke();
         } catch (Throwable e) {
             e.printStackTrace();
-            throw new RPCException(ErrorEnum.TRANSPORT_FAILURE, e, "Invocation异常");
+            throw new RPCException(ErrorEnum.TRANSPORT_FAILURE, e, "transport异常");
         }
         return response;
     }
@@ -58,7 +58,7 @@ public abstract class AbstractInvocation implements Invocation {
     public final ReferenceConfig getReferenceConfig() {
         return referenceConfig;
     }
-
+    
     public final RPCRequest getRpcRequest() {
         return rpcRequest;
     }
