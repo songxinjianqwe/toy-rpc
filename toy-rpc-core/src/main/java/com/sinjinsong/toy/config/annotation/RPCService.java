@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 public @interface RPCService {
+    Class<?> interfaceClass() default void.class;
     boolean callback() default false;
     String callbackMethod() default "";
     int callbackParamIndex() default 1;

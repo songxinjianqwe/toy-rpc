@@ -1,9 +1,10 @@
 package com.sinjinsong.toy.transport.api.support.netty;
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.invoke.callback.CallbackInvocation;
+import com.sinjinsong.toy.invocation.callback.CallbackInvocation;
 import com.sinjinsong.toy.transport.api.converter.ClientMessageConverter;
 import com.sinjinsong.toy.transport.api.converter.MessageConverter;
 import com.sinjinsong.toy.transport.api.domain.Message;
@@ -87,7 +88,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         throwable.printStackTrace();
         log.info("连接失败策略为直接关闭，关闭客户端");
         close();
-        throw new RPCException("连接失败,关闭客户端");
+        throw new RPCException(ErrorEnum.CONNECT_TO_SERVER_FAILURE,"连接失败,关闭客户端");
     }
 
     @Override
@@ -118,7 +119,7 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
             initialized = true;
         }
         if (destroyed) {
-            throw new RPCException("当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
+            throw new RPCException(ErrorEnum.SUBMIT_AFTER_ENDPOINT_CLOSED,"当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
         }
         log.info("客户端发起请求: {},请求的服务器为: {}", request,getServiceURL().getAddress());
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();

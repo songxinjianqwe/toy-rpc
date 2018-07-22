@@ -1,6 +1,7 @@
 package com.sinjinsong.toy.registry.zookeeper;
 
 import com.sinjinsong.toy.common.constant.CharsetConst;
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.RegistryConfig;
 import com.sinjinsong.toy.registry.api.ServiceURLRemovalCallback;
@@ -91,7 +92,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
             }
             LockSupport.unpark(discoveringThread);
         } catch (KeeperException | InterruptedException e) {
-            throw new RPCException("ZK故障", e);
+            throw new RPCException(ErrorEnum.REGISTRY_ERROR,"ZK故障", e);
         }
     }
 
@@ -110,7 +111,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
             serviceURLAddOrUpdateCallback.addOrUpdate(serviceURL);
             return serviceURL;
         } catch (KeeperException | InterruptedException e) {
-            throw new RPCException("ZK故障", e);
+            throw new RPCException(ErrorEnum.REGISTRY_ERROR,"ZK故障", e);
         }
     }
 
@@ -126,7 +127,7 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
         try {
             zkSupport.createPathIfAbsent(path, CreateMode.PERSISTENT);
         } catch (KeeperException | InterruptedException e) {
-            throw new RPCException("ZK故障", e);
+            throw new RPCException(ErrorEnum.REGISTRY_ERROR,"ZK故障", e);
         }
         zkSupport.createNodeIfAbsent(address, path);
     }

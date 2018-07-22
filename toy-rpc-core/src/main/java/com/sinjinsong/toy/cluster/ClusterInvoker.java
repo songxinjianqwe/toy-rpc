@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.cluster;
 
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.common.util.InvokeParamUtil;
 import com.sinjinsong.toy.config.ApplicationConfig;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 /**
  * @author sinjinsong
  * @date 2018/7/15
+ * 、代表一个interface的集群，核心类，持有其他cluster组件，如loadbalancer和failureHandler
  */
 @Slf4j
 public class ClusterInvoker<T> implements Invoker<T> {
@@ -70,13 +72,13 @@ public class ClusterInvoker<T> implements Invoker<T> {
             if (existedInvoker instanceof InvokerDelegate) {
                 Invoker<T> delegatedInvoker = ((InvokerDelegate) existedInvoker).getDelegate();
                 if (delegatedInvoker instanceof AbstractRemoteInvoker) {
-                    log.info("update config:{}",serviceURL);
+                    log.info("update config:{}", serviceURL);
                     ((AbstractRemoteInvoker<T>) delegatedInvoker).updateServiceConfig(serviceURL);
                 }
             }
         } else {
             // 添加
-            log.info("add invoker:{},serviceURL:{}",interfaceClass.getName(),serviceURL);
+            log.info("add invoker:{},serviceURL:{}", interfaceClass.getName(), serviceURL);
             Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
             // refer拿到的有可能是某一种具体的ProtocolInvoker（远程），也有可能是AbstractInvoker（本地）
             // TODO refactor this
@@ -89,6 +91,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
     }
 
     public List<Invoker> getInvokers() {
+        // 拷贝一份返回
         return new ArrayList<>(addressInvokers.values());
     }
 
@@ -108,7 +111,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
         for (Iterator<Map.Entry<String, Invoker<T>>> it = addressInvokers.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, Invoker<T>> curr = it.next();
             if (!newAddressesMap.containsKey(curr.getKey())) {
-                log.info("remove address:{}",curr.getKey());
+                log.info("remove address:{}", curr.getKey());
                 curr.getValue().close();
                 it.remove();
             }
@@ -127,12 +130,40 @@ public class ClusterInvoker<T> implements Invoker<T> {
 
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
-        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
+        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(getInvokers(), InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
         if (invoker != null) {
-            return invoker.invoke(invokeParam);
+            try {
+                // 这里只会抛出RPCException
+                return invoker.invoke(invokeParam);
+            } catch (RPCException e) {
+                Map<String, Invoker> excludedInvokers = new HashMap<>();
+                excludedInvokers.put(invoker.getServiceURL().getAddress(), invoker);
+                clusterConfig.getFailureHandlerInstance().handle(excludedInvokers, this, invokeParam);
+            }
         }
         log.error("未找到可用服务器");
-        throw new RPCException("未找到可用服务器");
+        throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE,"未找到可用服务器");
+    }
+
+    /**
+     * 这里不需要捕获invoker#invoke的异常，会由retryer来捕获
+     * @param excludedInvokers
+     * @param invokerParam
+     * @return
+     */
+    public RPCResponse invoke(Map<String, Invoker> excludedInvokers, InvokeParam invokerParam) {
+        List<Invoker> invokers = getInvokers();
+        for (Iterator<Invoker> it = invokers.iterator(); it.hasNext(); ) {
+            if (excludedInvokers.containsKey(it.next().getServiceURL().getAddress())) {
+                it.remove();
+            }
+        }
+        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(getInvokers(), InvokeParamUtil.extractRequestFromInvokeParam(invokerParam));
+        if (invoker != null) {
+            return invoker.invoke(invokerParam);
+        }
+        log.error("未找到可用服务器");
+        throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE,"未找到可用服务器");
     }
 
     @Override

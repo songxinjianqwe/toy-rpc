@@ -4,10 +4,7 @@ package com.sinjinsong.toy.autoconfig;
 import com.sinjinsong.toy.autoconfig.beanpostprocessor.RPCConsumerBeanPostProcessor;
 import com.sinjinsong.toy.autoconfig.beanpostprocessor.RPCProviderBeanPostProcessor;
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
-import com.sinjinsong.toy.common.enumeration.ExecutorType;
-import com.sinjinsong.toy.common.enumeration.LoadBalanceType;
-import com.sinjinsong.toy.common.enumeration.ProtocolType;
-import com.sinjinsong.toy.common.enumeration.SerializerType;
+import com.sinjinsong.toy.common.enumeration.*;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.executor.api.TaskExecutor;
@@ -42,7 +39,7 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     public RegistryConfig registryConfig() {
         RegistryConfig registryConfig = properties.getRegistry();
         if (registryConfig == null) {
-            throw new RPCException("必须配置registry");
+            throw new RPCException(ErrorEnum.CONFIG_ERROR,"必须配置registry");
         }
         //TODO 根据type创建ServiceRegistry
         ZkServiceRegistry serviceRegistry = new ZkServiceRegistry(registryConfig);
@@ -55,7 +52,7 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     public ApplicationConfig applicationConfig() {
         ApplicationConfig application = properties.getApplication();
         if (application == null) {
-            throw new RPCException("必须配置applicationConfig");
+            throw new RPCException(ErrorEnum.CONFIG_ERROR,"必须配置applicationConfig");
         }
         // TODO 根据类型创建proxyFactory和serializer
         application.setProxyFactoryInstance(new JdkRPCProxyFactory());
@@ -68,7 +65,7 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     public ProtocolConfig protocolConfig() {
         ProtocolConfig protocolConfig = properties.getProtocol();
         if (protocolConfig == null) {
-            throw new RPCException("必须配置protocolConfig");
+            throw new RPCException(ErrorEnum.CONFIG_ERROR,"必须配置protocolConfig");
         }
         Protocol protocol = ProtocolType.valueOf(protocolConfig.getType().toUpperCase()).getProtocol();
         protocolConfig.setProtocolInstance(protocol);
@@ -87,7 +84,7 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
     public ClusterConfig clusterconfig(RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
         ClusterConfig clusterConfig = properties.getCluster();
         if (clusterConfig == null) {
-            throw new RPCException("必须配置clusterConfig");
+            throw new RPCException(ErrorEnum.CONFIG_ERROR,"必须配置clusterConfig");
         }
         AbstractLoadBalancer loadBalancer = LoadBalanceType.valueOf(clusterConfig.getLoadbalance().toUpperCase()).getLoadBalancer();
         loadBalancer.setRegistryConfig(registryConfig);

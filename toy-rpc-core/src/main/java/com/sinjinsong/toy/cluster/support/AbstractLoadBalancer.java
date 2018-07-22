@@ -56,17 +56,16 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     }
 
     @Override
-    public Invoker select(RPCRequest request) {
+    public Invoker select(List<Invoker> invokers,RPCRequest request) {
         // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
         // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
-        ClusterInvoker clusterInvoker = interfaceInvokers.get(request.getInterfaceName());
-        Invoker invoker = doSelect(clusterInvoker.getInvokers(), request);
+        Invoker invoker = doSelect(invokers, request);
         log.info("LoadBalance:{},chosen invoker:{},requestId:" + request.getRequestId(), this.getClass().getSimpleName(), invoker.getServiceURL());
         return invoker;
     }
     
 
-    protected abstract Invoker doSelect(List<Invoker> invokers, RPCRequest request);
+    protected abstract  Invoker doSelect(List<Invoker> invokers, RPCRequest request);
 
     @Override
     public void close() {

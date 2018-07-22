@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.config;
 
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.Invoker;
@@ -57,7 +58,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                                                                Collection<Filter> filters) {
         if (CACHE.containsKey(interfaceClass)) {
             if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
-                throw new RPCException("同一个接口只能以相同的配置引用:{}", interfaceClass);
+                throw new RPCException(ErrorEnum.SAME_INTERFACE_ONLY_CAN_BE_REFERED_IN_THE_SAME_WAY,"同一个接口只能以相同的配置引用:{}", interfaceClass);
             }
             return (ReferenceConfig<T>) CACHE.get(interfaceClass);
         }

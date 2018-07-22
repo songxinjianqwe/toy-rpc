@@ -1,14 +1,15 @@
 package com.sinjinsong.toy.protocol.api.support;
 
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.common.util.InvokeParamUtil;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.filter.Filter;
-import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
-import com.sinjinsong.toy.invoke.async.AsyncInvocation;
-import com.sinjinsong.toy.invoke.callback.CallbackInvocation;
-import com.sinjinsong.toy.invoke.oneway.OneWayInvocation;
-import com.sinjinsong.toy.invoke.sync.SyncInvocation;
+import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
+import com.sinjinsong.toy.invocation.async.AsyncInvocation;
+import com.sinjinsong.toy.invocation.callback.CallbackInvocation;
+import com.sinjinsong.toy.invocation.oneway.OneWayInvocation;
+import com.sinjinsong.toy.invocation.sync.SyncInvocation;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.registry.api.ServiceURL;
@@ -33,7 +34,8 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
         Function<RPCRequest, Future<RPCResponse>> logic = getProcessor();
         if(logic == null) {
-            throw new RPCException("没有重写AbstractInvoker#invoke方法的时候，必须重写getProcessor方法");
+            // TODO 想办法在编译时检查
+            throw new RPCException(ErrorEnum.GET_PROCESSOR_MUST_BE_OVERRIDE_WHEN_INVOKE_DID_NOT_OVERRIDE,"没有重写AbstractInvoker#invoke方法的时候，必须重写getProcessor方法");
         }
         // 如果提交任务失败，则删掉该Endpoint，再次提交的话必须重新创建Endpoint
         AbstractInvocation invocation;
@@ -42,28 +44,28 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         if (referenceConfig.isAsync()) {
             invocation = new AsyncInvocation() {
                 @Override
-                protected Future<RPCResponse> doInvoke() {
+                protected Future<RPCResponse> getResponseFuture() {
                     return logic.apply(rpcRequest);
                 }
             };
         } else if (referenceConfig.isCallback()) {
             invocation = new CallbackInvocation() {
                 @Override
-                protected Future<RPCResponse> doInvoke() {
+                protected Future<RPCResponse> getResponseFuture() {
                     return logic.apply(rpcRequest);
                 }
             };
         } else if (referenceConfig.isOneWay()) {
             invocation = new OneWayInvocation() {
                 @Override
-                protected Future<RPCResponse> doInvoke() {
+                protected Future<RPCResponse> getResponseFuture() {
                     return logic.apply(rpcRequest);
                 }
             };
         } else {
             invocation = new SyncInvocation() {
                 @Override
-                protected Future<RPCResponse> doInvoke() {
+                protected Future<RPCResponse> getResponseFuture() {
                     return logic.apply(rpcRequest);
                 }
             };

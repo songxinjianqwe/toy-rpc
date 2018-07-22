@@ -1,6 +1,7 @@
 package com.sinjinsong.toy.registry.zookeeper;
 
 import com.sinjinsong.toy.common.constant.CharsetConst;
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
@@ -54,7 +55,7 @@ public class ZkSupport {
             log.info("建立数据节点 ({} => {})", path, data);
         } catch (KeeperException e) {
             if (e instanceof KeeperException.NodeExistsException) {
-                throw new RPCException("ZK路径 {} 已经存在 : {},建议重启解决", path, data);
+                throw new RPCException(ErrorEnum.REGISTRY_ERROR,"ZK路径 {} 已经存在 : {},建议重启解决", path, data);
             } else {
                 e.printStackTrace();
             }

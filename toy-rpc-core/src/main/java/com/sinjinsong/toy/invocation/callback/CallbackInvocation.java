@@ -1,11 +1,10 @@
-package com.sinjinsong.toy.invoke.callback;
+package com.sinjinsong.toy.invocation.callback;
 
 
 import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
-import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.invoke.api.support.AbstractInvocation;
+import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 
@@ -22,33 +21,31 @@ import com.sinjinsong.toy.transport.api.domain.RPCResponse;
  * 通过这个相同的requestid来定位callback实例
  */
 public abstract class CallbackInvocation extends AbstractInvocation {
-
+    
     @Override
-    public RPCResponse invoke() throws RPCException {
+    protected RPCResponse doInvoke() throws Throwable {
+        RPCRequest rpcRequest = getRpcRequest();
+        ReferenceConfig referenceConfig = getReferenceConfig();
         Object callbackInstance = rpcRequest.getParameters()[referenceConfig.getCallbackParamIndex()];
         // 该实例无需序列化
         rpcRequest.getParameters()[referenceConfig.getCallbackParamIndex()] = null;
 
-        registerCallbackHandler(rpcRequest,callbackInstance);
-        try {
-           doInvoke();
-        } catch (Exception e) {
-            throw new RPCException(e,"CLIENT异常");
-        }
+        registerCallbackHandler(rpcRequest, callbackInstance);
+        getResponseFuture();
         return null;
     }
-
-    private void registerCallbackHandler(RPCRequest request,Object callbackInstance) {
+    
+    private void registerCallbackHandler(RPCRequest request, Object callbackInstance) {
         Class<?> interfaceClass = callbackInstance.getClass().getInterfaces()[0];
-        
+
         ServiceConfig config = ServiceConfig.builder()
                 .interfaceName(interfaceClass.getName())
                 .interfaceClass((Class<Object>) interfaceClass)
                 .isCallbackInterface(true)
                 .ref(callbackInstance).build();
-        RPCThreadSharedContext.registerHandler(generateCallbackHandlerKey(request, referenceConfig),
+        RPCThreadSharedContext.registerHandler(generateCallbackHandlerKey(request, getReferenceConfig()),
                 config);
-  
+
     }
 
     public static String generateCallbackHandlerKey(RPCRequest request) {

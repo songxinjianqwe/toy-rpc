@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.autoconfig.beanpostprocessor;
 
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.annotation.RPCReference;
@@ -41,7 +42,7 @@ public class RPCConsumerBeanPostProcessor extends AbstractRPCBeanPostProcessor{
                 try {
                     field.set(bean,config.get());
                 } catch (IllegalAccessException e) {
-                    throw new RPCException(e,"set proxy failed");
+                    throw new RPCException(ErrorEnum.AUTOWIRE_REFERENCE_PROXY_ERROR,e,"set proxy failed");
                 }
                 log.info("注入依赖:{}",interfaceClass);
             }

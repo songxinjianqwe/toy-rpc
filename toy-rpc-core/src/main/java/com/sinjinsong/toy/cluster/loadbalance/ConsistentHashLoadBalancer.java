@@ -20,7 +20,7 @@ public class ConsistentHashLoadBalancer extends AbstractLoadBalancer {
     private List<Invoker> cachedInvokers;
     private static final int REPLICA_NUMBER = 160;
 
-
+    //TODO check if this works
     @Override
     protected Invoker doSelect(List<Invoker> invokers, RPCRequest request) {
         if (cachedInvokers == null || invokers.hashCode() != cachedInvokers.hashCode()) {

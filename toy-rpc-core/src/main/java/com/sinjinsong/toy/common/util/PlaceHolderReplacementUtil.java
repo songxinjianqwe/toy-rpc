@@ -1,5 +1,6 @@
 package com.sinjinsong.toy.common.util;
 
+import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 
 import java.util.regex.Matcher;
@@ -21,7 +22,7 @@ public class PlaceHolderReplacementUtil {
             // scope值为requestScope,sessionScope,applicationScope
             String placeHolder = matcher.group(1);
             if (index >= args.length) {
-                throw new RPCException("出错消息模板替换出错,placeHolder:{}", placeHolder);
+                throw new RPCException(ErrorEnum.TEMPLATE_REPLACEMENT_ERROR,"出错消息模板替换出错,placeHolder:{}", placeHolder);
             }
             Object value = args[index++];
             // 如果解析得到的值为null，则将占位符去掉；否则将占位符替换为值
