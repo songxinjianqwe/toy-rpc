@@ -32,14 +32,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private transient volatile boolean initialized;
 //    private transient volatile boolean destroyed;
 
-    private static final Map<Class<?>, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
     private List<Filter> filters;
 
 
     /**
      * 非单例，非接口粒度的单例，同一个服务接口多种配置可以对应多个不同的ReferenceConfig
      *
-     * @param interfaceClass
+     * @param interfaceName
      * @param isAsync
      * @param isCallback
      * @param timeout
@@ -48,7 +48,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
      * @param <T>
      * @return
      */
-    public static <T> ReferenceConfig<T> createReferenceConfig(Class<T> interfaceClass,
+    public static <T> ReferenceConfig<T> createReferenceConfig(String interfaceName,
+                                                               /** 参数可控*/
+                                                               Class<T> interfaceClass,
                                                                boolean isAsync,
                                                                boolean isCallback,
                                                                boolean isOneWay,
@@ -56,15 +58,15 @@ public class ReferenceConfig<T> extends AbstractConfig {
                                                                String callbackMethod,
                                                                int callbackParamIndex,
                                                                List<Filter> filters) {
-        if (CACHE.containsKey(interfaceClass)) {
-            if (CACHE.get(interfaceClass).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
-                throw new RPCException(ErrorEnum.SAME_INTERFACE_ONLY_CAN_BE_REFERED_IN_THE_SAME_WAY,"同一个接口只能以相同的配置引用:{}", interfaceClass);
+        if (CACHE.containsKey(interfaceName)) {
+            if (CACHE.get(interfaceName).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
+                throw new RPCException(ErrorEnum.SAME_INTERFACE_ONLY_CAN_BE_REFERED_IN_THE_SAME_WAY, "同一个接口只能以相同的配置引用:{}", interfaceName);
             }
-            return (ReferenceConfig<T>) CACHE.get(interfaceClass);
+            return (ReferenceConfig<T>) CACHE.get(interfaceName);
         }
 
         ReferenceConfig config = ReferenceConfig.builder()
-                .interfaceName(interfaceClass.getName())
+                .interfaceName(interfaceName)
                 .interfaceClass((Class<Object>) interfaceClass)
                 .isAsync(isAsync)
                 .isCallback(isCallback)
@@ -74,7 +76,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
                 .callbackParamIndex(callbackParamIndex)
                 .filters(filters)
                 .build();
-        CACHE.put(interfaceClass, config);
+        CACHE.put(interfaceName, config);
         return config;
     }
 
@@ -91,7 +93,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (this.timeout != timeout) {
             return true;
         }
-        if (this.callbackMethod != callbackMethod) {
+        if (!this.callbackMethod.equals(callbackMethod)) {
             return true;
         }
         if (this.callbackParamIndex != callbackParamIndex) {
@@ -107,7 +109,12 @@ public class ReferenceConfig<T> extends AbstractConfig {
         initialized = true;
 
         // ClusterInvoker
-        Invoker<T> invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
+        Invoker<T> invoker;
+        if (interfaceClass != null) {
+            invoker = clusterConfig.getLoadBalanceInstance().register(interfaceClass);
+        } else {
+            invoker = clusterConfig.getLoadBalanceInstance().register(interfaceName);
+        }
         ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
 
@@ -122,30 +129,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         return ref;
     }
+    
 
-    public static ReferenceConfig getReferenceConfigByInterface(Class<?> interfaceClass) {
-        return CACHE.get(interfaceClass);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ReferenceConfig<?> that = (ReferenceConfig<?>) o;
-        return isAsync == that.isAsync &&
-                isOneWay == that.isOneWay &&
-                isCallback == that.isCallback &&
-                timeout == that.timeout &&
-                callbackParamIndex == that.callbackParamIndex &&
-                Objects.equals(interfaceName, that.interfaceName) &&
-                Objects.equals(interfaceClass, that.interfaceClass) &&
-                Objects.equals(callbackMethod, that.callbackMethod) &&
-                Objects.equals(filters, that.filters);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(interfaceName, interfaceClass, isAsync, isOneWay, isCallback, timeout, callbackMethod, callbackParamIndex, filters);
+    public static ReferenceConfig getReferenceConfigByInterfaceName(String interfaceName) {
+        return CACHE.get(interfaceName);
     }
 
     @Override
@@ -163,5 +150,29 @@ public class ReferenceConfig<T> extends AbstractConfig {
                 ", initialized=" + initialized +
                 ", filters=" + filters +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ReferenceConfig<?> that = (ReferenceConfig<?>) o;
+        return isAsync == that.isAsync &&
+                isOneWay == that.isOneWay &&
+                isCallback == that.isCallback &&
+                timeout == that.timeout &&
+                callbackParamIndex == that.callbackParamIndex &&
+                initialized == that.initialized &&
+                Objects.equals(interfaceName, that.interfaceName) &&
+                Objects.equals(interfaceClass, that.interfaceClass) &&
+                Objects.equals(callbackMethod, that.callbackMethod) &&
+                Objects.equals(ref, that.ref) &&
+                Objects.equals(filters, that.filters);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(interfaceName, interfaceClass, isAsync, isOneWay, isCallback, timeout, callbackMethod, callbackParamIndex, ref, initialized, filters);
     }
 }

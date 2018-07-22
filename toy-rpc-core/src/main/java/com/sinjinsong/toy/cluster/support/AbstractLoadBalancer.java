@@ -47,8 +47,19 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     public <T> Invoker<T> register(Class<T> interfaceClass) {
         String interfaceName = interfaceClass.getName();
         ClusterInvoker clusterInvoker;
+        if (!interfaceInvokers.containsKey(interfaceClass.getName())) {
+            clusterInvoker = new ClusterInvoker(interfaceClass, interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);
+            interfaceInvokers.put(interfaceName, clusterInvoker);
+            return clusterInvoker;
+        }
+        return interfaceInvokers.get(interfaceName);
+    }
+    
+    @Override
+    public Invoker register(String interfaceName) {
+        ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceName)) {
-            clusterInvoker = new ClusterInvoker(interfaceClass, applicationConfig, clusterConfig, registryConfig, protocolConfig);
+            clusterInvoker = new ClusterInvoker(null, interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);
             interfaceInvokers.put(interfaceName, clusterInvoker);
             return clusterInvoker;
         }
@@ -56,8 +67,8 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     }
 
     @Override
-    public Invoker select(List<Invoker> invokers,RPCRequest request) {
-        if(invokers.size() == 0) {
+    public Invoker select(List<Invoker> invokers, RPCRequest request) {
+        if (invokers.size() == 0) {
             log.info("select->不存在可用invoker，直接退出");
             return null;
         }
@@ -67,9 +78,9 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         log.info("LoadBalance:{},chosen invoker:{},requestId:" + request.getRequestId(), this.getClass().getSimpleName(), invoker.getServiceURL());
         return invoker;
     }
-    
 
-    protected abstract  Invoker doSelect(List<Invoker> invokers, RPCRequest request);
+
+    protected abstract Invoker doSelect(List<Invoker> invokers, RPCRequest request);
 
     @Override
     public void close() {

@@ -23,7 +23,8 @@ public enum ErrorEnum {
     SERVICE_DID_NOT_IMPLEMENT_ANY_INTERFACE("该服务未实现任何服务接口"),
     VALUE_OF_MUST_BE_APPLIED_TO_EXTENSION_BASE_TYPE("调用valueOf的枚举必须实现ExtensionBaseTyp接口"),
     NO_SUPPORTED_INSTANCE("接口没有可用实现类"),
-    EXTENSION_CONFIG_FILE_ERROR("toy扩展配置文件错误")
+    EXTENSION_CONFIG_FILE_ERROR("toy扩展配置文件错误"),
+    GENERIC_INVOCATION_ERROR("泛化调用失败")
     ;
     private String errorCode;
 

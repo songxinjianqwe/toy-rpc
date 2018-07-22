@@ -4,7 +4,7 @@ import com.sinjinsong.toy.common.context.RPCThreadLocalFuture;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
  * @date 2018/6/10
  */
 @Slf4j
-@Service
+@Component
 public class AsyncCallService {
 //    @RPCReference(async=true)  
     private HelloService helloService;

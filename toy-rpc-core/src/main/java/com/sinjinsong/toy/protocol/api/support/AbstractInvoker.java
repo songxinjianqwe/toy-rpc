@@ -29,6 +29,7 @@ import java.util.function.Function;
 @Slf4j
 public abstract class AbstractInvoker<T> implements Invoker<T> {
     private Class<T> interfaceClass;
+    private String interfaceName;
     
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
@@ -116,6 +117,11 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
                         }
 
                         @Override
+                        public String getInterfaceName() {
+                            return getDelegate().getInterfaceName();
+                        }
+                    
+                        @Override
                         public ServiceURL getServiceURL() {
                             return getDelegate().getServiceURL();
                         }
@@ -131,16 +137,25 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             }
         };
     }
-
+    
     @Override
     public Class<T> getInterface() {
         return interfaceClass;
     }
 
+    @Override
+    public String getInterfaceName() {
+        return interfaceName;
+    }
+
     public void setInterfaceClass(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
     }
-
+    
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName;
+    }
+    
     @Override
     public ServiceURL getServiceURL() {
         return ServiceURL.DEFAULT_SERVICE_URL;

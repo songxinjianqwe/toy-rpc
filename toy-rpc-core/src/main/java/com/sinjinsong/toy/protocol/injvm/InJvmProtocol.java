@@ -29,21 +29,31 @@ public class InJvmProtocol extends AbstractProtocol {
             int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
             serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
-            throw new RPCException(e,ErrorEnum.READ_LOCALHOST_ERROR,"获取本地Host失败");
+            throw new RPCException(e, ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
         }
         return exporter;
     }
 
     @Override
-    public <T> Invoker<T> refer(Class<T> type) throws RPCException {
+    public <T> Invoker<T> refer(Class<T> interfaceClass) throws RPCException {
         InJvmInvoker<T> invoker = new InJvmInvoker<>();
-        invoker.setInterfaceClass(type);
+        invoker.setInterfaceClass(interfaceClass);
+        invoker.setInterfaceName(interfaceClass.getName());
         invoker.setProtocol(this);
         // 对于RemoteInvoker来说，这一步是在initEndpoint的时候做的，如果非要要在refer时做，那么这时候
         // 返回的包装后的Invoker只是AbstractInvoker类型，无法根据是否为RemoveInvoker来决定
         // 是否初始化Endpoint
         // 后果就是返回了一个AbstractInvoker，跳过了初始化Endpoint的阶段
-        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getReferenceConfigByInterface(type).getFilters());
+        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getReferenceConfigByInterfaceName(interfaceClass.getName()).getFilters());
+        return invokerWithFilters;
+    }
+
+    @Override
+    public <T> Invoker<T> refer(String interfaceName) throws RPCException {
+        InJvmInvoker<T> invoker = new InJvmInvoker<>();
+        invoker.setInterfaceName(interfaceName);
+        invoker.setProtocol(this);
+        Invoker<T> invokerWithFilters = invoker.buildFilterChain(ReferenceConfig.getReferenceConfigByInterfaceName(interfaceName).getFilters());
         return invokerWithFilters;
     }
     

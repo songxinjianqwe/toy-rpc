@@ -13,6 +13,8 @@ public interface LoadBalancer {
     Invoker select(List<Invoker> invokers, RPCRequest request);
 
     <T> Invoker<T> register(Class<T> interfaceClass);
-
+    
+    Invoker register(String interfaceName);
+    
     void close();
 }

@@ -30,6 +30,7 @@ public class RPCConsumerBeanPostProcessor extends AbstractRPCBeanPostProcessor{
             RPCReference reference = field.getAnnotation(RPCReference.class);
             if (reference != null) {
                 ReferenceConfig config = ReferenceConfig.createReferenceConfig(
+                        interfaceClass.getName(),
                         interfaceClass,
                         reference.async(),
                         reference.callback(),

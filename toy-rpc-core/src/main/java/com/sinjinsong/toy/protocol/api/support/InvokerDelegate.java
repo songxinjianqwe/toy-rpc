@@ -41,6 +41,11 @@ public abstract class InvokerDelegate<T> extends AbstractInvoker<T> {
     }
 
     @Override
+    public String getInterfaceName() {
+        return delegate.getInterfaceName();
+    }
+    
+    @Override
     public ServiceURL getServiceURL() {
         return delegate.getServiceURL();
     }

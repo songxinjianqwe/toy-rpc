@@ -13,6 +13,8 @@ public interface Invoker<T> {
 
     Class<T> getInterface();
 
+    String getInterfaceName();
+    
     RPCResponse invoke(InvokeParam invokeParam) throws RPCException;
     
     void close();

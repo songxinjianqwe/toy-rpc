@@ -29,13 +29,14 @@ public interface Protocol {
     /**
      * 引用服务
      *
-     * @param type
+     * @param interfaceClass
      * @param <T>
      * @return
      * @throws RPCException
      */
-    <T> Invoker<T> refer(Class<T> type) throws RPCException;
-
+    <T> Invoker<T> refer(Class<T> interfaceClass) throws RPCException;
+    
+    <T> Invoker<T> refer(String interfaceName) throws RPCException;
     /**
      * 查找暴露的服务
      * @param interfaceMame

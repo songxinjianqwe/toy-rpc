@@ -5,7 +5,7 @@ import com.sinjinsong.toy.config.annotation.RPCReference;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloServiceWithCallback;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
  * @date 2018/6/10
  * 
 */
-@Service
+@Component
 @Slf4j
 public class CallbackCallService {
     

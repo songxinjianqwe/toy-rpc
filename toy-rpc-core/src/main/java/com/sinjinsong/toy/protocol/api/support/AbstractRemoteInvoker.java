@@ -22,7 +22,7 @@ public abstract class AbstractRemoteInvoker<T> extends AbstractInvoker<T> {
     
     public final Invoker<T> initEndpoint(ServiceURL serviceURL, ApplicationConfig applicationConfig) {
         doInitEndpoint(serviceURL, applicationConfig);
-        return buildFilterChain(ReferenceConfig.getReferenceConfigByInterface(getInterface()).getFilters());
+        return buildFilterChain(ReferenceConfig.getReferenceConfigByInterfaceName(getInterfaceName()).getFilters());
     }
 
     /**

@@ -30,16 +30,24 @@ public class HttpProtocol extends AbstractProtocol {
             int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
             serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
-            throw new RPCException(e,ErrorEnum.READ_LOCALHOST_ERROR,"获取本地Host失败");
+            throw new RPCException(e, ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
         }
         return exporter;
     }
 
     @Override
-    public <T> Invoker<T> refer(Class<T> type) throws RPCException {
+    public <T> Invoker<T> refer(Class<T> interfaceClass) throws RPCException {
         HttpInvoker<T> invoker = new HttpInvoker<>();
-        invoker.setInterfaceClass(type);
-       return invoker;
+        invoker.setInterfaceClass(interfaceClass);
+        invoker.setInterfaceName(interfaceClass.getName());
+        return invoker;
+    }
+
+    @Override
+    public <T> Invoker<T> refer(String interfaceName) throws RPCException {
+        HttpInvoker<T> invoker = new HttpInvoker<>();
+        invoker.setInterfaceName(interfaceName);
+        return invoker;
     }
 
     @Override
@@ -50,8 +58,8 @@ public class HttpProtocol extends AbstractProtocol {
             HttpServer httpServer = new HttpServer();
             httpServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
             Thread t = new Thread(() -> {
-                 httpServer.run();
-            },"server-thread");
+                httpServer.run();
+            }, "server-thread");
             t.setDaemon(true);
             t.start();
         }

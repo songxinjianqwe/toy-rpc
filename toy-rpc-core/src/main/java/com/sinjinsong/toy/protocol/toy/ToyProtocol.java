@@ -30,15 +30,23 @@ public class ToyProtocol extends AbstractProtocol {
             int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
             serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
-            throw new RPCException(e,ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
+            throw new RPCException(e, ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
         }
         return exporter;
     }
 
     @Override
-    public <T> Invoker<T> refer(Class<T> type) throws RPCException {
+    public <T> Invoker<T> refer(Class<T> interfaceClass) throws RPCException {
         ToyInvoker<T> invoker = new ToyInvoker<>();
-        invoker.setInterfaceClass(type);
+        invoker.setInterfaceClass(interfaceClass);
+        invoker.setInterfaceName(interfaceClass.getName());
+        return invoker;
+    }
+
+    @Override
+    public <T> Invoker<T> refer(String interfaceName) throws RPCException {
+        ToyInvoker<T> invoker = new ToyInvoker<>();
+        invoker.setInterfaceName(interfaceName);
         return invoker;
     }
 

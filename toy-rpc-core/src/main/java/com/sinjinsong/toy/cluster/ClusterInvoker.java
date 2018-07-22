@@ -31,14 +31,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ClusterInvoker<T> implements Invoker<T> {
     private Class<T> interfaceClass;
+    private String interfaceName;
     private ClusterConfig clusterConfig;
     private Map<String, Invoker<T>> addressInvokers = new ConcurrentHashMap<>();
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
     private ApplicationConfig applicationConfig;
-
-    public ClusterInvoker(Class<T> interfaceClass, ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
+    
+    public ClusterInvoker(Class<T> interfaceClass,String interfaceName, ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
         this.interfaceClass = interfaceClass;
+        this.interfaceName = interfaceName;
         this.clusterConfig = clusterConfig;
         this.registryConfig = registryConfig;
         this.protocolConfig = protocolConfig;
@@ -47,7 +49,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
     }
 
     private void init() {
-        this.registryConfig.getRegistryInstance().discover(interfaceClass.getName(), (newServiceURLs -> {
+        this.registryConfig.getRegistryInstance().discover(interfaceName, (newServiceURLs -> {
             removeNotExisted(newServiceURLs);
         }), (serviceURL -> {
             addOrUpdate(serviceURL);
@@ -82,8 +84,8 @@ public class ClusterInvoker<T> implements Invoker<T> {
             }
         } else {
             // 添加
-            log.info("add invoker:{},serviceURL:{}", interfaceClass.getName(), serviceURL);
-            Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceClass);
+            log.info("add invoker:{},serviceURL:{}", interfaceName, serviceURL);
+            Invoker invoker = protocolConfig.getProtocolInstance().refer(interfaceName);
             // refer拿到的有可能是某一种具体的ProtocolInvoker（远程），也有可能是AbstractInvoker（本地）
             // TODO refactor this
             // 最后是决定，不管一个服务器提供多少个接口，对每个接口建立一个连接，否则管理起来太麻烦
@@ -130,6 +132,11 @@ public class ClusterInvoker<T> implements Invoker<T> {
     @Override
     public Class<T> getInterface() {
         return interfaceClass;
+    }
+
+    @Override
+    public String getInterfaceName() {
+        return interfaceName;
     }
 
     @Override

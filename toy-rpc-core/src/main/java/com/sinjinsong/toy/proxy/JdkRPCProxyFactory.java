@@ -53,7 +53,7 @@ public class JdkRPCProxyFactory extends AbstractRPCProxyFactory {
                         // ClusterInvoker
                         RPCInvokeParam invokeParam = RPCInvokeParam.builder()
                                 .rpcRequest(request)
-                                .referenceConfig(ReferenceConfig.getReferenceConfigByInterface(method.getDeclaringClass()))
+                                .referenceConfig(ReferenceConfig.getReferenceConfigByInterfaceName(method.getDeclaringClass().getName()))
                                 .build();
                         RPCResponse response = invoker.invoke(invokeParam);
                         if (response == null) {
@@ -74,7 +74,12 @@ public class JdkRPCProxyFactory extends AbstractRPCProxyFactory {
             public Class<T> getInterface() {
                 return type;
             }
-            
+
+            @Override
+            public String getInterfaceName() {
+                return type.getName();
+            }
+
             @Override
             public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
                RPCResponse response = new RPCResponse();
