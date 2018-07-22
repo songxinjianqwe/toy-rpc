@@ -134,36 +134,66 @@ public class ClusterInvoker<T> implements Invoker<T> {
         if (invoker != null) {
             try {
                 // 这里只会抛出RPCException
-                return invoker.invoke(invokeParam);
+                RPCResponse response = invoker.invoke(invokeParam);
+                // response有可能是null，比如callback、oneway和future
+                if(response == null) {
+                    return null;
+                }
+                // 不管是传输时候抛异常，还是服务端抛出异常，都算异常
+                if (response.hasError()) {
+                    throw new RPCException(ErrorEnum.SERVICE_INVOCATION_FAILURE, response.getCause(), "invocation failed");
+                }
+                // 第一次就OK
+                return response;
             } catch (RPCException e) {
                 Map<String, Invoker> excludedInvokers = new HashMap<>();
                 excludedInvokers.put(invoker.getServiceURL().getAddress(), invoker);
-                clusterConfig.getFailureHandlerInstance().handle(excludedInvokers, this, invokeParam);
+                // 重试后OK
+                // 在这里再抛出异常，就没有返回值了
+                return clusterConfig.getFaultToleranceHandlerInstance().handle(excludedInvokers, this, invokeParam);
             }
+        } else {
+            log.error("未找到可用服务器");
+            throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE, "未找到可用服务器");
         }
-        log.error("未找到可用服务器");
-        throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE,"未找到可用服务器");
     }
 
     /**
      * 这里不需要捕获invoker#invoke的异常，会由retryer来捕获
+     *
      * @param excludedInvokers
-     * @param invokerParam
+     * @param invokeParam
      * @return
      */
-    public RPCResponse invoke(Map<String, Invoker> excludedInvokers, InvokeParam invokerParam) {
+    public RPCResponse invoke(Map<String, Invoker> excludedInvokers, InvokeParam invokeParam) {
         List<Invoker> invokers = getInvokers();
         for (Iterator<Invoker> it = invokers.iterator(); it.hasNext(); ) {
             if (excludedInvokers.containsKey(it.next().getServiceURL().getAddress())) {
                 it.remove();
             }
         }
-        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(getInvokers(), InvokeParamUtil.extractRequestFromInvokeParam(invokerParam));
+        Invoker invoker = clusterConfig.getLoadBalanceInstance().select(invokers, InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
         if (invoker != null) {
-            return invoker.invoke(invokerParam);
+            try {
+                // 这里只会抛出RPCException
+                RPCResponse response = invoker.invoke(invokeParam);
+                if(response == null) {
+                    return null;
+                }
+                // 不管是传输时候抛异常，还是服务端抛出异常，都算异常
+                if (response.hasError()) {
+                    throw new RPCException(ErrorEnum.SERVICE_INVOCATION_FAILURE, response.getCause(), "invocation failed");
+                }
+                return response;
+            } catch (RPCException e) {
+                // 再次调用失败，添加到排除列表中
+                excludedInvokers.put(invoker.getServiceURL().getAddress(), invoker);
+                throw e;
+            }
+        } else {
+            log.error("未找到可用服务器");
+            throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE, "未找到可用服务器");
         }
-        log.error("未找到可用服务器");
-        throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE,"未找到可用服务器");
     }
 
     @Override

@@ -23,7 +23,7 @@ public class RPCProviderBeanPostProcessor extends AbstractRPCBeanPostProcessor {
 
         RPCService rpcService = beanClass.getAnnotation(RPCService.class);
         Class<?> interfaceClass = rpcService.interfaceClass();
-        if (interfaceClass == null) {
+        if (interfaceClass == void.class) {
             Class<?>[] interfaces = beanClass.getInterfaces();
             if (interfaces.length >= 1) {
                 interfaceClass = interfaces[0];

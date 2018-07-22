@@ -30,7 +30,7 @@ public class ToyProtocol extends AbstractProtocol {
             int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
             serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
-            throw new RPCException(ErrorEnum.READ_LOCALHOST_ERROR,e,"获取本地Host失败");
+            throw new RPCException(ErrorEnum.READ_LOCALHOST_ERROR, e, "获取本地Host失败");
         }
         return exporter;
     }
@@ -47,9 +47,14 @@ public class ToyProtocol extends AbstractProtocol {
     public void doOnApplicationLoadComplete(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
         log.info("http protocol doOnApplicationLoadComplete...");
         if (isExporterExists()) {
+            // 在一个新的线程中跑服务器的主线程，如果在main线程里跑，spring容器永远无法启动
             ToyServer toyServer = new ToyServer();
             toyServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
-            toyServer.run();
+            Thread t = new Thread(() -> {
+                toyServer.run();
+            }, "server-thread");
+            t.setDaemon(true);
+            t.start();
         }
     }
 }

@@ -37,13 +37,14 @@ public abstract class AbstractInvocation implements Invocation {
 
     @Override
     public final RPCResponse invoke() throws RPCException {
+        RPCResponse response;
         try {
-            doInvoke();
+            response = doInvoke();
         } catch (Throwable e) {
             e.printStackTrace();
-            throw new RPCException(ErrorEnum.TRANSPORT_FAILURE,e, "Invocation异常");
+            throw new RPCException(ErrorEnum.TRANSPORT_FAILURE, e, "Invocation异常");
         }
-        return null;
+        return response;
     }
 
     /**

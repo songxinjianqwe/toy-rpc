@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
  * @author sinjinsong
  * @date 2018/7/21
  */
-public class PlaceHolderReplacementUtil {
-    private static final Pattern REGEX = Pattern.compile("\\$\\{(.*?)}");
-
+public class PlaceHolderUtil {
+    private static final Pattern REGEX = Pattern.compile("\\{(.*?)}");
+    
     public static String replace(String message, Object... args) {
         Matcher matcher = REGEX.matcher(message);
         StringBuffer sb = new StringBuffer();

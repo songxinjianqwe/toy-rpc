@@ -16,25 +16,29 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Service
 public class SyncCallService {
-    @RPCReference    
+    @RPCReference
     private HelloService helloService;
-    
-    public void test() throws Exception {
-        log.info("sync:{}",helloService.hello(new User("1")));
-        log.info("sync:{}",helloService.hello(new User("2")));
-        
-        Thread.sleep(3000);
-        log.info("sync:{}",helloService.hello(new User("3")));
-        Thread.sleep(8000);
-        log.info("sync:{}",helloService.hello(new User("4")));
+
+    public void testOnceCall() throws Exception {
+        log.info("sync:{}", helloService.hello(new User("1")));
     }
-    
+
+    public void test() throws Exception {
+        log.info("sync:{}", helloService.hello(new User("1")));
+        log.info("sync:{}", helloService.hello(new User("2")));
+
+        Thread.sleep(3000);
+        log.info("sync:{}", helloService.hello(new User("3")));
+        Thread.sleep(8000);
+        log.info("sync:{}", helloService.hello(new User("4")));
+    }
+
     public void concurrentTest() {
         ExecutorService pool = Executors.newFixedThreadPool(5);
         for (int i = 0; i < 20; i++) {
             String currentUsername = String.valueOf(i + 1);
             pool.submit(() -> {
-               log.info("sync:{}",helloService.hello(new User(currentUsername)));
+                log.info("sync:{}", helloService.hello(new User(currentUsername)));
             });
         }
     }

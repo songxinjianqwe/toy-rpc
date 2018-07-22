@@ -11,6 +11,6 @@ import java.util.Map;
  * @date 2018/7/22
  * 无状态
  */
-public interface FailureHandler {
+public interface FaultToleranceHandler {
     RPCResponse handle(Map<String,Invoker> excludedInvokers, ClusterInvoker clusterInvoker, InvokeParam invokeParam);
 }

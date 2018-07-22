@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -107,6 +108,15 @@ public class RPCTaskRunner implements Runnable {
                     }
             );
         }
-        return method.invoke(serviceBean, parameters);
+        try {
+            return method.invoke(serviceBean, parameters);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
+        return null;
     }
 }

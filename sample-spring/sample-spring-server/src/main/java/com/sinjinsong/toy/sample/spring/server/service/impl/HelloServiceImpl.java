@@ -17,6 +17,7 @@ public class HelloServiceImpl implements HelloService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return "Hello, " + user.getUsername();
+        throw new RuntimeException("provider side error");
+//        return "Hello, " + user.getUsername();
     }
 }

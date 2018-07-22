@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.proxy;
 
-import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
@@ -58,10 +57,8 @@ public class JdkRPCProxyFactory extends AbstractRPCProxyFactory {
                                 .build();
                         RPCResponse response = invoker.invoke(invokeParam);
                         if (response == null) {
+                            // callback,oneway,async
                             return null;
-                        }
-                        if (response.hasError()) {
-                            throw new RPCException(ErrorEnum.SERVICE_INVOCATION_FAILURE,response.getCause(),"invocation failed");
                         } else {
                             return response.getResult();
                         }

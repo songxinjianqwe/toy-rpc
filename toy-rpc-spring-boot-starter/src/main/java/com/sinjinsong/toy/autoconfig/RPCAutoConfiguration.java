@@ -30,7 +30,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 @EnableConfigurationProperties(RPCProperties.class)
 @Configuration
 @Slf4j
-public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefreshedEvent>,ApplicationContextAware {
+public class RPCAutoConfiguration implements ApplicationListener<ContextRefreshedEvent>,ApplicationContextAware {
     @Autowired
     private RPCProperties properties;
     private ApplicationContext ctx;
@@ -91,7 +91,12 @@ public class ToyRPCAutoConfiguration implements ApplicationListener<ContextRefre
         loadBalancer.setProtocolConfig(protocolConfig);
         loadBalancer.setClusterConfig(clusterConfig);
         loadBalancer.setApplicationConfig(applicationConfig());
-
+        if(clusterConfig.getFaulttolerance() != null) {
+            clusterConfig.setFaultToleranceHandlerInstance(FaultToleranceType.valueOf(clusterConfig.getFaulttolerance().toUpperCase()).getFaultToleranceHandler());
+        }else {
+            // 默认是failover
+            clusterConfig.setFaultToleranceHandlerInstance(FaultToleranceType.FAILOVER.getFaultToleranceHandler());
+        }
         clusterConfig.setLoadBalanceInstance(loadBalancer);
         log.info("{}", clusterConfig);
         return clusterConfig;

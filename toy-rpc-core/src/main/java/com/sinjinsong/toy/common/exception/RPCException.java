@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.common.exception;
 
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
-import com.sinjinsong.toy.common.util.PlaceHolderReplacementUtil;
+import com.sinjinsong.toy.common.util.PlaceHolderUtil;
 
 /**
  * @author sinjinsong
@@ -11,12 +11,12 @@ public class RPCException extends RuntimeException {
     private ErrorEnum errorEnum;
 
     public RPCException(ErrorEnum errorEnum, String message, Object... args) {
-        super(PlaceHolderReplacementUtil.replace(message, args));
+        super(PlaceHolderUtil.replace(message, args));
         this.errorEnum = errorEnum;
     }
 
     public RPCException(ErrorEnum errorEnum, Throwable cause, String message, Object... args) {
-        super(PlaceHolderReplacementUtil.replace(message, args), cause);
+        super(PlaceHolderUtil.replace(message, args), cause);
         this.errorEnum = errorEnum;
     }
 

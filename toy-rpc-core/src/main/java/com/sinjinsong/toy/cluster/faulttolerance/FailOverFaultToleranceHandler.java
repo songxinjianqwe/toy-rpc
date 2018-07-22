@@ -1,8 +1,7 @@
-package com.sinjinsong.toy.cluster.failurehandler;
+package com.sinjinsong.toy.cluster.faulttolerance;
 
 import com.github.rholder.retry.*;
 import com.sinjinsong.toy.cluster.ClusterInvoker;
-import com.sinjinsong.toy.cluster.FailureHandler;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
@@ -24,13 +23,13 @@ import java.util.concurrent.TimeUnit;
  * 如果全部去掉，还没有调用成功；或者超时重试次数，则抛出RPCException，结束
  */
 @Slf4j
-public class FailOverFailureHandler implements FailureHandler {
+public class FailOverFaultToleranceHandler implements com.sinjinsong.toy.cluster.FaultToleranceHandler {
     
     @Override
     public  RPCResponse handle(Map<String,Invoker> excludedInvokers, ClusterInvoker clusterInvoker, InvokeParam invokeParam) {
-        log.info("出错,FailOver! requestId:{}", invokeParam.getRequestId());
+        log.error("出错,FailOver! requestId:{}", invokeParam.getRequestId());
         try {
-            retry(excludedInvokers,clusterInvoker,invokeParam);
+            return retry(excludedInvokers,clusterInvoker,invokeParam);
         } catch (ExecutionException e1) {
             e1.printStackTrace();
         } catch (RetryException e1) {
@@ -52,9 +51,21 @@ public class FailOverFailureHandler implements FailureHandler {
      */
     private  RPCResponse retry(Map<String,Invoker> excludedInvokers, ClusterInvoker clusterInvoker,InvokeParam invokeParam) throws ExecutionException, RetryException {
         Retryer<RPCResponse> retryer = RetryerBuilder.<RPCResponse>newBuilder()
-                .retryIfExceptionOfType(Throwable.class) // 抛出Throwable时重试 
-                .withWaitStrategy(WaitStrategies.incrementingWait(5, TimeUnit.SECONDS, 5, TimeUnit.SECONDS))
-                .withStopStrategy(StopStrategies.stopAfterAttempt(3)) // 重试5次后停止  
+                .retryIfException(
+                        t -> {
+                            // 如果一个异常是RPCException并且是没有服务，则不再重试
+                            // 其他情况俊辉重试
+                            if(t instanceof RPCException) {
+                                RPCException rpcException = (RPCException) t;
+                                if(rpcException.getErrorEnum() == ErrorEnum.NO_SERVER_AVAILABLE) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                ) // 抛出Throwable时重试 
+                .withWaitStrategy(WaitStrategies.incrementingWait(1, TimeUnit.SECONDS, 1, TimeUnit.SECONDS))
+                .withStopStrategy(StopStrategies.stopAfterAttempt(3)) // 重试3次后停止  
                 .build();
         return retryer.call(() -> {
             log.info("开始本次重试...");

@@ -57,6 +57,10 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     @Override
     public Invoker select(List<Invoker> invokers,RPCRequest request) {
+        if(invokers.size() == 0) {
+            log.info("select->不存在可用invoker，直接退出");
+            return null;
+        }
         // 调整endpoint，如果某个服务器不提供该服务了，则看它是否还提供其他服务，如果都不提供了，则关闭连接
         // 如果某个服务器还没有连接，则连接；如果已经连接，则复用
         Invoker invoker = doSelect(invokers, request);

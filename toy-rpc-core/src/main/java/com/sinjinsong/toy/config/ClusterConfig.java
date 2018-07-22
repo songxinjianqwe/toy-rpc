@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.config;
 
-import com.sinjinsong.toy.cluster.FailureHandler;
+import com.sinjinsong.toy.cluster.FaultToleranceHandler;
 import com.sinjinsong.toy.cluster.LoadBalancer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClusterConfig {
     private String loadbalance;
-    private String failure;
+    private String faulttolerance;
     private LoadBalancer loadBalanceInstance;
-    private FailureHandler failureHandlerInstance;
+    private FaultToleranceHandler faultToleranceHandlerInstance;
 }
