@@ -75,7 +75,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
             // 我们知道只有远程服务才有可能会更新
             // 更新配置与invoker无关，只需要Protocol负责
             //TODO refactor this
-
+            
             if (protocolConfig.getProtocolInstance() instanceof AbstractRemoteProtocol) {
                 AbstractRemoteProtocol protocol = (AbstractRemoteProtocol) protocolConfig.getProtocolInstance();
                 log.info("update config:{},当前interface为:{}", serviceURL,interfaceName);

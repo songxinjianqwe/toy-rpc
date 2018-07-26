@@ -17,6 +17,7 @@ public class DisruptorTaskExecutorImpl extends AbstractTaskExecutor {
     private TaskEventFactory eventFactory;
     private static final int RING_BUFFER_SIZE = 1024 * 1024; 
     
+    //TODO 弄明白disruptor的原理
     @Override
     public void init(Integer threads) {
         // threads在这里不需要，可以是null

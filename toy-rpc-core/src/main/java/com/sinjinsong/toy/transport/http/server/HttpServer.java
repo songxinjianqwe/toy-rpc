@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author sinjinsong
  * @date 2018/7/19
  */
+//TODO EasyRestful
 @Slf4j
 public class HttpServer extends AbstractNettyServer {
     
