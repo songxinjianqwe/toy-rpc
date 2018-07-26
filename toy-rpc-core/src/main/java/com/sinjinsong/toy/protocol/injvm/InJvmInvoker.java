@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
  * @date 2018/7/18
  */
 public class InJvmInvoker<T> extends AbstractInvoker<T> {
-    
+
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
         Object serviceBean = getGlobalConfig().getProtocol().referLocalService(invokeParam.getInterfaceName()).getRef();
@@ -33,5 +33,5 @@ public class InJvmInvoker<T> extends AbstractInvoker<T> {
         }
         return response;
     }
- 
+
 }

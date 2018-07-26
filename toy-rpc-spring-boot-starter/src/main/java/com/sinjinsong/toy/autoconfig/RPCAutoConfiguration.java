@@ -18,12 +18,9 @@ import com.sinjinsong.toy.proxy.JdkRPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,12 +31,10 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(RPCProperties.class)
 @Configuration
 @Slf4j
-public class RPCAutoConfiguration implements InitializingBean, ApplicationContextAware {
+public class RPCAutoConfiguration implements InitializingBean {
     @Autowired
     private RPCProperties properties;
-    private ApplicationContext ctx;
     private ExtensionLoader extensionLoader;
-
 
     @Bean(initMethod = "init", destroyMethod = "close")
     public RegistryConfig registryConfig() {
@@ -49,12 +44,14 @@ public class RPCAutoConfiguration implements InitializingBean, ApplicationContex
         }
         //TODO 根据type创建ServiceRegistry
         //TODO injvm协议不需要连接ZK
-        ZkServiceRegistry serviceRegistry = new ZkServiceRegistry(registryConfig);
-        registryConfig.setRegistryInstance(serviceRegistry);
+        if (ProtocolType.INJVM != ProtocolType.valueOf(properties.getProtocol().getType().toUpperCase())) {
+            ZkServiceRegistry serviceRegistry = new ZkServiceRegistry(registryConfig);
+            registryConfig.setRegistryInstance(serviceRegistry);
+        }
         log.info("{}", registryConfig);
         return registryConfig;
     }
-
+    
     @Bean
     public ApplicationConfig applicationConfig() {
         ApplicationConfig application = properties.getApplication();
@@ -151,10 +148,6 @@ public class RPCAutoConfiguration implements InitializingBean, ApplicationContex
         return processor;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.ctx = applicationContext;
-    }
 
     @Override
     public void afterPropertiesSet() throws Exception {

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 /**
  * @author sinjinsong
  * @date 2018/7/7
@@ -18,8 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractProtocol implements Protocol {
     private Map<String, Exporter<?>> exporters = new ConcurrentHashMap<>();
     private GlobalConfig globalConfig;
-    
-    
+
+
     public void init(GlobalConfig globalConfig) {
         this.globalConfig = globalConfig;
     }
@@ -42,6 +43,6 @@ public abstract class AbstractProtocol implements Protocol {
 
     @Override
     public void close() {
-        
+
     }
 }

@@ -23,13 +23,6 @@ public class InJvmProtocol extends AbstractProtocol {
         exporter.setServiceConfig(serviceConfig);
         putExporter(invoker.getInterface(), exporter);
         // export
-//        // injvm 不需要注册到注册中心
-//        try {
-//            //TODO refactor this
-//            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getGlobalConfig().getPort(), serviceConfig.getInterfaceName());
-//        } catch (UnknownHostException e) {
-//            throw new RPCException(e,ErrorEnum.READ_LOCALHOST_ERROR,"读取本地Host失败");
-//        }
         return exporter;
     }
 

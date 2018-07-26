@@ -20,11 +20,15 @@ public class RegistryConfig {
     private ServiceRegistry registryInstance;
     
     public void init() {
-        registryInstance.init();
+        if(registryInstance != null) {
+            registryInstance.init();
+        }
     }
     
     
     public void close() {
-        registryInstance.close();
+        if(registryInstance != null) {
+            registryInstance.close();
+        }
     }
 }
