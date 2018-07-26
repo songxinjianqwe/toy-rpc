@@ -21,27 +21,32 @@ import java.net.UnknownHostException;
 public abstract class AbstractNettyServer extends AbstractServer {
     private ChannelInitializer channelInitializer;
     private ServerMessageConverter serverMessageConverter;
+    private ChannelFuture channelFuture;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
     
     @Override
     protected void doInit() {
         this.channelInitializer = initPipeline();
         this.serverMessageConverter = initConverter();
     }
-    
-    
+
+
     protected abstract ChannelInitializer initPipeline();
+
     /**
      * 与将Message转为Object类型的data相关
+     *
      * @return
      */
     protected abstract ServerMessageConverter initConverter();
-    
+
     @Override
     public void run() {
         //两个事件循环器，第一个用于接收客户端连接，第二个用于处理客户端的读写请求
         //是线程组，持有一组线程
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup();
         try {
             //服务器辅助类，用于配置服务器
             ServerBootstrap bootstrap = new ServerBootstrap();
@@ -71,22 +76,31 @@ public abstract class AbstractNettyServer extends AbstractServer {
             //Netty强烈建议直接通过添加监听器的方式获取I/O结果，而不是通过同步等待(.sync)的方式
             //如果用户操作调用了sync或者await方法，会在对应的future对象上阻塞用户线程
 
-        
+
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             String host = InetAddress.getLocalHost().getHostAddress();
-            ChannelFuture future = bootstrap.bind(host, getProtocolConfig().getPort()).sync();
+            this.channelFuture = bootstrap.bind(host, getProtocolConfig().getPort()).sync();
             //应用程序会一直等待，直到channel关闭
-            log.info("服务器启动");
-            future.channel().closeFuture().sync();
+            log.info("服务器启动,当前服务器类型为:{}",this.getClass().getSimpleName());
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (UnknownHostException e) {
             e.printStackTrace();
-        } finally {
-            getRegistryConfig().close();
+        }
+    }
+
+    @Override
+    public void close() {
+        getRegistryConfig().close();
+        if(workerGroup != null) {
             workerGroup.shutdownGracefully();
+        }
+        if(bossGroup != null) {
             bossGroup.shutdownGracefully();
+        }
+        if(channelFuture != null) {
+            channelFuture.channel().close();
         }
     }
 

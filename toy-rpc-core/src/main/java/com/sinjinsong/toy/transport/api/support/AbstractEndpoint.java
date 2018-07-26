@@ -12,6 +12,7 @@ public abstract class AbstractEndpoint implements Endpoint {
     private ServiceURL serviceURL;
     private ApplicationConfig applicationConfig;
 
+    //TODO 判断一下需不需要在这里就建立连接
     public void init(ApplicationConfig applicationConfig, ServiceURL serviceURL) {
         this.serviceURL = serviceURL;
         this.applicationConfig = applicationConfig;
@@ -25,6 +26,7 @@ public abstract class AbstractEndpoint implements Endpoint {
         return serviceURL;
     }
     
+    @Override
     public void updateServiceConfig(ServiceURL serviceURL) {
         this.serviceURL = serviceURL;
     }

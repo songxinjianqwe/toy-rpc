@@ -24,9 +24,7 @@ public class RPCThreadSharedContext {
     }
 
     public static CompletableFuture<RPCResponse> getAndRemoveResponseFuture(String requestId) {
-        CompletableFuture<RPCResponse> future = RESPONSES.get(requestId);
-        RESPONSES.remove(requestId);
-        return future;
+        return RESPONSES.remove(requestId);
     }
     
     public static void registerHandler(String name,ServiceConfig serviceConfig) {
@@ -35,8 +33,6 @@ public class RPCThreadSharedContext {
     }
     
     public static ServiceConfig getAndRemoveHandler(String name) {
-         ServiceConfig handler = HANDLER_MAP.get(name);
-         HANDLER_MAP.remove(name);
-         return handler;
+         return HANDLER_MAP.remove(name);
     }
 }

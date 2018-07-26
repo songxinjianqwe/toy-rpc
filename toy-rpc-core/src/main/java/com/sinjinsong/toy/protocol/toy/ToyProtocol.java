@@ -2,10 +2,15 @@ package com.sinjinsong.toy.protocol.toy;
 
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.*;
+import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
+import com.sinjinsong.toy.protocol.api.support.AbstractRemoteProtocol;
+import com.sinjinsong.toy.registry.api.ServiceURL;
+import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.Server;
+import com.sinjinsong.toy.transport.toy.client.ToyEndpoint;
 import com.sinjinsong.toy.transport.toy.server.ToyServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +22,7 @@ import java.net.UnknownHostException;
  * @date 2018/7/7
  */
 @Slf4j
-public class ToyProtocol extends AbstractProtocol {
+public class ToyProtocol extends AbstractRemoteProtocol {
 
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker, ServiceConfig<T> serviceConfig) throws RPCException {
@@ -25,10 +30,10 @@ public class ToyProtocol extends AbstractProtocol {
         exporter.setInvoker(invoker);
         exporter.setServiceConfig(serviceConfig);
         putExporter(invoker.getInterface(), exporter);
+        openServer();
         // export
         try {
-            int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
-            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
+            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getProtocolConfig().getPort(), serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
             throw new RPCException(e, ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
         }
@@ -36,33 +41,27 @@ public class ToyProtocol extends AbstractProtocol {
     }
 
     @Override
-    public <T> Invoker<T> refer(Class<T> interfaceClass) throws RPCException {
+    public <T> Invoker<T> refer(ReferenceConfig<T> referenceConfig, ServiceURL serviceURL) throws RPCException {
         ToyInvoker<T> invoker = new ToyInvoker<>();
-        invoker.setInterfaceClass(interfaceClass);
-        invoker.setInterfaceName(interfaceClass.getName());
-        return invoker;
+        invoker.setInterfaceClass(referenceConfig.getInterfaceClass());
+        invoker.setInterfaceName(referenceConfig.getInterfaceName());
+        invoker.setProtocolConfig(getProtocolConfig());
+        invoker.setEndpoint(initEndpoint(serviceURL));
+        return invoker.buildFilterChain(referenceConfig.getFilters());
     }
 
     @Override
-    public <T> Invoker<T> refer(String interfaceName) throws RPCException {
-        ToyInvoker<T> invoker = new ToyInvoker<>();
-        invoker.setInterfaceName(interfaceName);
-        return invoker;
+    protected Endpoint doInitEndpoint(ServiceURL serviceURL) {
+        ToyEndpoint toyEndpoint = new ToyEndpoint();
+        toyEndpoint.init(getApplicationConfig(), serviceURL);
+        return toyEndpoint;
     }
 
-
     @Override
-    public void doOnApplicationLoadComplete(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
-        log.info("http protocol doOnApplicationLoadComplete...");
-        if (isExporterExists()) {
-            // 在一个新的线程中跑服务器的主线程，如果在main线程里跑，spring容器永远无法启动
-            ToyServer toyServer = new ToyServer();
-            toyServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
-            Thread t = new Thread(() -> {
-                toyServer.run();
-            }, "server-thread");
-            t.setDaemon(true);
-            t.start();
-        }
+    protected Server doOpenServer() {
+        ToyServer toyServer = new ToyServer();
+        toyServer.init(getApplicationConfig(), getClusterConfig(), getRegistryConfig(), getProtocolConfig());
+        toyServer.run();
+        return toyServer;
     }
 }

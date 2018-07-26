@@ -11,7 +11,7 @@ import com.sinjinsong.toy.common.enumeration.support.ExtensionBaseType;
 public enum LoadBalanceType implements ExtensionBaseType<AbstractLoadBalancer> {
     LEAST_ACTIVE(new LeastActiveLoadBalancer()),
     RANDOM(new RandomLoadBalancer()),
-    CONSITITENT_HASH(new ConsistentHashLoadBalancer()),
+    CONSISTENT_HASH(new ConsistentHashLoadBalancer()),
     ROUND_ROBIN(new RoundRobinLoadBalancer()),
     WEIGHTED_RANDOM(new WeightedRandomLoadBalancer());
     

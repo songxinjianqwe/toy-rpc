@@ -3,10 +3,7 @@ package com.sinjinsong.toy.cluster.support;
 
 import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.cluster.LoadBalancer;
-import com.sinjinsong.toy.config.ApplicationConfig;
-import com.sinjinsong.toy.config.ClusterConfig;
-import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author sinjinsong
  * @date 2018/6/10
+ * 
+ * invoker是对应一个interface的一个address
+ * endpoint是对应一个address
+ * 多个invoker可能会共享同一个endpoint
+ * Endpoint由Protocol管理
  */
 @Slf4j
 public abstract class AbstractLoadBalancer implements LoadBalancer {
@@ -35,31 +37,20 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * key : BService, value:   192.168.1.1,Endpoint1
      */
     private Map<String, ClusterInvoker> interfaceInvokers = new ConcurrentHashMap<>();
-
+    
     /**
      * 分配address的形式
      *
-     * @param interfaceClass
+     * @param referenceConfig
      * @param <T>
      * @return
      */
     @Override
-    public <T> Invoker<T> referCluster(Class<T> interfaceClass) {
-        String interfaceName = interfaceClass.getName();
-        ClusterInvoker clusterInvoker;
-        if (!interfaceInvokers.containsKey(interfaceClass.getName())) {
-            clusterInvoker = new ClusterInvoker(interfaceClass, interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);
-            interfaceInvokers.put(interfaceName, clusterInvoker);
-            return clusterInvoker;
-        }
-        return interfaceInvokers.get(interfaceName);
-    }
-    
-    @Override
-    public Invoker referCluster(String interfaceName) {
+    public <T> Invoker<T> referCluster(ReferenceConfig<T> referenceConfig) {
+        String interfaceName = referenceConfig.getInterfaceName();
         ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceName)) {
-            clusterInvoker = new ClusterInvoker(null, interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);
+            clusterInvoker = new ClusterInvoker(referenceConfig.getInterfaceClass(), interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);
             interfaceInvokers.put(interfaceName, clusterInvoker);
             return clusterInvoker;
         }
@@ -81,13 +72,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
 
     protected abstract Invoker doSelect(List<Invoker> invokers, RPCRequest request);
-
-    @Override
-    public void close() {
-        interfaceInvokers.values().forEach(clusterInvoker -> clusterInvoker.close());
-    }
-
-
+    
     public void setRegistryConfig(RegistryConfig registryConfig) {
         this.registryConfig = registryConfig;
     }

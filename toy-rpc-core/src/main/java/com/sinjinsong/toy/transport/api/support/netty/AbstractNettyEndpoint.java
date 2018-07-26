@@ -47,8 +47,12 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
      * @return
      */
     protected abstract ClientMessageConverter initConverter();
-    
-    
+
+    @Override
+    public boolean isAvailable() {
+        return !destroyed;
+    }
+
     private synchronized void initClient() {
         if(initialized) {
             return;
@@ -132,20 +136,23 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
 
     /**
      * 如果该Endpoint不提供任何服务，则将其关闭
+     * 要做成幂等的，因为多个invoker都对应一个endpoint，当某个服务器下线时，可能会有多个interface（ClusterInvoker）
+     * 都检测到地址变更，所以会关闭对应的invoker。
      */
     @Override
     public void close() {
         try {
-            if (this.futureChannel != null) {
+            if (this.futureChannel != null && futureChannel.isOpen()) {
                 this.futureChannel.close().sync();
             }
             destroyed = true;
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            if (group != null) {
+            if (group != null && !group.isShuttingDown() && !group.isShutdown() && !group.isTerminated()) {
                 group.shutdownGracefully();
             }
         }
     }
+    
 }

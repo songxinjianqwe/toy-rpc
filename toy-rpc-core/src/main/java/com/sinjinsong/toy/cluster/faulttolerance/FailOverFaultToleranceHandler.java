@@ -3,7 +3,7 @@ package com.sinjinsong.toy.cluster.faulttolerance;
 import com.github.rholder.retry.*;
 import com.sinjinsong.toy.cluster.ClusterInvoker;
 import com.sinjinsong.toy.cluster.FaultToleranceHandler;
-import com.sinjinsong.toy.common.context.RPCThreadLocalInvoker;
+import com.sinjinsong.toy.common.context.RPCThreadLocalContext;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
@@ -33,7 +33,7 @@ public class FailOverFaultToleranceHandler implements FaultToleranceHandler {
     @Override
     public RPCResponse handle(ClusterInvoker clusterInvoker, InvokeParam invokeParam,RPCException e) {
         log.error("出错,FailOver! requestId:{}", invokeParam.getRequestId());
-        Invoker failedInvoker = RPCThreadLocalInvoker.getContext().getInvoker();
+        Invoker failedInvoker = RPCThreadLocalContext.getContext().getInvoker();
         Map<String, Invoker> excludedInvokers = new HashMap<>();
         excludedInvokers.put(failedInvoker.getServiceURL().getAddress(), failedInvoker);
         try {
@@ -87,7 +87,7 @@ public class FailOverFaultToleranceHandler implements FaultToleranceHandler {
             try {
                 return clusterInvoker.invokeForFaultTolerance(invokers, invokeParam);
             } catch (RPCException e) {
-                Invoker failedInvoker = RPCThreadLocalInvoker.getContext().getInvoker();
+                Invoker failedInvoker = RPCThreadLocalContext.getContext().getInvoker();
                 // 再次调用失败，添加到排除列表中
                 excludedInvokers.put(failedInvoker.getServiceURL().getAddress(), failedInvoker);
                 throw e;

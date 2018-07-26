@@ -4,10 +4,17 @@ import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.Invoker;
+import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
+import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -18,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Data
 @Builder
+@Slf4j
 public class ReferenceConfig<T> extends AbstractConfig {
     private String interfaceName;
     private Class<T> interfaceClass;
@@ -27,10 +35,10 @@ public class ReferenceConfig<T> extends AbstractConfig {
     private long timeout = 3000;
     private String callbackMethod;
     private int callbackParamIndex = 1;
-
-    private transient volatile T ref;
-    private transient volatile boolean initialized;
-//    private transient volatile boolean destroyed;
+    private boolean isGeneric;
+    private volatile Invoker<T> invoker;
+    private volatile T ref;
+    private volatile boolean initialized;
 
     private static final Map<String, ReferenceConfig<?>> CACHE = new ConcurrentHashMap<>();
     private List<Filter> filters;
@@ -57,10 +65,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
                                                                long timeout,
                                                                String callbackMethod,
                                                                int callbackParamIndex,
+                                                               boolean isGeneric,
                                                                List<Filter> filters) {
         if (CACHE.containsKey(interfaceName)) {
-            if (CACHE.get(interfaceName).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex)) {
-                throw new RPCException(ErrorEnum.SAME_INTERFACE_ONLY_CAN_BE_REFERED_IN_THE_SAME_WAY, "同一个接口只能以相同的配置引用:{}", interfaceName);
+            if (CACHE.get(interfaceName).isDiff(isAsync, isCallback, isOneWay, timeout, callbackMethod, callbackParamIndex, isGeneric)) {
+                throw new RPCException(ErrorEnum.SAME_INTERFACE_ONLY_CAN_BE_REFERRED_IN_THE_SAME_WAY, "同一个接口只能以相同的配置引用:{}", interfaceName);
             }
             return (ReferenceConfig<T>) CACHE.get(interfaceName);
         }
@@ -74,13 +83,14 @@ public class ReferenceConfig<T> extends AbstractConfig {
                 .timeout(timeout)
                 .callbackMethod(callbackMethod)
                 .callbackParamIndex(callbackParamIndex)
+                .isGeneric(isGeneric)
                 .filters(filters)
                 .build();
         CACHE.put(interfaceName, config);
         return config;
     }
 
-    private boolean isDiff(boolean isAsync, boolean isCallback, boolean isOneWay, long timeout, String callbackMethod, int callbackParamIndex) {
+    private boolean isDiff(boolean isAsync, boolean isCallback, boolean isOneWay, long timeout, String callbackMethod, int callbackParamIndex, boolean isGeneric) {
         if (this.isAsync != isAsync) {
             return true;
         }
@@ -99,6 +109,9 @@ public class ReferenceConfig<T> extends AbstractConfig {
         if (this.callbackParamIndex != callbackParamIndex) {
             return true;
         }
+        if (this.isGeneric != isGeneric) {
+            return true;
+        }
         return false;
     }
 
@@ -107,16 +120,45 @@ public class ReferenceConfig<T> extends AbstractConfig {
             return;
         }
         initialized = true;
-
         // ClusterInvoker
-        Invoker<T> invoker;
-        if (interfaceClass != null) {
-            invoker = clusterConfig.getLoadBalanceInstance().referCluster(interfaceClass);
-        } else {
-            invoker = clusterConfig.getLoadBalanceInstance().referCluster(interfaceName);
+        invoker = clusterConfig.getLoadBalanceInstance().referCluster(this);
+        if (!isGeneric) {
+            ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
         }
-        ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
     }
+
+    
+    public Object invokeForGeneric(String methodName, Class<?>[] parameterTypes, Object[] args) {
+        if (!initialized) {
+            init();
+        }
+        if (isGeneric) {
+            RPCRequest request = new RPCRequest();
+            log.info("调用泛化服务：{} {}",interfaceName, methodName);
+            request.setRequestId(UUID.randomUUID().toString());
+            request.setInterfaceName(interfaceName);
+            request.setMethodName(methodName);
+            request.setParameterTypes(parameterTypes);
+            request.setParameters(args);
+            // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
+            // ClusterInvoker
+            RPCInvokeParam invokeParam = RPCInvokeParam.builder()
+                    .rpcRequest(request)
+                    .referenceConfig(this)
+                    .build();
+            RPCResponse response = invoker.invoke(invokeParam);
+            if (response == null) {
+                // callback,oneway,async
+                return null;
+            } else {
+                return response.getResult();
+            }
+        } else {
+            throw new RPCException(ErrorEnum.GENERIC_INVOCATION_ERROR, "只有泛化调用的refernce才可以调用invoke方法");
+        }
+    }
+    
+    
 
     /**
      * 初始化并
@@ -129,7 +171,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         return ref;
     }
-    
+
 
     public static ReferenceConfig getReferenceConfigByInterfaceName(String interfaceName) {
         return CACHE.get(interfaceName);

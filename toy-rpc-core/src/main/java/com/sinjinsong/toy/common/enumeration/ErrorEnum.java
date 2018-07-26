@@ -11,7 +11,7 @@ public enum ErrorEnum {
     TRANSPORT_FAILURE("RPC传输失败"),
     RETRY_EXCEED_MAX_TIMES("超时重试RPC调用次数"),
     GET_PROCESSOR_MUST_BE_OVERRIDE_WHEN_INVOKE_DID_NOT_OVERRIDE("没有重写AbstractInvoker#invoke方法的时候，必须重写getProcessor方法"),
-    SAME_INTERFACE_ONLY_CAN_BE_REFERED_IN_THE_SAME_WAY("同一个接口只能以相同的配置引用"),
+    SAME_INTERFACE_ONLY_CAN_BE_REFERRED_IN_THE_SAME_WAY("同一个接口只能以相同的配置引用"),
     TEMPLATE_REPLACEMENT_ERROR("出错消息模板替换出错"),
     EXPOSED_SERVICE_NOT_FOUND("未找到暴露的服务"),
     READ_LOCALHOST_ERROR("读取本地Host失败"),
@@ -24,7 +24,8 @@ public enum ErrorEnum {
     VALUE_OF_MUST_BE_APPLIED_TO_EXTENSION_BASE_TYPE("调用valueOf的枚举必须实现ExtensionBaseTyp接口"),
     NO_SUPPORTED_INSTANCE("接口没有可用实现类"),
     EXTENSION_CONFIG_FILE_ERROR("toy扩展配置文件错误"),
-    GENERIC_INVOCATION_ERROR("泛化调用失败")
+    GENERIC_INVOCATION_ERROR("泛化调用失败"),
+    PROTOCOL_CANNOT_FIND_THE_SERVER_ADDRESS("协议找不到该服务器地址")
     ;
     private String errorCode;
 

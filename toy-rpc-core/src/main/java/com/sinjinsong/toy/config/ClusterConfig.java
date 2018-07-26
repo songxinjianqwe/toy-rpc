@@ -20,4 +20,5 @@ public class ClusterConfig {
     private String faulttolerance;
     private LoadBalancer loadBalanceInstance;
     private FaultToleranceHandler faultToleranceHandlerInstance;
+    
 }

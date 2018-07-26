@@ -13,6 +13,7 @@ import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 public abstract class InvokerDelegate<T> extends AbstractInvoker<T> {
     private Invoker<T> delegate;
 
+    
     public InvokerDelegate(Invoker<T> delegate) {
         this.delegate = delegate;
     }
@@ -34,6 +35,12 @@ public abstract class InvokerDelegate<T> extends AbstractInvoker<T> {
         }
         return false;
     }
+    
+        
+    @Override
+    public boolean isAvailable() {
+        return delegate.isAvailable();
+    }
 
     @Override
     public Class<T> getInterface() {
@@ -44,17 +51,12 @@ public abstract class InvokerDelegate<T> extends AbstractInvoker<T> {
     public String getInterfaceName() {
         return delegate.getInterfaceName();
     }
-    
+
     @Override
     public ServiceURL getServiceURL() {
         return delegate.getServiceURL();
     }
-
-    @Override
-    public void close() {
-        delegate.close();
-    }
-
+    
     @Override
     public abstract RPCResponse invoke(InvokeParam invokeParam) throws RPCException;
 }

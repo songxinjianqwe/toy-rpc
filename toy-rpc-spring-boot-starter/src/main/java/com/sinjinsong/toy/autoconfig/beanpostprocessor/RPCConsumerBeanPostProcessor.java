@@ -38,6 +38,7 @@ public class RPCConsumerBeanPostProcessor extends AbstractRPCBeanPostProcessor{
                         reference.timeout(),
                         reference.callbackMethod(),
                         reference.callbackParamIndex(),
+                        false,
                         ExtensionLoader.getInstance().load(Filter.class)
                 );
                 initConfig(config);

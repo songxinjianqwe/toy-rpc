@@ -17,11 +17,22 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Slf4j
 public class ProtocolConfig {
-    public static final Integer DEFAULT_THREADS = Integer.valueOf(100);
+
     public static final Integer DEFAULT_PORT = Integer.valueOf(8000);
     private String type;
     private Integer port;
-    
+
     private Protocol protocolInstance;
     private ExecutorConfig executor;
+
+    public int getPort() {
+        if (port != null) {
+            return port;
+        }
+        return DEFAULT_PORT;
+    }
+    
+    public void close() {
+        protocolInstance.close();
+    }
 }

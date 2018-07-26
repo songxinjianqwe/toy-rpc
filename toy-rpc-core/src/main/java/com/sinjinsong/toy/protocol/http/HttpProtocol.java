@@ -2,10 +2,15 @@ package com.sinjinsong.toy.protocol.http;
 
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.config.*;
+import com.sinjinsong.toy.config.ReferenceConfig;
+import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
+import com.sinjinsong.toy.protocol.api.support.AbstractRemoteProtocol;
+import com.sinjinsong.toy.registry.api.ServiceURL;
+import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.Server;
+import com.sinjinsong.toy.transport.http.client.HttpEndpoint;
 import com.sinjinsong.toy.transport.http.server.HttpServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +22,7 @@ import java.net.UnknownHostException;
  * @date 2018/7/18
  */
 @Slf4j
-public class HttpProtocol extends AbstractProtocol {
+public class HttpProtocol extends AbstractRemoteProtocol {
 
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker, ServiceConfig<T> serviceConfig) throws RPCException {
@@ -25,10 +30,12 @@ public class HttpProtocol extends AbstractProtocol {
         exporter.setInvoker(invoker);
         exporter.setServiceConfig(serviceConfig);
         putExporter(invoker.getInterface(), exporter);
+        // 启动服务器
+        // 这个必须在注册到注册中心之前执行
+        openServer();
         // export
         try {
-            int port = serviceConfig.getProtocolConfig().getPort() != null ? serviceConfig.getProtocolConfig().getPort() : serviceConfig.getProtocolConfig().DEFAULT_PORT;
-            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + port, serviceConfig.getInterfaceName());
+            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getProtocolConfig().getPort(), serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
             throw new RPCException(e, ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
         }
@@ -36,32 +43,28 @@ public class HttpProtocol extends AbstractProtocol {
     }
 
     @Override
-    public <T> Invoker<T> refer(Class<T> interfaceClass) throws RPCException {
+    public <T> Invoker<T> refer(ReferenceConfig<T> referenceConfig, ServiceURL serviceURL) throws RPCException {
         HttpInvoker<T> invoker = new HttpInvoker<>();
-        invoker.setInterfaceClass(interfaceClass);
-        invoker.setInterfaceName(interfaceClass.getName());
-        return invoker;
+        invoker.setInterfaceClass(referenceConfig.getInterfaceClass());
+        invoker.setInterfaceName(referenceConfig.getInterfaceName());
+        invoker.setEndpoint(initEndpoint(serviceURL));
+        invoker.setProtocolConfig(getProtocolConfig());
+        return invoker.buildFilterChain(referenceConfig.getFilters());
     }
 
     @Override
-    public <T> Invoker<T> refer(String interfaceName) throws RPCException {
-        HttpInvoker<T> invoker = new HttpInvoker<>();
-        invoker.setInterfaceName(interfaceName);
-        return invoker;
+    protected Endpoint doInitEndpoint(ServiceURL serviceURL) {
+        HttpEndpoint httpEndpoint = new HttpEndpoint();
+        httpEndpoint.init(getApplicationConfig(), serviceURL);
+        return httpEndpoint;
     }
 
+
     @Override
-    public void doOnApplicationLoadComplete(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry, ProtocolConfig protocolConfig) {
-        log.info("http protocol doOnApplicationLoadComplete...");
-        if (isExporterExists()) {
-            // 在一个新的线程中跑服务器的主线程，如果在main线程里跑，spring容器永远无法启动
-            HttpServer httpServer = new HttpServer();
-            httpServer.init(applicationConfig, clusterConfig, registry, protocolConfig);
-            Thread t = new Thread(() -> {
-                httpServer.run();
-            }, "server-thread");
-            t.setDaemon(true);
-            t.start();
-        }
+    protected Server doOpenServer() {
+        HttpServer httpServer = new HttpServer();
+        httpServer.init(getApplicationConfig(), getClusterConfig(), getRegistryConfig(), getProtocolConfig());
+        httpServer.run();
+        return httpServer;
     }
 }

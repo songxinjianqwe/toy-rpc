@@ -1,23 +1,21 @@
-package com.sinjinsong.toy.config.bean;
+package com.sinjinsong.toy.config.generic;
 
 import com.sinjinsong.toy.common.ExtensionLoader;
-import com.sinjinsong.toy.common.enumeration.ErrorEnum;
-import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.filter.Filter;
-
-import java.lang.reflect.Method;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author sinjinsong
  * @date 2018/7/23
  */
+@Slf4j
 public class RPCGenericServiceBean {
-    private Object proxy;
-    
+    private ReferenceConfig referenceConfig;
+
     public void init(String interfaceName, boolean isAsync, boolean isCallback, boolean isOneway, int timeout, String callbackMethod, int callbackParamIndex,
                      ApplicationConfig applicationConfig, ClusterConfig clusterConfig, ProtocolConfig protocolConfig, RegistryConfig registryConfig) {
-        ReferenceConfig config = ReferenceConfig.createReferenceConfig(
+        referenceConfig = ReferenceConfig.createReferenceConfig(
                 interfaceName,
                 null,
                 isAsync,
@@ -26,23 +24,20 @@ public class RPCGenericServiceBean {
                 timeout,
                 callbackMethod,
                 callbackParamIndex,
+                true,
                 ExtensionLoader.getInstance().load(Filter.class)
         );
-        config.init(
+        referenceConfig.init(
                 applicationConfig,
                 clusterConfig,
                 protocolConfig,
                 registryConfig
         );
-        proxy = config.get();
     }
     
-    public Object invoke(String methodName, Class<?>[] parameterTypes, Object[] parameters) {
-        try {
-            Method method = proxy.getClass().getMethod(methodName, parameterTypes);
-            return method.invoke(proxy, parameters);
-        } catch (Throwable t){
-            throw new RPCException(t,ErrorEnum.GENERIC_INVOCATION_ERROR,"泛化调用失败");
-        }
+    public Object invoke(String methodName, Class<?>[] parameterTypes, Object[] parameters){
+        return  referenceConfig.invokeForGeneric(methodName,parameterTypes,parameters);  
     }
+
+
 }

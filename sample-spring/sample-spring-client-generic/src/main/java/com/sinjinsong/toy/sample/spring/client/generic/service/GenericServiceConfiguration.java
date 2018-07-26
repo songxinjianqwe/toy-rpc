@@ -1,10 +1,10 @@
-package com.sinjinsong.toy.sample.spring.client.generic;
+package com.sinjinsong.toy.sample.spring.client.generic.service;
 
 import com.sinjinsong.toy.config.ApplicationConfig;
 import com.sinjinsong.toy.config.ClusterConfig;
 import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.RegistryConfig;
-import com.sinjinsong.toy.config.bean.RPCGenericServiceBean;
+import com.sinjinsong.toy.config.generic.RPCGenericServiceBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

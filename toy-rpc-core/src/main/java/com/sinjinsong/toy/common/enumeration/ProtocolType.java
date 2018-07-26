@@ -2,6 +2,7 @@ package com.sinjinsong.toy.common.enumeration;
 
 import com.sinjinsong.toy.common.enumeration.support.ExtensionBaseType;
 import com.sinjinsong.toy.protocol.api.Protocol;
+import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
 import com.sinjinsong.toy.protocol.http.HttpProtocol;
 import com.sinjinsong.toy.protocol.injvm.InJvmProtocol;
 import com.sinjinsong.toy.protocol.toy.ToyProtocol;
@@ -12,9 +13,9 @@ import com.sinjinsong.toy.protocol.toy.ToyProtocol;
  */
 public enum ProtocolType implements ExtensionBaseType<Protocol> {
     HTTP(new HttpProtocol()), INJVM(new InJvmProtocol()), TOY(new ToyProtocol());
-    private Protocol protocol;
+    private AbstractProtocol protocol;
 
-    ProtocolType(Protocol protocol) {
+    ProtocolType(AbstractProtocol protocol) {
         this.protocol = protocol;
     }
 

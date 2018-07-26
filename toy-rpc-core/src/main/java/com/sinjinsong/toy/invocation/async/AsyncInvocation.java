@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.invocation.async;
 
-import com.sinjinsong.toy.common.context.RPCThreadLocalFuture;
+import com.sinjinsong.toy.common.context.RPCThreadLocalContext;
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 
@@ -55,7 +55,7 @@ public abstract class AsyncInvocation extends AbstractInvocation {
                 }
             }
         };
-        RPCThreadLocalFuture.getContext().setFuture(responseForUser);
+        RPCThreadLocalContext.getContext().setFuture(responseForUser);
         return null;
     }
 

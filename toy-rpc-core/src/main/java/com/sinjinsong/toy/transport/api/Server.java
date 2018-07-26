@@ -23,4 +23,6 @@ public interface Server {
     ApplicationConfig getApplicationConfig();
 
     ClusterConfig getClusterConfig();
+    
+    void close();
 }

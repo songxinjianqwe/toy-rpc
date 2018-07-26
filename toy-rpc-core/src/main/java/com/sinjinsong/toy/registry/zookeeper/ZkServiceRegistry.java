@@ -69,27 +69,22 @@ public class ZkServiceRegistry extends AbstractServiceRegistry {
      */
     private void watchInterface(String interfaceName, ServiceURLRemovalCallback serviceURLRemovalCallback, ServiceURLAddOrUpdateCallback serviceURLAddOrUpdateCallback) {
         try {
-            List<String> interfaceNames = zkSupport.getChildren(ZK_REGISTRY_PATH, false);
-            for (String i : interfaceNames) {
-                String path = generatePath(interfaceName);
-                if (i.equals(interfaceName)) {
-                    List<String> addresses = zkSupport.getChildren(path, new Watcher() {
-                        @Override
-                        public void process(WatchedEvent event) {
-                            if (event.getType() == Event.EventType.NodeChildrenChanged) {
-                                watchInterface(interfaceName, serviceURLRemovalCallback, serviceURLAddOrUpdateCallback);
-                            }
-                        }
-                    });
-                    log.info("interfaceName:{} -> addresses:{}", interfaceName, addresses);
-                    List<ServiceURL> dataList = new ArrayList<>();
-                    for (String node : addresses) {
-                        dataList.add(watchService(interfaceName, node, serviceURLAddOrUpdateCallback));
+            String path = generatePath(interfaceName);
+            List<String> addresses = zkSupport.getChildren(path, new Watcher() {
+                @Override
+                public void process(WatchedEvent event) {
+                    if (event.getType() == Event.EventType.NodeChildrenChanged) {
+                        watchInterface(interfaceName, serviceURLRemovalCallback, serviceURLAddOrUpdateCallback);
                     }
-                    log.info("node data: {}", dataList);
-                    serviceURLRemovalCallback.removeNotExisted(dataList);
                 }
+            });
+            log.info("interfaceName:{} -> addresses:{}", interfaceName, addresses);
+            List<ServiceURL> dataList = new ArrayList<>();
+            for (String node : addresses) {
+                dataList.add(watchService(interfaceName, node, serviceURLAddOrUpdateCallback));
             }
+            log.info("node data: {}", dataList);
+            serviceURLRemovalCallback.removeNotExisted(dataList);
             LockSupport.unpark(discoveringThread);
         } catch (KeeperException | InterruptedException e) {
             throw new RPCException(ErrorEnum.REGISTRY_ERROR,"ZK故障", e);

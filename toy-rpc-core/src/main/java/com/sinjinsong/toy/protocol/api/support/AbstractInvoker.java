@@ -3,6 +3,7 @@ package com.sinjinsong.toy.protocol.api.support;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.common.util.InvokeParamUtil;
+import com.sinjinsong.toy.config.ProtocolConfig;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
@@ -30,6 +31,7 @@ import java.util.function.Function;
 public abstract class AbstractInvoker<T> implements Invoker<T> {
     private Class<T> interfaceClass;
     private String interfaceName;
+    private ProtocolConfig protocolConfig;
     
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
@@ -160,9 +162,17 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     public ServiceURL getServiceURL() {
         return ServiceURL.DEFAULT_SERVICE_URL;
     }
-
+    
     @Override
-    public void close() {
-        
+    public boolean isAvailable() {
+        return true;
+    }
+
+    public ProtocolConfig getProtocolConfig() {
+        return protocolConfig;
+    }
+
+    public void setProtocolConfig(ProtocolConfig protocolConfig) {
+        this.protocolConfig = protocolConfig;
     }
 }
