@@ -1,6 +1,5 @@
 package com.sinjinsong.toy.protocol.injvm;
 
-import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
@@ -9,9 +8,6 @@ import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
 import com.sinjinsong.toy.registry.api.ServiceURL;
 import lombok.extern.slf4j.Slf4j;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 /**
  * @author sinjinsong
@@ -27,13 +23,13 @@ public class InJvmProtocol extends AbstractProtocol {
         exporter.setServiceConfig(serviceConfig);
         putExporter(invoker.getInterface(), exporter);
         // export
-        // injvm 不需要注册到注册中心
-        try {
-            //TODO refactor this
-            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getProtocolConfig().getPort(), serviceConfig.getInterfaceName());
-        } catch (UnknownHostException e) {
-            throw new RPCException(e,ErrorEnum.READ_LOCALHOST_ERROR,"读取本地Host失败");
-        }
+//        // injvm 不需要注册到注册中心
+//        try {
+//            //TODO refactor this
+//            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getGlobalConfig().getPort(), serviceConfig.getInterfaceName());
+//        } catch (UnknownHostException e) {
+//            throw new RPCException(e,ErrorEnum.READ_LOCALHOST_ERROR,"读取本地Host失败");
+//        }
         return exporter;
     }
 
@@ -42,7 +38,7 @@ public class InJvmProtocol extends AbstractProtocol {
         InJvmInvoker<T> invoker = new InJvmInvoker<>();
         invoker.setInterfaceClass(referenceConfig.getInterfaceClass());
         invoker.setInterfaceName(referenceConfig.getInterfaceName());
-        invoker.setProtocolConfig(getProtocolConfig());
+        invoker.setGlobalConfig(getGlobalConfig());
         return invoker.buildFilterChain(referenceConfig.getFilters());
     }
 }

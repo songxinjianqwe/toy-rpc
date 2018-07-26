@@ -35,13 +35,13 @@ public class HttpServer extends AbstractNettyServer {
                         .addLast("HttpRequestDecoder", new HttpRequestDecoder())
                         // 接收请求时，作为一个decoder，将http request转为full http request
                         .addLast("HttpObjectAggregator",new HttpObjectAggregator(10*1024*1024))
-                        .addLast("HttpServerHandler", new HttpServerHandler(HttpServer.this,HttpServerMessageConverter.getInstance(getApplicationConfig().getSerializerInstance())));
+                        .addLast("HttpServerHandler", new HttpServerHandler(HttpServer.this,HttpServerMessageConverter.getInstance(getGlobalConfig().getSerializer())));
             }
         };
     }
     
     @Override
     protected ServerMessageConverter initConverter() {
-        return HttpServerMessageConverter.getInstance(getApplicationConfig().getSerializerInstance());
+        return HttpServerMessageConverter.getInstance(getGlobalConfig().getSerializer());
     }
 }

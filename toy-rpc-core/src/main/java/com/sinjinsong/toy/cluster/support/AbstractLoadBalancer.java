@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author sinjinsong
  * @date 2018/6/10
- * 
+ * <p>
  * invoker是对应一个interface的一个address
  * endpoint是对应一个address
  * 多个invoker可能会共享同一个endpoint
@@ -23,11 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public abstract class AbstractLoadBalancer implements LoadBalancer {
-    private RegistryConfig registryConfig;
-    private ProtocolConfig protocolConfig;
-    private ApplicationConfig applicationConfig;
-    private ClusterConfig clusterConfig;
-
+    private GlobalConfig globalConfig;
     /**
      * key是接口名，value的key是IP地址，value是Endpoint
      * <p>
@@ -37,7 +33,6 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
      * key : BService, value:   192.168.1.1,Endpoint1
      */
     private Map<String, ClusterInvoker> interfaceInvokers = new ConcurrentHashMap<>();
-    
     /**
      * 分配address的形式
      *
@@ -50,7 +45,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
         String interfaceName = referenceConfig.getInterfaceName();
         ClusterInvoker clusterInvoker;
         if (!interfaceInvokers.containsKey(interfaceName)) {
-            clusterInvoker = new ClusterInvoker(referenceConfig.getInterfaceClass(), interfaceName, applicationConfig, clusterConfig, registryConfig, protocolConfig);
+            clusterInvoker = new ClusterInvoker(referenceConfig.getInterfaceClass(), interfaceName, globalConfig);
             interfaceInvokers.put(interfaceName, clusterInvoker);
             return clusterInvoker;
         }
@@ -73,19 +68,23 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     protected abstract Invoker doSelect(List<Invoker> invokers, RPCRequest request);
     
-    public void setRegistryConfig(RegistryConfig registryConfig) {
-        this.registryConfig = registryConfig;
-    }
-
-    public void setProtocolConfig(ProtocolConfig protocolConfig) {
-        this.protocolConfig = protocolConfig;
-    }
-
-    public void setApplicationConfig(ApplicationConfig applicationConfig) {
-        this.applicationConfig = applicationConfig;
-    }
-
-    public void setClusterConfig(ClusterConfig clusterConfig) {
-        this.clusterConfig = clusterConfig;
+    
+    public void updateGlobalConfig(GlobalConfig globalConfig) {
+        if(this.globalConfig == null) {
+            this.globalConfig = globalConfig;
+        }else {
+            if(globalConfig.getApplicationConfig() != null) {
+                this.globalConfig.setApplicationConfig(globalConfig.getApplicationConfig());
+            }
+            if(globalConfig.getProtocolConfig() != null) {
+                this.globalConfig.setProtocolConfig(globalConfig.getProtocolConfig());
+            }
+            if(globalConfig.getRegistryConfig() != null) {
+                this.globalConfig.setRegistryConfig(globalConfig.getRegistryConfig());
+            }
+            if(globalConfig.getClusterConfig() != null) {
+                this.globalConfig.setClusterConfig(globalConfig.getClusterConfig());
+            }
+        }
     }
 }

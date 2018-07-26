@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.protocol.api.support;
 
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.Client;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -10,27 +10,27 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractRemoteInvoker<T> extends AbstractInvoker<T> {
-    private Endpoint endpoint;
+    private Client client;
     
     @Override
     public ServiceURL getServiceURL() {
-        return getEndpoint().getServiceURL();
+        return getClient().getServiceURL();
     }
     
     /**
      * 拿到一个invoker
      * @return
      */
-    protected  Endpoint getEndpoint() {
-        return endpoint;
+    protected Client getClient() {
+        return client;
     }
     
     @Override
     public boolean isAvailable() {
-        return getEndpoint().isAvailable();
+        return getClient().isAvailable();
     }
 
-    public void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
+    public void setClient(Client client) {
+        this.client = client;
     }
 }

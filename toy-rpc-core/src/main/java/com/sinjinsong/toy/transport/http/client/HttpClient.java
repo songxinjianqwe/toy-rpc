@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.transport.http.client;
 
-import com.sinjinsong.toy.transport.api.support.netty.AbstractNettyEndpoint;
+import com.sinjinsong.toy.transport.api.support.netty.AbstractNettyClient;
 import com.sinjinsong.toy.transport.http.conveter.HttpClientMessageConverter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -14,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2018/7/19
  */
 @Slf4j
-public class HttpEndpoint extends AbstractNettyEndpoint {
+public class HttpClient extends AbstractNettyClient {
 
     @Override
     protected ChannelInitializer initPipeline() {
-        log.info("HttpEndpoint initPipeline...");
+        log.info("HttpClient initPipeline...");
         return new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel channel) throws Exception {
@@ -28,14 +28,14 @@ public class HttpEndpoint extends AbstractNettyEndpoint {
                         .addLast("HttpRequestEncoder", new HttpRequestEncoder())
                         .addLast("HttpResponseDecoder", new HttpResponseDecoder())
                         .addLast("HttpObjectAggregator",new HttpObjectAggregator(10*1024*1024))
-                        .addLast("HttpClientHandler", new HttpClientHandler(HttpEndpoint.this, HttpClientMessageConverter.getInstance(getApplicationConfig().getSerializerInstance())));
+                        .addLast("HttpClientHandler", new HttpClientHandler(HttpClient.this, HttpClientMessageConverter.getInstance(getGlobalConfig().getSerializer())));
             }
         };
     }
 
     @Override
     protected HttpClientMessageConverter initConverter() {
-        return HttpClientMessageConverter.getInstance(getApplicationConfig().getSerializerInstance());
+        return HttpClientMessageConverter.getInstance(getGlobalConfig().getSerializer());
     }
 
 

@@ -40,7 +40,7 @@ public class RPCAutoConfiguration implements InitializingBean, ApplicationContex
     private ApplicationContext ctx;
     private ExtensionLoader extensionLoader;
 
-    
+
     @Bean(initMethod = "init", destroyMethod = "close")
     public RegistryConfig registryConfig() {
         RegistryConfig registryConfig = properties.getRegistry();
@@ -69,38 +69,56 @@ public class RPCAutoConfiguration implements InitializingBean, ApplicationContex
         return application;
     }
 
+
     @Bean(destroyMethod = "close")
-    public ProtocolConfig protocolConfig(ClusterConfig clusterConfig) {
+    public ProtocolConfig protocolConfig(ApplicationConfig applicationConfig, RegistryConfig registryConfig, ClusterConfig clusterConfig) {
         ProtocolConfig protocolConfig = properties.getProtocol();
         if (protocolConfig == null) {
             throw new RPCException(ErrorEnum.APP_CONFIG_FILE_ERROR, "必须配置protocolConfig");
         }
         AbstractProtocol protocol = extensionLoader.load(AbstractProtocol.class, ProtocolType.class, protocolConfig.getType());
-        protocol.init(ctx.getBean(ApplicationConfig.class),clusterConfig, ctx.getBean(RegistryConfig.class), protocolConfig);
+        protocol.init(GlobalConfig.builder()
+                .applicationConfig(applicationConfig)
+                .protocolConfig(protocolConfig)
+                .clusterConfig(clusterConfig)
+                .registryConfig(registryConfig)
+                .build()
+        );
         protocolConfig.setProtocolInstance(protocol);
         
-        ((AbstractLoadBalancer)clusterConfig.getLoadBalanceInstance()).setProtocolConfig(protocolConfig);
-        ExecutorConfig executorConfig = protocolConfig.getExecutor();
-        if (executorConfig != null) {
-            TaskExecutor executor = extensionLoader.load(TaskExecutor.class, ExecutorType.class, executorConfig.getType());
-            executor.init(executorConfig.getThreads());
-            executorConfig.setExecutorInstance(executor);
+        ((AbstractLoadBalancer) clusterConfig.getLoadBalanceInstance()).updateGlobalConfig(GlobalConfig.builder().protocolConfig(protocolConfig).build());
+        Executors executors = protocolConfig.getExecutor();
+        if (executors != null) {
+            ExecutorConfig serverExecutor = executors.getServer();
+            if (serverExecutor != null) {
+                TaskExecutor executor = extensionLoader.load(TaskExecutor.class, ExecutorType.class, serverExecutor.getType());
+                executor.init(serverExecutor.getThreads());
+                serverExecutor.setExecutorInstance(executor);
+            }
+            ExecutorConfig clientExecutor = executors.getClient();
+            if (clientExecutor != null) {
+                TaskExecutor executor = extensionLoader.load(TaskExecutor.class, ExecutorType.class, clientExecutor.getType());
+                executor.init(clientExecutor.getThreads());
+                clientExecutor.setExecutorInstance(executor);
+            }
         }
         log.info("{}", protocolConfig);
         return protocolConfig;
     }
 
     @Bean
-    public ClusterConfig clusterconfig(RegistryConfig registryConfig,ApplicationConfig applicationConfig) {
+    public ClusterConfig clusterconfig(RegistryConfig registryConfig, ApplicationConfig applicationConfig) {
         ClusterConfig clusterConfig = properties.getCluster();
         if (clusterConfig == null) {
             throw new RPCException(ErrorEnum.APP_CONFIG_FILE_ERROR, "必须配置clusterConfig");
         }
         AbstractLoadBalancer loadBalancer = extensionLoader.load(AbstractLoadBalancer.class, LoadBalanceType.class, clusterConfig.getLoadbalance());
-        loadBalancer.setRegistryConfig(registryConfig);
-//        loadBalancer.setProtocolConfig(protocolConfig);
-        loadBalancer.setClusterConfig(clusterConfig);
-        loadBalancer.setApplicationConfig(applicationConfig);
+        loadBalancer.updateGlobalConfig(GlobalConfig.builder()
+                .applicationConfig(applicationConfig)
+                .registryConfig(registryConfig)
+                .clusterConfig(clusterConfig)
+                .build());
+
         if (clusterConfig.getFaulttolerance() != null) {
             clusterConfig.setFaultToleranceHandlerInstance(extensionLoader.load(FaultToleranceHandler.class, FaultToleranceType.class, clusterConfig.getFaulttolerance()));
         } else {
@@ -109,7 +127,7 @@ public class RPCAutoConfiguration implements InitializingBean, ApplicationContex
         }
         clusterConfig.setLoadBalanceInstance(loadBalancer);
         log.info("{}", clusterConfig);
-        
+
         // 注册Filter
         if (loadBalancer instanceof LeastActiveLoadBalancer) {
             extensionLoader.register(Filter.class, "activeLimit", new ActiveLimitFilter());

@@ -33,11 +33,11 @@ public class ToyServer extends AbstractNettyServer {
                         // ByteBuf -> Message 
                         .addLast("LengthFieldPrepender", new LengthFieldPrepender(FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT))
                         // Message -> ByteBuf
-                        .addLast("ToyEncoder", new ToyEncoder(getApplicationConfig().getSerializerInstance()))
+                        .addLast("ToyEncoder", new ToyEncoder(getGlobalConfig().getSerializer()))
                         // ByteBuf -> Message
                         .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(FrameConstant.MAX_FRAME_LENGTH, FrameConstant.LENGTH_FIELD_OFFSET, FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT, FrameConstant.INITIAL_BYTES_TO_STRIP))
                         // Message -> Message
-                        .addLast("ToyDecoder", new ToyDecoder(getApplicationConfig().getSerializerInstance()))
+                        .addLast("ToyDecoder", new ToyDecoder(getGlobalConfig().getSerializer()))
                         .addLast("ToyServerHandler", new ToyServerHandler(ToyServer.this));
             }
         };

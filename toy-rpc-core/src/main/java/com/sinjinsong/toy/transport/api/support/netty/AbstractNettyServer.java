@@ -80,7 +80,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
             //绑定端口，开始监听
             //注意这里可以绑定多个端口，每个端口都针对某一种类型的数据（控制消息，数据消息）
             String host = InetAddress.getLocalHost().getHostAddress();
-            this.channelFuture = bootstrap.bind(host, getProtocolConfig().getPort()).sync();
+            this.channelFuture = bootstrap.bind(host, getGlobalConfig().getPort()).sync();
             //应用程序会一直等待，直到channel关闭
             log.info("服务器启动,当前服务器类型为:{}",this.getClass().getSimpleName());
         } catch (InterruptedException e) {
@@ -92,7 +92,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
 
     @Override
     public void close() {
-        getRegistryConfig().close();
+        getGlobalConfig().getRegistryConfig().close();
         if(workerGroup != null) {
             workerGroup.shutdownGracefully();
         }
@@ -106,7 +106,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
 
     @Override
     public void handleRPCRequest(RPCRequest request, ChannelHandlerContext ctx) {
-        getProtocolConfig().getExecutor().getExecutorInstance().submit(new RPCTaskRunner(ctx, request, getProtocolConfig().getProtocolInstance().referLocalService(request.getInterfaceName()), serverMessageConverter));
+        getGlobalConfig().getServerExecutor().submit(new RPCTaskRunner(ctx, request, getGlobalConfig().getProtocol().referLocalService(request.getInterfaceName()), serverMessageConverter));
     }
 
 }

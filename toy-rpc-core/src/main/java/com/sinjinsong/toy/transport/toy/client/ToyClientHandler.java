@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.transport.toy.client;
 
-import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.Client;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,19 +17,19 @@ import lombok.extern.slf4j.Slf4j;
 @ChannelHandler.Sharable
 @AllArgsConstructor
 public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
-    private Endpoint endpoint;
+    private Client client;
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");
         cause.printStackTrace();
-        log.info("与服务器{} 的连接断开", endpoint.getServiceURL().getAddress());
-        endpoint.handleException(cause);
+        log.info("与服务器{} 的连接断开", client.getServiceURL().getAddress());
+        client.handleException(cause);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("客户端与服务器{}通道已开启...", endpoint.getServiceURL().getAddress());
+        log.info("客户端与服务器{}通道已开启...", client.getServiceURL().getAddress());
     }
 
     /**
@@ -42,7 +42,7 @@ public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
-            log.info("超过指定时间未发送数据，客户端主动发送心跳信息至{}", endpoint.getServiceURL().getAddress());
+            log.info("超过指定时间未发送数据，客户端主动发送心跳信息至{}", client.getServiceURL().getAddress());
             ctx.writeAndFlush(Message.PING_MSG);
         } else {
             super.userEventTriggered(ctx, evt);
@@ -51,14 +51,14 @@ public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
-        log.info("接收到服务器 {} 响应: {}", endpoint.getServiceURL().getAddress(), message);
+        log.info("接收到服务器 {} 响应: {}", client.getServiceURL().getAddress(), message);
         //服务器不会PING客户端
         if (message.getType() == Message.PONG) {
             log.info("收到服务器的PONG心跳响应");
         } else if (message.getType() == Message.RESPONSE) {
-            endpoint.handleRPCResponse(message.getResponse());
+            client.handleRPCResponse(message.getResponse());
         } else if (message.getType() == Message.REQUEST) {
-            endpoint.handleCallbackRequest(message.getRequest(), ctx);
+            client.handleCallbackRequest(message.getRequest(), ctx);
         }
     }
 }

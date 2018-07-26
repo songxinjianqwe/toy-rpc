@@ -23,8 +23,8 @@ public class ProtocolConfig {
     private Integer port;
 
     private Protocol protocolInstance;
-    private ExecutorConfig executor;
-
+    private Executors executor;
+    
     public int getPort() {
         if (port != null) {
             return port;
@@ -34,5 +34,6 @@ public class ProtocolConfig {
     
     public void close() {
         protocolInstance.close();
+        executor.close();
     }
 }

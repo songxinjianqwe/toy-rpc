@@ -1,9 +1,6 @@
 package com.sinjinsong.toy.transport.api.support;
 
-import com.sinjinsong.toy.config.ApplicationConfig;
-import com.sinjinsong.toy.config.ClusterConfig;
-import com.sinjinsong.toy.config.ProtocolConfig;
-import com.sinjinsong.toy.config.RegistryConfig;
+import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.transport.api.Server;
 
 /**
@@ -11,39 +8,17 @@ import com.sinjinsong.toy.transport.api.Server;
  * @date 2018/7/19
  */
 public abstract class AbstractServer implements Server {
-    private RegistryConfig registryConfig;
-    private ProtocolConfig protocolConfig;
-    private ApplicationConfig applicationConfig;
-    private ClusterConfig clusterConfig;
+    private GlobalConfig globalConfig;
 
-    public void init(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registry,
-                        ProtocolConfig protocolConfig) {
-        this.applicationConfig = applicationConfig;
-        this.clusterConfig = clusterConfig;
-        this.registryConfig = registry;
-        this.protocolConfig = protocolConfig;
+    public void init(GlobalConfig globalConfig) {
+       this.globalConfig = globalConfig;
         doInit();
     }
 
+    protected GlobalConfig getGlobalConfig() {
+        return globalConfig;
+    }
+
     protected abstract void doInit();
-
-    @Override
-    public RegistryConfig getRegistryConfig() {
-        return registryConfig;
-    }
-
-    @Override
-    public ProtocolConfig getProtocolConfig() {
-        return protocolConfig;
-    }
-
-    @Override
-    public ApplicationConfig getApplicationConfig() {
-        return applicationConfig;
-    }
-
-    @Override
-    public ClusterConfig getClusterConfig() {
-        return clusterConfig;
-    }
+    
 }

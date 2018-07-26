@@ -16,13 +16,5 @@ public interface Server {
 
     void handleRPCRequest(RPCRequest request, ChannelHandlerContext ctx);
 
-    RegistryConfig getRegistryConfig();
-
-    ProtocolConfig getProtocolConfig();
-
-    ApplicationConfig getApplicationConfig();
-
-    ClusterConfig getClusterConfig();
-    
     void close();
 }

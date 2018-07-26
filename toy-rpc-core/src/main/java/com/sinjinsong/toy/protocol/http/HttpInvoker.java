@@ -16,6 +16,6 @@ import java.util.function.Function;
 public class HttpInvoker<T> extends AbstractRemoteInvoker<T> {
     @Override
     protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
-        return rpcRequest -> getEndpoint().submit(rpcRequest);
+        return rpcRequest -> getClient().submit(rpcRequest);
     }
 }

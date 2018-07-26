@@ -8,9 +8,9 @@ import com.sinjinsong.toy.protocol.api.Exporter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteProtocol;
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.Client;
 import com.sinjinsong.toy.transport.api.Server;
-import com.sinjinsong.toy.transport.http.client.HttpEndpoint;
+import com.sinjinsong.toy.transport.http.client.HttpClient;
 import com.sinjinsong.toy.transport.http.server.HttpServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ public class HttpProtocol extends AbstractRemoteProtocol {
         openServer();
         // export
         try {
-            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getProtocolConfig().getPort(), serviceConfig.getInterfaceName());
+            serviceConfig.getRegistryConfig().getRegistryInstance().register(InetAddress.getLocalHost().getHostAddress() + ":" + getGlobalConfig().getPort(), serviceConfig.getInterfaceName());
         } catch (UnknownHostException e) {
             throw new RPCException(e, ErrorEnum.READ_LOCALHOST_ERROR, "获取本地Host失败");
         }
@@ -47,15 +47,15 @@ public class HttpProtocol extends AbstractRemoteProtocol {
         HttpInvoker<T> invoker = new HttpInvoker<>();
         invoker.setInterfaceClass(referenceConfig.getInterfaceClass());
         invoker.setInterfaceName(referenceConfig.getInterfaceName());
-        invoker.setEndpoint(initEndpoint(serviceURL));
-        invoker.setProtocolConfig(getProtocolConfig());
+        invoker.setClient(initEndpoint(serviceURL));
+        invoker.setGlobalConfig(getGlobalConfig());
         return invoker.buildFilterChain(referenceConfig.getFilters());
     }
 
     @Override
-    protected Endpoint doInitEndpoint(ServiceURL serviceURL) {
-        HttpEndpoint httpEndpoint = new HttpEndpoint();
-        httpEndpoint.init(getApplicationConfig(), serviceURL);
+    protected Client doInitEndpoint(ServiceURL serviceURL) {
+        HttpClient httpEndpoint = new HttpClient();
+        httpEndpoint.init(getGlobalConfig(), serviceURL);
         return httpEndpoint;
     }
 
@@ -63,7 +63,7 @@ public class HttpProtocol extends AbstractRemoteProtocol {
     @Override
     protected Server doOpenServer() {
         HttpServer httpServer = new HttpServer();
-        httpServer.init(getApplicationConfig(), getClusterConfig(), getRegistryConfig(), getProtocolConfig());
+        httpServer.init(getGlobalConfig());
         httpServer.run();
         return httpServer;
     }

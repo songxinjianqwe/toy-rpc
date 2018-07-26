@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * @author songx
+ * @author sinjinsong
  * @date 2017/7/30
  */
 @SpringBootApplication

@@ -19,12 +19,12 @@ public class ThreadPoolTaskExecutorImpl extends AbstractTaskExecutor {
                 threads,
                 0,
                 TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(100),
+                new LinkedBlockingDeque<>(),
                 new ThreadFactory() {
                     private AtomicInteger atomicInteger = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r,"biz-" + atomicInteger.getAndIncrement());
+                        return new Thread(r,"pool-" + atomicInteger.getAndIncrement());
                     }
                 },
                 new ThreadPoolExecutor.CallerRunsPolicy()

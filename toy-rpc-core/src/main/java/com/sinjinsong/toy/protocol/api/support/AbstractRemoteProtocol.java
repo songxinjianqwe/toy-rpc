@@ -3,7 +3,7 @@ package com.sinjinsong.toy.protocol.api.support;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.Endpoint;
+import com.sinjinsong.toy.transport.api.Client;
 import com.sinjinsong.toy.transport.api.Server;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +23,7 @@ public abstract class AbstractRemoteProtocol extends AbstractProtocol {
     /**
      * key是address，value是连接到该address上的Endpoint
      */
-    private Map<String, Endpoint> clients = new ConcurrentHashMap<>();
+    private Map<String, Client> clients = new ConcurrentHashMap<>();
     private Map<String, Object> locks = new ConcurrentHashMap<>();
     private Server server;
     
@@ -34,17 +34,17 @@ public abstract class AbstractRemoteProtocol extends AbstractProtocol {
      * @param serviceURL
      * @return
      */
-    public final Endpoint initEndpoint(ServiceURL serviceURL) {
+    public final Client initEndpoint(ServiceURL serviceURL) {
         String address = serviceURL.getAddress();
         locks.putIfAbsent(address, new Object());
         synchronized (locks.get(address)) {
             if (clients.containsKey(address)) {
                 return clients.get(address);
             }
-            Endpoint endpoint = doInitEndpoint(serviceURL);
-            clients.put(address, endpoint);
+            Client client = doInitEndpoint(serviceURL);
+            clients.put(address, client);
             locks.remove(address);
-            return endpoint;
+            return client;
         }
     }
 
@@ -66,16 +66,16 @@ public abstract class AbstractRemoteProtocol extends AbstractProtocol {
      * @param address
      */
     public final void closeEndpoint(String address) {
-        Endpoint endpoint = clients.remove(address);
-        if (endpoint != null) {
+        Client client = clients.remove(address);
+        if (client != null) {
             log.info("首次关闭客户端:{}", address);
-            endpoint.close();
+            client.close();
         } else {
             log.info("重复关闭客户端:{}", address);
         }
     }
 
-    protected abstract Endpoint doInitEndpoint(ServiceURL serviceURL);
+    protected abstract Client doInitEndpoint(ServiceURL serviceURL);
 
     protected synchronized final void openServer() {
         if(server == null) {

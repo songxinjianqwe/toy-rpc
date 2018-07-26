@@ -19,11 +19,16 @@ public class ExecutorConfig {
     private Integer threads;
     private String type;
     private TaskExecutor executorInstance;
-
+    
     public int getThreads() {
         if (threads != null) {
             return threads;
         }
         return DEFAULT_THREADS;
+    }
+    
+    
+    public void close() {
+        executorInstance.close();
     }
 }

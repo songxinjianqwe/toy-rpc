@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
  * @author sinjinsong
  * @date 2018/7/19
  */
-public interface Endpoint {
+public interface Client {
     Future<RPCResponse> submit(RPCRequest request);
 
     void close();

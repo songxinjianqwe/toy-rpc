@@ -8,6 +8,7 @@ import com.sinjinsong.toy.config.*;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteProtocol;
+import com.sinjinsong.toy.protocol.injvm.InJvmProtocol;
 import com.sinjinsong.toy.registry.api.ServiceURL;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -34,28 +35,27 @@ public class ClusterInvoker<T> implements Invoker<T> {
      * key是address，value是一个invoker
      */
     private Map<String, Invoker<T>> addressInvokers = new ConcurrentHashMap<>();
-    private ClusterConfig clusterConfig;
-    private RegistryConfig registryConfig;
-    private ProtocolConfig protocolConfig;
-    private ApplicationConfig applicationConfig;
+    private GlobalConfig globalConfig;
 
 
-    public ClusterInvoker(Class<T> interfaceClass, String interfaceName, ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
+    public ClusterInvoker(Class<T> interfaceClass, String interfaceName, GlobalConfig globalConfig) {
         this.interfaceClass = interfaceClass;
         this.interfaceName = interfaceName;
-        this.clusterConfig = clusterConfig;
-        this.registryConfig = registryConfig;
-        this.protocolConfig = protocolConfig;
-        this.applicationConfig = applicationConfig;
+        this.globalConfig = globalConfig;
         init();
     }
 
+    //TODO 这里写的比较僵硬，如果是injvm协议，就完全不考虑注册中心了
     private void init() {
-        this.registryConfig.getRegistryInstance().discover(interfaceName, (newServiceURLs -> {
-            removeNotExisted(newServiceURLs);
-        }), (serviceURL -> {
-            addOrUpdate(serviceURL);
-        }));
+        if (globalConfig.getProtocol() instanceof InJvmProtocol) {
+            addOrUpdate(ServiceURL.DEFAULT_SERVICE_URL);
+        } else {
+            globalConfig.getServiceRegistry().discover(interfaceName, (newServiceURLs -> {
+                removeNotExisted(newServiceURLs);
+            }), (serviceURL -> {
+                addOrUpdate(serviceURL);
+            }));
+        }
     }
 
     /**
@@ -75,17 +75,16 @@ public class ClusterInvoker<T> implements Invoker<T> {
             // 我们知道只有远程服务才有可能会更新
             // 更新配置与invoker无关，只需要Protocol负责
             //TODO refactor this
-            
-            if (protocolConfig.getProtocolInstance() instanceof AbstractRemoteProtocol) {
-                AbstractRemoteProtocol protocol = (AbstractRemoteProtocol) protocolConfig.getProtocolInstance();
-                log.info("update config:{},当前interface为:{}", serviceURL,interfaceName);
+            if (globalConfig.getProtocol() instanceof AbstractRemoteProtocol) {
+                AbstractRemoteProtocol protocol = (AbstractRemoteProtocol) globalConfig.getProtocol();
+                log.info("update config:{},当前interface为:{}", serviceURL, interfaceName);
                 protocol.updateEndpointConfig(serviceURL);
             }
         } else {
             // 添加
             // 需要修改
             log.info("add invoker:{},serviceURL:{}", interfaceName, serviceURL);
-            Invoker invoker = protocolConfig.getProtocolInstance().refer(ReferenceConfig.getReferenceConfigByInterfaceName(interfaceName), serviceURL);
+            Invoker invoker = globalConfig.getProtocol().refer(ReferenceConfig.getReferenceConfigByInterfaceName(interfaceName), serviceURL);
             // refer拿到的是InvokerDelegate
             addressInvokers.put(serviceURL.getAddress(), invoker);
         }
@@ -112,9 +111,9 @@ public class ClusterInvoker<T> implements Invoker<T> {
         for (Iterator<Map.Entry<String, Invoker<T>>> it = addressInvokers.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, Invoker<T>> curr = it.next();
             if (!newAddressesMap.containsKey(curr.getKey())) {
-                log.info("remove address:{},当前interface为:{}", curr.getKey(),interfaceName);
-                if (protocolConfig.getProtocolInstance() instanceof AbstractRemoteProtocol) {
-                    AbstractRemoteProtocol protocol = (AbstractRemoteProtocol) protocolConfig.getProtocolInstance();
+                log.info("remove address:{},当前interface为:{}", curr.getKey(), interfaceName);
+                if (globalConfig.getProtocol() instanceof AbstractRemoteProtocol) {
+                    AbstractRemoteProtocol protocol = (AbstractRemoteProtocol) globalConfig.getProtocol();
                     protocol.closeEndpoint(curr.getKey());
                 }
                 it.remove();
@@ -154,7 +153,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
                 throw new RPCException(ErrorEnum.NO_SERVER_AVAILABLE, "未找到可用服务器");
             }
         }
-        invoker = clusterConfig.getLoadBalanceInstance().select(availableInvokers, InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
+        invoker = globalConfig.getLoadBalancer().select(availableInvokers, InvokeParamUtil.extractRequestFromInvokeParam(invokeParam));
         if (invoker.isAvailable()) {
             return invoker;
         } else {
@@ -183,7 +182,7 @@ public class ClusterInvoker<T> implements Invoker<T> {
         } catch (RPCException e) {
             // 重试后OK
             // 在这里再抛出异常，就没有返回值了
-            return clusterConfig.getFaultToleranceHandlerInstance().handle(this, invokeParam, e);
+            return globalConfig.getFaultToleranceHandler().handle(this, invokeParam, e);
         }
     }
 

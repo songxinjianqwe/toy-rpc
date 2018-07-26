@@ -17,35 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public abstract class AbstractProtocol implements Protocol {
     private Map<String, Exporter<?>> exporters = new ConcurrentHashMap<>();
-    private ProtocolConfig protocolConfig;
-    private ApplicationConfig applicationConfig;
-    private ClusterConfig clusterConfig;
-    private RegistryConfig registryConfig;
+    private GlobalConfig globalConfig;
     
     
-    public void init(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, RegistryConfig registryConfig, ProtocolConfig protocolConfig) {
-        this.applicationConfig = applicationConfig;
-        this.protocolConfig = protocolConfig;
-        this.clusterConfig = clusterConfig;
-        this.registryConfig = registryConfig;
+    public void init(GlobalConfig globalConfig) {
+        this.globalConfig = globalConfig;
     }
 
-    protected ProtocolConfig getProtocolConfig() {
-        return protocolConfig;
+    protected GlobalConfig getGlobalConfig() {
+        return globalConfig;
     }
 
-    protected ApplicationConfig getApplicationConfig() {
-        return applicationConfig;
-    }
-
-    protected ClusterConfig getClusterConfig() {
-        return clusterConfig;
-    }
-
-    protected RegistryConfig getRegistryConfig() {
-        return registryConfig;
-    }
-    
     protected void putExporter(Class<?> interfaceClass, Exporter<?> exporter) {
         this.exporters.put(interfaceClass.getName(), exporter);
     }

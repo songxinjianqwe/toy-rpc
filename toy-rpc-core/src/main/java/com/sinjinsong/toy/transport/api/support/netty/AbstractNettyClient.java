@@ -10,7 +10,7 @@ import com.sinjinsong.toy.transport.api.converter.MessageConverter;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
-import com.sinjinsong.toy.transport.api.support.AbstractEndpoint;
+import com.sinjinsong.toy.transport.api.support.AbstractClient;
 import com.sinjinsong.toy.transport.api.support.RPCTaskRunner;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
  * @date 2018/7/19
  */
 @Slf4j
-public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
+public abstract class AbstractNettyClient extends AbstractClient {
     private Bootstrap bootstrap;
     private Channel futureChannel;
     private EventLoopGroup group;
@@ -50,11 +50,12 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
 
     @Override
     public boolean isAvailable() {
-        return !destroyed;
+        return initialized && !destroyed;
     }
-
-    private synchronized void initClient() {
-        if(initialized) {
+        
+    @Override
+    protected synchronized void connect() {
+        if (initialized) {
             return;
         }
         this.converter = initConverter();
@@ -64,23 +65,20 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
                 .handler(initPipeline())
                 .option(ChannelOption.SO_KEEPALIVE, true);
         try {
-            this.futureChannel = connect();
+            ChannelFuture future;
+            String address = getServiceURL().getAddress();
+            String host = address.split(":")[0];
+            Integer port = Integer.parseInt(address.split(":")[1]);
+            future = bootstrap.connect(host, port).sync();
+            this.futureChannel = future.channel();
+            log.info("客户端已连接至 {}", address);
             log.info("客户端初始化完毕");
+            initialized = true;
         } catch (Exception e) {
             log.error("与服务器的连接出现故障");
             e.printStackTrace();
             handleException(e);
         }
-    }
-
-    private Channel connect() throws Exception {
-        ChannelFuture future;
-        String address = getServiceURL().getAddress();
-        String host = address.split(":")[0];
-        Integer port = Integer.parseInt(address.split(":")[1]);
-        future = bootstrap.connect(host, port).sync();
-        log.info("客户端已连接至 {}", address);
-        return future.channel();
     }
 
 
@@ -89,10 +87,10 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
      */
     @Override
     public void handleException(Throwable throwable) {
-        throwable.printStackTrace();
         log.info("连接失败策略为直接关闭，关闭客户端");
+        log.error("",throwable);
         close();
-        throw new RPCException(ErrorEnum.CONNECT_TO_SERVER_FAILURE,"连接失败,关闭客户端");
+        throw new RPCException(ErrorEnum.CONNECT_TO_SERVER_FAILURE, "连接失败,关闭客户端");
     }
 
     @Override
@@ -101,7 +99,8 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
         ServiceConfig serviceConfig = RPCThreadSharedContext.getAndRemoveHandler(
                 CallbackInvocation.generateCallbackHandlerKey(request)
         );
-        new RPCTaskRunner(ctx, request, serviceConfig, converter).run();
+        getGlobalConfig().getClientExecutor()
+                .submit(new RPCTaskRunner(ctx, request, serviceConfig, converter));
     }
 
     @Override
@@ -119,18 +118,18 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
     @Override
     public Future<RPCResponse> submit(RPCRequest request) {
         if (!initialized) {
-            initClient();
+            connect();
             initialized = true;
         }
         if (destroyed) {
-            throw new RPCException(ErrorEnum.SUBMIT_AFTER_ENDPOINT_CLOSED,"当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
+            throw new RPCException(ErrorEnum.SUBMIT_AFTER_ENDPOINT_CLOSED, "当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
         }
-        log.info("客户端发起请求: {},请求的服务器为: {}", request,getServiceURL().getAddress());
+        log.info("客户端发起请求: {},请求的服务器为: {}", request, getServiceURL().getAddress());
         CompletableFuture<RPCResponse> responseFuture = new CompletableFuture<>();
         RPCThreadSharedContext.registerResponseFuture(request.getRequestId(), responseFuture);
         Object data = converter.convert2Object(Message.buildRequest(request));
         this.futureChannel.writeAndFlush(data);
-        log.info("请求已发送至{}",getServiceURL().getAddress());
+        log.info("请求已发送至{}", getServiceURL().getAddress());
         return responseFuture;
     }
 
@@ -154,5 +153,4 @@ public abstract class AbstractNettyEndpoint extends AbstractEndpoint {
             }
         }
     }
-    
 }
