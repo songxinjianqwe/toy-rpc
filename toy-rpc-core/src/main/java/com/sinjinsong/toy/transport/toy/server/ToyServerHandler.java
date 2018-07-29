@@ -7,7 +7,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.sinjinsong.toy.transport.api.domain.Message.PING;
@@ -17,12 +16,15 @@ import static com.sinjinsong.toy.transport.api.domain.Message.REQUEST;
  * Created by SinjinSong on 2017/7/29.
  * 实际的业务处理器，单例
  */
-@AllArgsConstructor
 @Slf4j
 @ChannelHandler.Sharable
 public class ToyServerHandler extends SimpleChannelInboundHandler<Message> {
     private static ToyServerHandler INSTANCE;
-    
+
+    private ToyServerHandler(Server server) {
+        this.server = server;
+    }
+
     public synchronized static void init(Server server) {
         if(INSTANCE == null) {
             INSTANCE = new ToyServerHandler(server);

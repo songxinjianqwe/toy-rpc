@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -15,11 +14,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ChannelHandler.Sharable
-@AllArgsConstructor
 public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
     private Client client;
-
-
+    
+    private ToyClientHandler(Client client) {
+        this.client = client;
+    }
     private static ToyClientHandler INSTANCE;
 
     public synchronized static void init(Client client) {

@@ -7,7 +7,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -15,13 +14,17 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2018/7/19
  */
 @Slf4j
-@AllArgsConstructor
 @ChannelHandler.Sharable
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private Server server;
     private ServerMessageConverter converter;
     
     private static HttpServerHandler INSTANCE;
+
+    private HttpServerHandler(Server server, ServerMessageConverter converter) {
+        this.server = server;
+        this.converter = converter;
+    }
 
     public synchronized static void init(Server server,ServerMessageConverter converter) {
         if (INSTANCE == null) {

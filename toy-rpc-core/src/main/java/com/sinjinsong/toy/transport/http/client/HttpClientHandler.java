@@ -6,7 +6,6 @@ import com.sinjinsong.toy.transport.api.domain.Message;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -14,13 +13,17 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2018/7/19
  */
 @Slf4j
-@AllArgsConstructor
 @ChannelHandler.Sharable
 public class HttpClientHandler extends ChannelInboundHandlerAdapter {
     private Client client;
     private ClientMessageConverter converter;
 
     private static HttpClientHandler INSTANCE;
+
+    private HttpClientHandler(Client client, ClientMessageConverter converter) {
+        this.client = client;
+        this.converter = converter;
+    }
 
     public synchronized static void init(Client client, ClientMessageConverter converter) {
         if (INSTANCE == null) {
