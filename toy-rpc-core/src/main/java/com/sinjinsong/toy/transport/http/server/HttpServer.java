@@ -20,6 +20,7 @@ public class HttpServer extends AbstractNettyServer {
     
     @Override
     protected ChannelInitializer initPipeline() {
+        HttpServerHandler.init(HttpServer.this,HttpServerMessageConverter.getInstance(getGlobalConfig().getSerializer()));
         return new ChannelInitializer<SocketChannel>() {
             protected void initChannel(SocketChannel ch) throws Exception {
                 //编码是其他格式转为字节
@@ -35,7 +36,7 @@ public class HttpServer extends AbstractNettyServer {
                         .addLast("HttpRequestDecoder", new HttpRequestDecoder())
                         // 接收请求时，作为一个decoder，将http request转为full http request
                         .addLast("HttpObjectAggregator",new HttpObjectAggregator(10*1024*1024))
-                        .addLast("HttpServerHandler", new HttpServerHandler(HttpServer.this,HttpServerMessageConverter.getInstance(getGlobalConfig().getSerializer())));
+                        .addLast("HttpServerHandler", HttpServerHandler.getInstance());
             }
         };
     }

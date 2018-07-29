@@ -18,7 +18,23 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class ToyClientHandler extends SimpleChannelInboundHandler<Message> {
     private Client client;
-    
+
+
+    private static ToyClientHandler INSTANCE;
+
+    public synchronized static void init(Client client) {
+        if (INSTANCE == null) {
+            INSTANCE = new ToyClientHandler(client);
+        }
+    }
+
+    public static ToyClientHandler getInstance() {
+        if (INSTANCE == null) {
+            throw new IllegalStateException("instance did not initialize");
+        }
+        return INSTANCE;
+    }
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.info("客户端捕获到异常");

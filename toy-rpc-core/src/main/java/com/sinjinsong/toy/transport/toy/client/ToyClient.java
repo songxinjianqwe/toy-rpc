@@ -24,6 +24,7 @@ public class ToyClient extends AbstractNettyClient {
     
     @Override
     protected ChannelInitializer initPipeline() {
+        ToyClientHandler.init(this);
         log.info("ToyClient initPipeline...");
         return new ChannelInitializer<SocketChannel>() {
             @Override
@@ -39,7 +40,7 @@ public class ToyClient extends AbstractNettyClient {
                         // Message -> Message
                         .addLast("ToyDecoder", new ToyDecoder(getGlobalConfig().getSerializer()))
 
-                        .addLast("ToyClientHandler", new ToyClientHandler(ToyClient.this));
+                        .addLast("ToyClientHandler", ToyClientHandler.getInstance());
             }
         };
     }

@@ -20,6 +20,7 @@ public class ToyServer extends AbstractNettyServer {
     
     @Override
     protected ChannelInitializer initPipeline() {
+        ToyServerHandler.init(this);
         return new ChannelInitializer<SocketChannel>() {
             protected void initChannel(SocketChannel ch) throws Exception {
                 //编码是其他格式转为字节
@@ -38,7 +39,7 @@ public class ToyServer extends AbstractNettyServer {
                         .addLast("LengthFieldBasedFrameDecoder", new LengthFieldBasedFrameDecoder(FrameConstant.MAX_FRAME_LENGTH, FrameConstant.LENGTH_FIELD_OFFSET, FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT, FrameConstant.INITIAL_BYTES_TO_STRIP))
                         // Message -> Message
                         .addLast("ToyDecoder", new ToyDecoder(getGlobalConfig().getSerializer()))
-                        .addLast("ToyServerHandler", new ToyServerHandler(ToyServer.this));
+                        .addLast("ToyServerHandler", ToyServerHandler.getInstance());
             }
         };
     }

@@ -3,6 +3,7 @@ package com.sinjinsong.toy.transport.toy.server;
 
 import com.sinjinsong.toy.transport.api.Server;
 import com.sinjinsong.toy.transport.api.domain.Message;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -18,7 +19,23 @@ import static com.sinjinsong.toy.transport.api.domain.Message.REQUEST;
  */
 @AllArgsConstructor
 @Slf4j
+@ChannelHandler.Sharable
 public class ToyServerHandler extends SimpleChannelInboundHandler<Message> {
+    private static ToyServerHandler INSTANCE;
+    
+    public synchronized static void init(Server server) {
+        if(INSTANCE == null) {
+            INSTANCE = new ToyServerHandler(server);
+        }
+    } 
+    
+    public static ToyServerHandler getInstance() {
+        if(INSTANCE == null) {
+            throw new IllegalStateException("instance did not initialize");
+        }
+        return INSTANCE;
+    }    
+    
     private Server server;
     
     @Override

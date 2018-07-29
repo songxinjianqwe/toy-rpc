@@ -20,6 +20,21 @@ public class HttpClientHandler extends ChannelInboundHandlerAdapter {
     private Client client;
     private ClientMessageConverter converter;
 
+    private static HttpClientHandler INSTANCE;
+
+    public synchronized static void init(Client client, ClientMessageConverter converter) {
+        if (INSTANCE == null) {
+            INSTANCE = new HttpClientHandler(client, converter);
+        }
+    }
+
+    public static HttpClientHandler getInstance() {
+        if (INSTANCE == null) {
+            throw new IllegalStateException("instance did not initialize");
+        }
+        return INSTANCE;
+    }
+    
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.info("客户端与服务器{}通道已开启...", client.getServiceURL().getAddress());

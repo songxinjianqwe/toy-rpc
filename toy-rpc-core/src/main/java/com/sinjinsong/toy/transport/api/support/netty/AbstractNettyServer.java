@@ -31,7 +31,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
         this.serverMessageConverter = initConverter();
     }
 
-
+    
     protected abstract ChannelInitializer initPipeline();
 
     /**
@@ -45,7 +45,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
     public void run() {
         //两个事件循环器，第一个用于接收客户端连接，第二个用于处理客户端的读写请求
         //是线程组，持有一组线程
-        bossGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();
         try {
             //服务器辅助类，用于配置服务器

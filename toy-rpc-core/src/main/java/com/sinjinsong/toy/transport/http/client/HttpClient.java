@@ -18,6 +18,7 @@ public class HttpClient extends AbstractNettyClient {
 
     @Override
     protected ChannelInitializer initPipeline() {
+        HttpClientHandler.init(HttpClient.this, HttpClientMessageConverter.getInstance(getGlobalConfig().getSerializer()));
         log.info("HttpClient initPipeline...");
         return new ChannelInitializer<SocketChannel>() {
             @Override
@@ -28,7 +29,7 @@ public class HttpClient extends AbstractNettyClient {
                         .addLast("HttpRequestEncoder", new HttpRequestEncoder())
                         .addLast("HttpResponseDecoder", new HttpResponseDecoder())
                         .addLast("HttpObjectAggregator",new HttpObjectAggregator(10*1024*1024))
-                        .addLast("HttpClientHandler", new HttpClientHandler(HttpClient.this, HttpClientMessageConverter.getInstance(getGlobalConfig().getSerializer())));
+                        .addLast("HttpClientHandler", HttpClientHandler.getInstance());
             }
         };
     }

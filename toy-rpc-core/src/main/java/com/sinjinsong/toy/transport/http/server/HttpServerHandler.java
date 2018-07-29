@@ -3,6 +3,7 @@ package com.sinjinsong.toy.transport.http.server;
 import com.sinjinsong.toy.transport.api.Server;
 import com.sinjinsong.toy.transport.api.converter.ServerMessageConverter;
 import com.sinjinsong.toy.transport.api.domain.Message;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -15,9 +16,25 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @AllArgsConstructor
+@ChannelHandler.Sharable
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private Server server;
     private ServerMessageConverter converter;
+    
+    private static HttpServerHandler INSTANCE;
+
+    public synchronized static void init(Server server,ServerMessageConverter converter) {
+        if (INSTANCE == null) {
+            INSTANCE = new HttpServerHandler(server,converter);
+        }
+    }
+
+    public static HttpServerHandler getInstance() {
+        if (INSTANCE == null) {
+            throw new IllegalStateException("instance did not initialize");
+        }
+        return INSTANCE;
+    }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
@@ -38,8 +55,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         log.info("channelReadComplete:{}", ctx.channel().remoteAddress());
     }
-    
-    
+
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         Message message = converter.convertRequest2Message(request);
