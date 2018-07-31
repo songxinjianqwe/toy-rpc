@@ -47,16 +47,16 @@ public class HttpProtocol extends AbstractRemoteProtocol {
         HttpInvoker<T> invoker = new HttpInvoker<>();
         invoker.setInterfaceClass(referenceConfig.getInterfaceClass());
         invoker.setInterfaceName(referenceConfig.getInterfaceName());
-        invoker.setClient(initEndpoint(serviceURL));
+        invoker.setClient(initClient(serviceURL));
         invoker.setGlobalConfig(getGlobalConfig());
         return invoker.buildFilterChain(referenceConfig.getFilters());
     }
 
     @Override
-    protected Client doInitEndpoint(ServiceURL serviceURL) {
-        HttpClient httpEndpoint = new HttpClient();
-        httpEndpoint.init(getGlobalConfig(), serviceURL);
-        return httpEndpoint;
+    protected Client doInitClient(ServiceURL serviceURL) {
+        HttpClient httpClient = new HttpClient();
+        httpClient.init(getGlobalConfig(), serviceURL);
+        return httpClient;
     }
 
 

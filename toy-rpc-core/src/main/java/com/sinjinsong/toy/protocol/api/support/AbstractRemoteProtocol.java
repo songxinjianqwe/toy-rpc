@@ -34,14 +34,14 @@ public abstract class AbstractRemoteProtocol extends AbstractProtocol {
      * @param serviceURL
      * @return
      */
-    public final Client initEndpoint(ServiceURL serviceURL) {
+    public final Client initClient(ServiceURL serviceURL) {
         String address = serviceURL.getAddress();
         locks.putIfAbsent(address, new Object());
         synchronized (locks.get(address)) {
             if (clients.containsKey(address)) {
                 return clients.get(address);
             }
-            Client client = doInitEndpoint(serviceURL);
+            Client client = doInitClient(serviceURL);
             clients.put(address, client);
             locks.remove(address);
             return client;
@@ -75,7 +75,7 @@ public abstract class AbstractRemoteProtocol extends AbstractProtocol {
         }
     }
 
-    protected abstract Client doInitEndpoint(ServiceURL serviceURL);
+    protected abstract Client doInitClient(ServiceURL serviceURL);
 
     protected synchronized final void openServer() {
         if(server == null) {

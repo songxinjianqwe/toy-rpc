@@ -35,7 +35,7 @@ public class RPCAutoConfiguration implements InitializingBean {
     @Autowired
     private RPCProperties properties;
     private ExtensionLoader extensionLoader;
-
+    
     @Bean(initMethod = "init", destroyMethod = "close")
     public RegistryConfig registryConfig() {
         RegistryConfig registryConfig = properties.getRegistry();

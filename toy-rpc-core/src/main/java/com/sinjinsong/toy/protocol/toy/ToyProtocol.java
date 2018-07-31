@@ -46,15 +46,15 @@ public class ToyProtocol extends AbstractRemoteProtocol {
         invoker.setInterfaceClass(referenceConfig.getInterfaceClass());
         invoker.setInterfaceName(referenceConfig.getInterfaceName());
         invoker.setGlobalConfig(getGlobalConfig());
-        invoker.setClient(initEndpoint(serviceURL));
+        invoker.setClient(initClient(serviceURL));
         return invoker.buildFilterChain(referenceConfig.getFilters());
     }
 
     @Override
-    protected Client doInitEndpoint(ServiceURL serviceURL) {
-        ToyClient toyEndpoint = new ToyClient();
-        toyEndpoint.init(getGlobalConfig(), serviceURL);
-        return toyEndpoint;
+    protected Client doInitClient(ServiceURL serviceURL) {
+        ToyClient toyClient = new ToyClient();
+        toyClient.init(getGlobalConfig(), serviceURL);
+        return toyClient;
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.sinjinsong.toy.protocol.api.Invoker;
  * @date 2018/7/14
  */
 public interface RPCProxyFactory {
+    
     <T> T createProxy(Invoker<T> invoker);
 
     <T> Invoker<T> getInvoker(T proxy, Class<T> type);
