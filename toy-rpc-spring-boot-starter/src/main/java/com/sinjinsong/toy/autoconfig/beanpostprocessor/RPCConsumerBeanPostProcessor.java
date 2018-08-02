@@ -1,10 +1,10 @@
 package com.sinjinsong.toy.autoconfig.beanpostprocessor;
 
+import com.sinjinsong.toy.autoconfig.annotation.RPCReference;
 import com.sinjinsong.toy.common.ExtensionLoader;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
-import com.sinjinsong.toy.config.annotation.RPCReference;
 import com.sinjinsong.toy.filter.Filter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;

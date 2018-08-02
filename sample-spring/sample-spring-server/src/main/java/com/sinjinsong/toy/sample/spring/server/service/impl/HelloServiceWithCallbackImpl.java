@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.sample.spring.server.service.impl;
 
 
-import com.sinjinsong.toy.config.annotation.RPCService;
+import com.sinjinsong.toy.autoconfig.annotation.RPCService;
 import com.sinjinsong.toy.sample.spring.api.callback.HelloCallback;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloServiceWithCallback;

@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.config.annotation;
+package com.sinjinsong.toy.autoconfig.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

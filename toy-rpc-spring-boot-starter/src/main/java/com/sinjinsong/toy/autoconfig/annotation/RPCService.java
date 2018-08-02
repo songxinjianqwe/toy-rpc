@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.config.annotation;
+package com.sinjinsong.toy.autoconfig.annotation;
 
 import org.springframework.stereotype.Component;
 

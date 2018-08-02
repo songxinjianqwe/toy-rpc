@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.sample.spring.server.service.impl;
 
 
-import com.sinjinsong.toy.config.annotation.RPCService;
+import com.sinjinsong.toy.autoconfig.annotation.RPCService;
 import com.sinjinsong.toy.sample.spring.api.domain.User;
 import com.sinjinsong.toy.sample.spring.api.service.HelloService;
 
@@ -18,8 +18,8 @@ public class HelloServiceImpl implements HelloService {
             e.printStackTrace();
         }
 //        if(Math.random() > 0.5) {
-//            throw new RuntimeException("provider side error");
+            throw new RuntimeException("provider side error");
 //        }
-        return "Hello, " + user.getUsername();
+//        return "Hello, " + user.getUsername();
     }
 }
