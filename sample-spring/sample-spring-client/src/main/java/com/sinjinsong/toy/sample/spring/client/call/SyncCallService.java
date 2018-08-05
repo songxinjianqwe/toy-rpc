@@ -20,6 +20,7 @@ public class SyncCallService {
     private HelloService helloService;
 
     public void testOnceCall() throws Exception {
+        log.info("开始方法调用...");
         log.info("sync:{}", helloService.hello(new User("1")));
     }
 

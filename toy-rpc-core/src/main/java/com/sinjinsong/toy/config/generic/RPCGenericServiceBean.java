@@ -28,10 +28,12 @@ public class RPCGenericServiceBean {
                 ExtensionLoader.getInstance().load(Filter.class)
         );
         referenceConfig.init(
-                applicationConfig,
-                clusterConfig,
-                protocolConfig,
-                registryConfig
+                GlobalConfig.builder()
+                .applicationConfig(applicationConfig)
+                .protocolConfig(protocolConfig)
+                .registryConfig(registryConfig)
+                .clusterConfig(clusterConfig)
+                .build()
         );
     }
     
@@ -39,5 +41,5 @@ public class RPCGenericServiceBean {
         return  referenceConfig.invokeForGeneric(methodName,parameterTypes,parameters);  
     }
 
-
+    
 }

@@ -31,7 +31,7 @@ public class ServiceConfig<T> extends AbstractConfig {
     // 因为有可能一个invoker在export之后unexport，所以从全局cache取，未必是exported
     // 建议还是从Protocol里取比较好
     public void export() {
-        Invoker<T> invoker = applicationConfig.getProxyFactoryInstance().getInvoker(ref, interfaceClass);
-        exporter = protocolConfig.getProtocolInstance().export(invoker, this);
+        Invoker<T> invoker = getApplicationConfig().getProxyFactoryInstance().getInvoker(ref, interfaceClass);
+        exporter = getProtocolConfig().getProtocolInstance().export(invoker, this);
     }
 }

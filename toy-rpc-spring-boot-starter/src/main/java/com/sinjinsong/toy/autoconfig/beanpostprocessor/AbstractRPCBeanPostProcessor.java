@@ -10,18 +10,17 @@ import org.springframework.context.ApplicationContextAware;
  * @author sinjinsong
  * @date 2018/7/15
  */
-public abstract class AbstractRPCBeanPostProcessor implements BeanPostProcessor,ApplicationContextAware {
-    private ApplicationConfig applicationConfig;
-    private ClusterConfig clusterConfig;
-    private ProtocolConfig protocolConfig;
-    private RegistryConfig registryConfig;
+public abstract class AbstractRPCBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
+    private GlobalConfig globalConfig;
     protected ApplicationContext ctx;
-    
+
     public void init(ApplicationConfig applicationConfig, ClusterConfig clusterConfig, ProtocolConfig protocolConfig, RegistryConfig registryConfig) {
-        this.applicationConfig = applicationConfig;
-        this.clusterConfig = clusterConfig;
-        this.protocolConfig = protocolConfig;
-        this.registryConfig = registryConfig;
+        globalConfig = GlobalConfig.builder()
+                .applicationConfig(applicationConfig)
+                .protocolConfig(protocolConfig)
+                .registryConfig(registryConfig)
+                .clusterConfig(clusterConfig)
+                .build();
     }
 
     @Override
@@ -31,10 +30,18 @@ public abstract class AbstractRPCBeanPostProcessor implements BeanPostProcessor,
 
     protected void initConfig(AbstractConfig config) {
         config.init(
-                applicationConfig,
-                clusterConfig,
-                protocolConfig,
-                registryConfig
+                globalConfig
+        );
+    }
+
+    public static void initConfig(ApplicationContext ctx, AbstractConfig config) {
+        config.init(
+                GlobalConfig.builder()
+                        .applicationConfig(ctx.getBean(ApplicationConfig.class))
+                        .protocolConfig(ctx.getBean(ProtocolConfig.class))
+                        .registryConfig(ctx.getBean(RegistryConfig.class))
+                        .clusterConfig(ctx.getBean(ClusterConfig.class))
+                        .build()
         );
     }
 

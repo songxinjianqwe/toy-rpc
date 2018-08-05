@@ -28,11 +28,15 @@ public class DisruptorTaskExecutorImpl extends AbstractTaskExecutor {
 
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r, "biz-" + atomicInteger.getAndIncrement());
+                        return new Thread(r, "disruptor-" + atomicInteger.getAndIncrement());
                     }
                 }, ProducerType.SINGLE, new YieldingWaitStrategy());
         // 连接消费事件方法
-        disruptor.handleEventsWith(new TaskEventHandler());
+        TaskWorkHandler[] handlers = new TaskWorkHandler[threads];
+        for (int i = 0; i < threads; i++) {
+            handlers[i] = new TaskWorkHandler();
+        }
+        disruptor.handleEventsWithWorkerPool(handlers);
         // 启动
         disruptor.start();
     }

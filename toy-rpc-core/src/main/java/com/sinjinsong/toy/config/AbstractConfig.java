@@ -5,34 +5,25 @@ package com.sinjinsong.toy.config;
  * @date 2018/7/14
  */
 public class AbstractConfig {
-    protected ApplicationConfig applicationConfig;
-    protected ClusterConfig clusterConfig;
-    protected ProtocolConfig protocolConfig;
-    protected RegistryConfig registryConfig;
+    private GlobalConfig globalConfig;
     
-    public void init(ApplicationConfig applicationConfig,
-                     ClusterConfig clusterConfig,
-                     ProtocolConfig protocolConfig,
-                     RegistryConfig registryConfig) {
-        this.applicationConfig = applicationConfig;
-        this.clusterConfig = clusterConfig;
-        this.protocolConfig = protocolConfig;
-        this.registryConfig = registryConfig;
+    public void init(GlobalConfig globalConfig) {
+        this.globalConfig = globalConfig;
     }
 
     public ApplicationConfig getApplicationConfig() {
-        return applicationConfig;
+        return globalConfig.getApplicationConfig();
     }
 
     public ClusterConfig getClusterConfig() {
-        return clusterConfig;
+        return globalConfig.getClusterConfig();
     }
 
     public ProtocolConfig getProtocolConfig() {
-        return protocolConfig;
+        return globalConfig.getProtocolConfig();
     }
 
     public RegistryConfig getRegistryConfig() {
-        return registryConfig;
+        return globalConfig.getRegistryConfig();
     }
 }

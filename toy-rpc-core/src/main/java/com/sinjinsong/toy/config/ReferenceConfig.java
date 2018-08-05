@@ -11,10 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -84,11 +81,12 @@ public class ReferenceConfig<T> extends AbstractConfig {
                 .callbackMethod(callbackMethod)
                 .callbackParamIndex(callbackParamIndex)
                 .isGeneric(isGeneric)
-                .filters(filters)
+                .filters(filters != null ? filters : new ArrayList<>())
                 .build();
         CACHE.put(interfaceName, config);
         return config;
     }
+
 
     private boolean isDiff(boolean isAsync, boolean isCallback, boolean isOneWay, long timeout, String callbackMethod, int callbackParamIndex, boolean isGeneric) {
         if (this.isAsync != isAsync) {
@@ -121,20 +119,20 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         initialized = true;
         // ClusterInvoker
-        invoker = clusterConfig.getLoadBalanceInstance().referCluster(this);
+        invoker = getClusterConfig().getLoadBalanceInstance().referCluster(this);
         if (!isGeneric) {
-            ref = applicationConfig.getProxyFactoryInstance().createProxy(invoker);
+            ref = getApplicationConfig().getProxyFactoryInstance().createProxy(invoker);
         }
     }
 
-    
+
     public Object invokeForGeneric(String methodName, Class<?>[] parameterTypes, Object[] args) {
         if (!initialized) {
             init();
         }
         if (isGeneric) {
             RPCRequest request = new RPCRequest();
-            log.info("调用泛化服务：{} {}",interfaceName, methodName);
+            log.info("调用泛化服务：{} {}", interfaceName, methodName);
             request.setRequestId(UUID.randomUUID().toString());
             request.setInterfaceName(interfaceName);
             request.setMethodName(methodName);
@@ -157,8 +155,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             throw new RPCException(ErrorEnum.GENERIC_INVOCATION_ERROR, "只有泛化调用的refernce才可以调用invoke方法");
         }
     }
-    
-    
+
 
     /**
      * 初始化并
@@ -171,7 +168,11 @@ public class ReferenceConfig<T> extends AbstractConfig {
         }
         return ref;
     }
-
+    
+    public T getForBenchmark() {
+        Invoker<T> invoker = getClusterConfig().getLoadBalanceInstance().referCluster(this);
+        return getApplicationConfig().getProxyFactoryInstance().createProxy(invoker);
+    }
 
     public static ReferenceConfig getReferenceConfigByInterfaceName(String interfaceName) {
         return CACHE.get(interfaceName);

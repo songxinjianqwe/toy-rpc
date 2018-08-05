@@ -19,6 +19,7 @@
         <module>sample-spring-server</module>
         <module>sample-spring-injvm</module>
         <module>sample-spring-client-generic</module>
+        <module>benchmark</module>
     </modules>
 
     <properties>

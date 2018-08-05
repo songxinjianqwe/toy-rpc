@@ -24,7 +24,7 @@ public class ThreadPoolTaskExecutorImpl extends AbstractTaskExecutor {
                     private AtomicInteger atomicInteger = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r,"pool-" + atomicInteger.getAndIncrement());
+                        return new Thread(r,"threadpool-" + atomicInteger.getAndIncrement());
                     }
                 },
                 new ThreadPoolExecutor.CallerRunsPolicy()

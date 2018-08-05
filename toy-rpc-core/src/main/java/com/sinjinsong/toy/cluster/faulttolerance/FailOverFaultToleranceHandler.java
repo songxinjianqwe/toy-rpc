@@ -32,7 +32,7 @@ public class FailOverFaultToleranceHandler implements FaultToleranceHandler {
 
     @Override
     public RPCResponse handle(ClusterInvoker clusterInvoker, InvokeParam invokeParam,RPCException e) {
-        log.error("出错,FailOver! requestId:{}", invokeParam.getRequestId());
+        log.error("出错,FailOver! exception:{},requestId:{}",e, invokeParam.getRequestId());
         Invoker failedInvoker = RPCThreadLocalContext.getContext().getInvoker();
         Map<String, Invoker> excludedInvokers = new HashMap<>();
         excludedInvokers.put(failedInvoker.getServiceURL().getAddress(), failedInvoker);
