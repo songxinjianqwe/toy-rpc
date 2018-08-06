@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.executor.disruptor;
 
-import com.lmax.disruptor.YieldingWaitStrategy;
+import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import com.sinjinsong.toy.executor.api.support.AbstractTaskExecutor;
@@ -30,7 +30,7 @@ public class DisruptorTaskExecutorImpl extends AbstractTaskExecutor {
                     public Thread newThread(Runnable r) {
                         return new Thread(r, "disruptor-" + atomicInteger.getAndIncrement());
                     }
-                }, ProducerType.SINGLE, new YieldingWaitStrategy());
+                }, ProducerType.SINGLE, new BlockingWaitStrategy());
         // 连接消费事件方法
         TaskWorkHandler[] handlers = new TaskWorkHandler[threads];
         for (int i = 0; i < threads; i++) {
@@ -40,7 +40,7 @@ public class DisruptorTaskExecutorImpl extends AbstractTaskExecutor {
         // 启动
         disruptor.start();
     }
-
+    
     @Override
     public void submit(Runnable runnable) {
         //1.可以把ringBuffer看做一个事件队列，那么next就是得到下面一个事件槽

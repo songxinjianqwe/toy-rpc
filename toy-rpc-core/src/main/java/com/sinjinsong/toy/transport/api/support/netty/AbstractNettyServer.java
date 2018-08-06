@@ -5,6 +5,7 @@ import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.support.AbstractServer;
 import com.sinjinsong.toy.transport.api.support.RPCTaskRunner;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -54,8 +55,10 @@ public abstract class AbstractNettyServer extends AbstractServer {
             bootstrap.group(bossGroup, workerGroup)
                     //使用这种类型的NIO通道，现在是基于TCP协议的
                     .channel(NioServerSocketChannel.class)
+                    
                     //对Channel进行初始化，绑定实际的事件处理器，要么实现ChannelHandler接口，要么继承ChannelHandlerAdapter类
                     .childHandler(channelInitializer)
+                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     //服务器配置项
                     //BACKLOG
                     //TCP维护有两个队列，分别称为A和B
@@ -68,7 +71,9 @@ public abstract class AbstractNettyServer extends AbstractServer {
                     //指定发送缓冲区大小
                     .option(ChannelOption.SO_SNDBUF, 32 * 1024)
                     //指定接收缓冲区大小
-                    .option(ChannelOption.SO_RCVBUF, 32 * 1024);
+                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)
+                    .option(ChannelOption.TCP_NODELAY,true);
+            
             //这里的option是针对于上面的NioServerSocketChannel
             //复杂的时候可能会设置多个Channel
             //.sync表示是一个同步阻塞执行，普通的Netty的IO操作都是异步执行的

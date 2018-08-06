@@ -23,8 +23,8 @@ public class ClientApplication implements CommandLineRunner {
     
     @Override
     public void run(String... args) throws Exception {
-        test.run(100,100 * 1000);
-//        test.run(1,5);
+//        test.run(100,100 * 500);
+        test.run(1,1);
         System.exit(0);
     }
 }
