@@ -58,6 +58,7 @@ public abstract class AbstractNettyServer extends AbstractServer {
                     
                     //对Channel进行初始化，绑定实际的事件处理器，要么实现ChannelHandler接口，要么继承ChannelHandlerAdapter类
                     .childHandler(channelInitializer)
+                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     //服务器配置项
                     //BACKLOG

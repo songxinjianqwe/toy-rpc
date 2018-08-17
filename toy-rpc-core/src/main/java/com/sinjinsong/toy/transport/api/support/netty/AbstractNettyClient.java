@@ -119,7 +119,6 @@ public abstract class AbstractNettyClient extends AbstractClient {
     public Future<RPCResponse> submit(RPCRequest request) {
         if (!initialized) {
             connect();
-            initialized = true;
         }
         if (destroyed) {
             throw new RPCException(ErrorEnum.SUBMIT_AFTER_ENDPOINT_CLOSED, "当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
