@@ -25,7 +25,8 @@ public enum ErrorEnum {
     NO_SUPPORTED_INSTANCE("接口没有可用实现类"),
     EXTENSION_CONFIG_FILE_ERROR("toy扩展配置文件错误"),
     GENERIC_INVOCATION_ERROR("泛化调用失败"),
-    PROTOCOL_CANNOT_FIND_THE_SERVER_ADDRESS("协议找不到该服务器地址")
+    PROTOCOL_CANNOT_FIND_THE_SERVER_ADDRESS("协议找不到该服务器地址"),
+    HEART_BEAT_TIME_OUT_EXCEED("超过心跳超时时间")
     ;
     private String errorCode;
 

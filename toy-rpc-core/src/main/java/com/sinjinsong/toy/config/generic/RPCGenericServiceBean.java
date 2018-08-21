@@ -40,6 +40,4 @@ public class RPCGenericServiceBean {
     public Object invoke(String methodName, Class<?>[] parameterTypes, Object[] parameters){
         return  referenceConfig.invokeForGeneric(methodName,parameterTypes,parameters);  
     }
-
-    
 }

@@ -24,13 +24,15 @@ public class SyncCallService {
         log.info("sync:{}", helloService.hello(new User("1")));
     }
 
-    public void test() throws Exception {
+    public void testHeartBeatAndReconnect() throws Exception {
+        // 前提是将心跳时间设置为5s
         log.info("sync:{}", helloService.hello(new User("1")));
         log.info("sync:{}", helloService.hello(new User("2")));
 
         Thread.sleep(3000);
         log.info("sync:{}", helloService.hello(new User("3")));
         Thread.sleep(8000);
+        // 等待完5s后，客户端会发送一次心跳
         log.info("sync:{}", helloService.hello(new User("4")));
     }
 

@@ -27,4 +27,5 @@ public interface Client {
     boolean isAvailable();
     
     void updateServiceConfig(ServiceURL serviceURL);
+
 }

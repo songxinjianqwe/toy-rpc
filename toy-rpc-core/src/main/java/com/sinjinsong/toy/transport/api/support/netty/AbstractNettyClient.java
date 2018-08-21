@@ -12,14 +12,14 @@ import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import com.sinjinsong.toy.transport.api.support.AbstractClient;
 import com.sinjinsong.toy.transport.api.support.RPCTaskRunner;
+import com.sinjinsong.toy.transport.toy.constant.ToyConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author sinjinsong
@@ -27,13 +27,17 @@ import java.util.concurrent.Future;
  */
 @Slf4j
 public abstract class AbstractNettyClient extends AbstractClient {
+
     private Bootstrap bootstrap;
-    private Channel futureChannel;
     private EventLoopGroup group;
+    private volatile Channel futureChannel;
     private volatile boolean initialized = false;
     private volatile boolean destroyed = false;
+    private volatile boolean closedFromOuter = false;
     private MessageConverter converter;
-    
+    private static ScheduledExecutorService retryExecutor = Executors.newSingleThreadScheduledExecutor();
+    private ConnectRetryer connectRetryer = new ConnectRetryer();
+
     /**
      * 与Handler相关
      *
@@ -52,7 +56,7 @@ public abstract class AbstractNettyClient extends AbstractClient {
     public boolean isAvailable() {
         return initialized && !destroyed;
     }
-        
+
     @Override
     protected synchronized void connect() {
         if (initialized) {
@@ -65,15 +69,7 @@ public abstract class AbstractNettyClient extends AbstractClient {
                 .handler(initPipeline())
                 .option(ChannelOption.SO_KEEPALIVE, true);
         try {
-            ChannelFuture future;
-            String address = getServiceURL().getAddress();
-            String host = address.split(":")[0];
-            Integer port = Integer.parseInt(address.split(":")[1]);
-            future = bootstrap.connect(host, port).sync();
-            this.futureChannel = future.channel();
-            log.info("客户端已连接至 {}", address);
-            log.info("客户端初始化完毕");
-            initialized = true;
+            doConnect();
         } catch (Exception e) {
             log.error("与服务器的连接出现故障");
             e.printStackTrace();
@@ -81,16 +77,68 @@ public abstract class AbstractNettyClient extends AbstractClient {
         }
     }
 
+    /**
+     * 实现重新连接的重试策略
+     * 不能使用guava retryer实现，因为它是阻塞重试，会占用IO线程
+     */
+    private void reconnect() throws Exception {
+        // 避免多次异常抛出，导致多次reconnect
+        if (destroyed) {
+            connectRetryer.run();
+        }
+    }
+
+    private class ConnectRetryer implements Runnable {
+
+        @Override
+        public void run() {
+            if (!closedFromOuter) {
+                log.info("重新连接中...");
+                try {
+                    // 先把原来的连接关掉
+                    if (futureChannel != null && futureChannel.isOpen()) {
+                        futureChannel.close().sync();
+                    }
+                    doConnect();
+                } catch (Exception e) {
+                    log.info("重新连接失败，{} 秒后重试",ToyConstant.HEART_BEAT_TIME_OUT);
+                    retryExecutor.schedule(connectRetryer, ToyConstant.HEART_BEAT_TIME_OUT, TimeUnit.SECONDS);
+                }
+            } else {
+                log.info("ZK无法检测到该服务器，不再重试");
+            }
+        }
+    }
+
+    private synchronized void doConnect() throws InterruptedException {
+        ChannelFuture future;
+        String address = getServiceURL().getAddress();
+        String host = address.split(":")[0];
+        Integer port = Integer.parseInt(address.split(":")[1]);
+        future = bootstrap.connect(host, port).sync();
+        this.futureChannel = future.channel();
+        log.info("客户端已连接至 {}", address);
+        log.info("客户端初始化完毕");
+        initialized = true;
+        destroyed = false;
+    }
 
     /**
      * 连接失败或IO时失败均会调此方法处理异常
      */
     @Override
     public void handleException(Throwable throwable) {
-        log.info("连接失败策略为直接关闭，关闭客户端");
-        log.error("",throwable);
-        close();
-        throw new RPCException(ErrorEnum.CONNECT_TO_SERVER_FAILURE, "连接失败,关闭客户端");
+        // destroy设置为true，客户端提交请求后会立即被拒绝
+        destroyed = true;
+        log.error("", throwable);
+        log.info("开始尝试重新连接...");
+        try {
+            reconnect();
+        } catch (Exception e) {
+            close();
+            log.error("", e);
+            throw new RPCException(ErrorEnum.CONNECT_TO_SERVER_FAILURE, "重试多次后仍然连接失败,关闭客户端,放弃重试");
+        }
     }
 
     @Override
@@ -120,7 +168,7 @@ public abstract class AbstractNettyClient extends AbstractClient {
         if (!initialized) {
             connect();
         }
-        if (destroyed) {
+        if (destroyed || closedFromOuter) {
             throw new RPCException(ErrorEnum.SUBMIT_AFTER_ENDPOINT_CLOSED, "当前Endpoint: {} 关闭后仍在提交任务", getServiceURL().getAddress());
         }
         log.info("客户端发起请求: {},请求的服务器为: {}", request, getServiceURL().getAddress());
@@ -144,6 +192,7 @@ public abstract class AbstractNettyClient extends AbstractClient {
                 this.futureChannel.close().sync();
             }
             destroyed = true;
+            closedFromOuter = true;
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

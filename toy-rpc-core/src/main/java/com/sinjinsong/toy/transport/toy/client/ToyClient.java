@@ -5,6 +5,7 @@ import com.sinjinsong.toy.transport.api.converter.ClientMessageConverter;
 import com.sinjinsong.toy.transport.api.support.netty.AbstractNettyClient;
 import com.sinjinsong.toy.transport.toy.codec.ToyDecoder;
 import com.sinjinsong.toy.transport.toy.codec.ToyEncoder;
+import com.sinjinsong.toy.transport.toy.constant.ToyConstant;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -24,13 +25,12 @@ public class ToyClient extends AbstractNettyClient {
     
     @Override
     protected ChannelInitializer initPipeline() {
-        ToyClientHandler.init(this);
         log.info("ToyClient initPipeline...");
         return new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel channel) throws Exception {
                 channel.pipeline()
-                        .addLast("IdleStateHandler", new IdleStateHandler(0, 5, 0))
+                        .addLast("IdleStateHandler", new IdleStateHandler(0, ToyConstant.HEART_BEAT_TIME_OUT, 0))
                         // ByteBuf -> Message 
                         .addLast("LengthFieldPrepender", new LengthFieldPrepender(FrameConstant.LENGTH_FIELD_LENGTH, FrameConstant.LENGTH_ADJUSTMENT))
                         // Message -> ByteBuf
@@ -40,7 +40,7 @@ public class ToyClient extends AbstractNettyClient {
                         // Message -> Message
                         .addLast("ToyDecoder", new ToyDecoder(getGlobalConfig().getSerializer()))
 
-                        .addLast("ToyClientHandler", ToyClientHandler.getInstance());
+                        .addLast("ToyClientHandler", new ToyClientHandler(ToyClient.this));
             }
         };
     }

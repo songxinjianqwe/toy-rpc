@@ -30,8 +30,8 @@ public class ClientApplication implements CommandLineRunner {
     
     @Override
     public void run(String... args) throws Exception {
-        syncCallService.testOnceCall();
-//        syncCallService.concurrentTest();
+//        syncCallService.testHeartBeatAndReconnect();
+        syncCallService.concurrentTest();
 //        syncCallService.test();
 //        asyncCallService.testOnceCall();
 //        asyncCallService.test();
