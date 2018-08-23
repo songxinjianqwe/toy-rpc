@@ -19,8 +19,8 @@
         <module>benchmark-base</module>
         <module>dubbo-server</module>
         <module>dubbo-client</module>
-        <!--<module>toy-rpc-client</module>-->
-        <!--<module>toy-rpc-server</module>-->
+        <module>toy-rpc-client</module>
+        <module>toy-rpc-server</module>
     </modules>
 
     <properties>
