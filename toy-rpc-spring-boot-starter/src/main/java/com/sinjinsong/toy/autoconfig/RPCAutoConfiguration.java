@@ -14,7 +14,7 @@ import com.sinjinsong.toy.executor.api.TaskExecutor;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.filter.impl.ActiveLimitFilter;
 import com.sinjinsong.toy.protocol.api.support.AbstractProtocol;
-import com.sinjinsong.toy.proxy.JdkRPCProxyFactory;
+import com.sinjinsong.toy.proxy.api.RPCProxyFactory;
 import com.sinjinsong.toy.registry.zookeeper.ZkServiceRegistry;
 import com.sinjinsong.toy.serialize.api.Serializer;
 import lombok.extern.slf4j.Slf4j;
@@ -58,9 +58,7 @@ public class RPCAutoConfiguration implements InitializingBean {
         if (application == null) {
             throw new RPCException(ErrorEnum.APP_CONFIG_FILE_ERROR, "必须配置applicationConfig");
         }
-        // TODO 根据类型创建proxyFactory和serializer
-        application.setProxyFactoryInstance(new JdkRPCProxyFactory());
-
+        application.setProxyFactoryInstance(extensionLoader.load(RPCProxyFactory.class, ProxyFactoryType.class, application.getProxy()));
         application.setSerializerInstance(extensionLoader.load(Serializer.class, SerializerType.class, application.getSerialize()));
         log.info("{}", application);
         return application;

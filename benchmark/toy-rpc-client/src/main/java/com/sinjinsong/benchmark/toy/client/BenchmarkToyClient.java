@@ -25,6 +25,7 @@ public class BenchmarkToyClient implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
         client.run(32, 32 * 3000,3);
+//        client.run(1,1,1);
         System.exit(0);
     }
 }
