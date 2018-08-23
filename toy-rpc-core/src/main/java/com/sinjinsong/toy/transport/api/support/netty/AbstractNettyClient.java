@@ -15,6 +15,9 @@ import com.sinjinsong.toy.transport.api.support.RPCTaskRunner;
 import com.sinjinsong.toy.transport.toy.constant.ToyConstant;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
@@ -63,11 +66,12 @@ public abstract class AbstractNettyClient extends AbstractClient {
             return;
         }
         this.converter = initConverter();
-        this.group = new NioEventLoopGroup();
+        this.group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
-        this.bootstrap.group(group).channel(NioSocketChannel.class)
+        this.bootstrap.group(group).channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class)
                 .handler(initPipeline())
-                .option(ChannelOption.SO_KEEPALIVE, true);
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true);
         try {
             doConnect();
         } catch (Exception e) {
@@ -101,7 +105,7 @@ public abstract class AbstractNettyClient extends AbstractClient {
                     }
                     doConnect();
                 } catch (Exception e) {
-                    log.info("重新连接失败，{} 秒后重试",ToyConstant.HEART_BEAT_TIME_OUT);
+                    log.info("重新连接失败，{} 秒后重试", ToyConstant.HEART_BEAT_TIME_OUT);
                     retryExecutor.schedule(connectRetryer, ToyConstant.HEART_BEAT_TIME_OUT, TimeUnit.SECONDS);
                 }
             } else {

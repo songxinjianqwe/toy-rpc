@@ -24,7 +24,10 @@ public class BenchmarkToyClient implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        client.run(32, 32 * 3000,3);
+        int threads = Integer.parseInt(strings[0]);
+        int requestTotal = Integer.parseInt(strings[1]);
+        int measurementIterations = Integer.parseInt(strings[2]);
+        client.run(threads, requestTotal,measurementIterations);
 //        client.run(1,1,1);
         System.exit(0);
     }
