@@ -10,6 +10,7 @@ import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 /**
  * @author sinjinsong
@@ -19,7 +20,9 @@ import java.util.concurrent.Future;
 public abstract class AbstractInvocation implements Invocation {
     private ReferenceConfig referenceConfig;
     private RPCRequest rpcRequest;
-
+    private Function<RPCRequest, Future<RPCResponse>> processor;
+    
+    
     public final void setReferenceConfig(ReferenceConfig referenceConfig) {
         this.referenceConfig = referenceConfig;
     }
@@ -28,13 +31,14 @@ public abstract class AbstractInvocation implements Invocation {
         this.rpcRequest = rpcRequest;
     }
     
-    /**
-     * 留给Sync/Oneway/Async/Callback的子类去覆盖，用来获取远程调用结果
-     *
-     * @return
-     */
-    protected abstract Future<RPCResponse> doCustomProcess();
+    public final void setProcessor(Function<RPCRequest, Future<RPCResponse>> processor){
+        this.processor = processor;
+    }
     
+    protected final Future<RPCResponse> doCustomProcess() {
+        return processor.apply(rpcRequest);
+    }
+        
     @Override
     public final RPCResponse invoke() throws RPCException {
         RPCResponse response;

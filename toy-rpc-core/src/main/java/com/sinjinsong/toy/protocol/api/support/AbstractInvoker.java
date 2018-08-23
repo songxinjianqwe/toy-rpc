@@ -36,45 +36,26 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     @Override
     public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
         Function<RPCRequest, Future<RPCResponse>> logic = getProcessor();
-        if(logic == null) {
+        if (logic == null) {
             // TODO 想办法在编译时检查
-            throw new RPCException(ErrorEnum.GET_PROCESSOR_MUST_BE_OVERRIDE_WHEN_INVOKE_DID_NOT_OVERRIDE,"没有重写AbstractInvoker#invoke方法的时候，必须重写getProcessor方法");
+            throw new RPCException(ErrorEnum.GET_PROCESSOR_MUST_BE_OVERRIDE_WHEN_INVOKE_DID_NOT_OVERRIDE, "没有重写AbstractInvoker#invoke方法的时候，必须重写getProcessor方法");
         }
         // 如果提交任务失败，则删掉该Endpoint，再次提交的话必须重新创建Endpoint
         AbstractInvocation invocation;
         ReferenceConfig referenceConfig = InvokeParamUtil.extractReferenceConfigFromInvokeParam(invokeParam);
         RPCRequest rpcRequest = InvokeParamUtil.extractRequestFromInvokeParam(invokeParam);
         if (referenceConfig.isAsync()) {
-            invocation = new AsyncInvocation() {
-                @Override
-                protected Future<RPCResponse> doCustomProcess() {
-                    return logic.apply(rpcRequest);
-                }
-            };
+            invocation = new AsyncInvocation();
         } else if (referenceConfig.isCallback()) {
-            invocation = new CallbackInvocation() {
-                @Override
-                protected Future<RPCResponse> doCustomProcess() {
-                    return logic.apply(rpcRequest);
-                }
-            };
+            invocation = new CallbackInvocation();
         } else if (referenceConfig.isOneWay()) {
-            invocation = new OneWayInvocation() {
-                @Override
-                protected Future<RPCResponse> doCustomProcess() {
-                    return logic.apply(rpcRequest);
-                }
-            };
+            invocation = new OneWayInvocation();
         } else {
-            invocation = new SyncInvocation() {
-                @Override
-                protected Future<RPCResponse> doCustomProcess() {
-                    return logic.apply(rpcRequest);
-                }
-            };
+            invocation = new SyncInvocation();
         }
         invocation.setReferenceConfig(referenceConfig);
         invocation.setRpcRequest(rpcRequest);
+        invocation.setProcessor(logic);
         return invocation.invoke();
     }
 
@@ -89,17 +70,16 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
     /**
      * 最终给ClusterInvoker的invoker，是用户接触到的invoker
-     *
      * @param filters
      * @param <T>
      * @return
      */
     public <T> Invoker<T> buildFilterChain(List<Filter> filters) {
         // refer 得到的，包含了endpoint
-        
+
         return new InvokerDelegate<T>((Invoker<T>) this) {
             // 比较的时候就是在比较interfaceClass
-                
+
             private ThreadLocal<AtomicInteger> filterIndex = new ThreadLocal() {
                 @Override
                 protected Object initialValue() {
@@ -122,7 +102,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
                         public String getInterfaceName() {
                             return getDelegate().getInterfaceName();
                         }
-                    
+
                         @Override
                         public ServiceURL getServiceURL() {
                             return getDelegate().getServiceURL();
@@ -139,7 +119,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             }
         };
     }
-    
+
     @Override
     public Class<T> getInterface() {
         return interfaceClass;
@@ -153,16 +133,16 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     public void setInterfaceClass(Class<T> interfaceClass) {
         this.interfaceClass = interfaceClass;
     }
-    
+
     public void setInterfaceName(String interfaceName) {
         this.interfaceName = interfaceName;
     }
-    
+
     @Override
     public ServiceURL getServiceURL() {
         return ServiceURL.DEFAULT_SERVICE_URL;
     }
-    
+
     @Override
     public boolean isAvailable() {
         return true;

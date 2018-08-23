@@ -22,8 +22,7 @@ import com.sinjinsong.toy.transport.api.domain.RPCResponse;
  * 
  * 注意！如果调用失败，则callback不会被调用
  */
-public abstract class CallbackInvocation extends AbstractInvocation {
-    
+public  class CallbackInvocation extends AbstractInvocation {
     @Override
     protected RPCResponse doInvoke() throws Throwable {
         RPCRequest rpcRequest = getRpcRequest();

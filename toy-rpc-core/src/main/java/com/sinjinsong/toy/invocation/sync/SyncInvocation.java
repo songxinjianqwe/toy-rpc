@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2018/6/10
  */
 @Slf4j
-public abstract class SyncInvocation extends AbstractInvocation {
+public class SyncInvocation extends AbstractInvocation {
     
     @Override
     protected RPCResponse doInvoke() throws Throwable {

@@ -7,8 +7,7 @@ import com.sinjinsong.toy.transport.api.domain.RPCResponse;
  * @author sinjinsong
  * @date 2018/6/10
  */
-public abstract class OneWayInvocation extends AbstractInvocation {
-    
+public  class OneWayInvocation extends AbstractInvocation {
     @Override
     protected RPCResponse doInvoke() throws Throwable {
         doCustomProcess();

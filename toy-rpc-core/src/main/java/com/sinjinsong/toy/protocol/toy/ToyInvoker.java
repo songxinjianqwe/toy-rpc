@@ -19,5 +19,4 @@ public class ToyInvoker<T> extends AbstractRemoteInvoker<T> {
     protected Function<RPCRequest, Future<RPCResponse>> getProcessor() {
         return rpcRequest -> getClient().submit(rpcRequest);
     }
-    
 }

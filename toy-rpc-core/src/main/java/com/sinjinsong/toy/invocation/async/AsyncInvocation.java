@@ -13,9 +13,8 @@ import java.util.concurrent.TimeoutException;
  * @author sinjinsong
  * @date 2018/6/10
  */
-public abstract class AsyncInvocation extends AbstractInvocation {
-    
-    
+public class AsyncInvocation extends AbstractInvocation {
+
     @Override
     protected RPCResponse doInvoke() throws Throwable {
         Future<RPCResponse> future = doCustomProcess();
