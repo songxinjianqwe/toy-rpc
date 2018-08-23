@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.invocation.oneway;
 
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 
 /**
  * @author sinjinsong

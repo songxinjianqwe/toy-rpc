@@ -3,7 +3,7 @@ package com.sinjinsong.toy.protocol.api;
 
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 
 /**
  * @author sinjinsong

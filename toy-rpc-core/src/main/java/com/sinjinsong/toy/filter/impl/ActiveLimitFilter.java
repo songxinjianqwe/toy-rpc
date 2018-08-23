@@ -5,7 +5,7 @@ import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**

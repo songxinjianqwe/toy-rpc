@@ -5,8 +5,8 @@ import com.sinjinsong.toy.common.context.RPCThreadSharedContext;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 
 /**
  * @author sinjinsong

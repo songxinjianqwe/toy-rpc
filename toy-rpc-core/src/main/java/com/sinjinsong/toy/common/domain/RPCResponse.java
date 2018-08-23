@@ -1,4 +1,4 @@
-package com.sinjinsong.toy.transport.api.domain;
+package com.sinjinsong.toy.common.domain;
 
 import io.netty.util.Recycler;
 import lombok.Data;

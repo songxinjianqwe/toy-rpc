@@ -1,8 +1,8 @@
 package com.sinjinsong.toy.transport.api;
 
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.concurrent.Future;

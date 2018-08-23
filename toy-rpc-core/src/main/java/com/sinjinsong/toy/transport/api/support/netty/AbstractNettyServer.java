@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.transport.api.support.netty;
 
 import com.sinjinsong.toy.transport.api.converter.ServerMessageConverter;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.support.AbstractServer;
 import com.sinjinsong.toy.transport.api.support.RPCTaskRunner;
 import io.netty.bootstrap.ServerBootstrap;

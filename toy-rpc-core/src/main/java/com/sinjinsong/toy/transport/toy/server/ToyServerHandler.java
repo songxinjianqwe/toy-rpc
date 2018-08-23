@@ -2,7 +2,7 @@ package com.sinjinsong.toy.transport.toy.server;
 
 
 import com.sinjinsong.toy.transport.api.Server;
-import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.common.domain.Message;
 import com.sinjinsong.toy.transport.toy.constant.ToyConstant;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -11,8 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.sinjinsong.toy.transport.api.domain.Message.PING;
-import static com.sinjinsong.toy.transport.api.domain.Message.REQUEST;
+import static com.sinjinsong.toy.common.domain.Message.PING;
+import static com.sinjinsong.toy.common.domain.Message.REQUEST;
 
 /**
  * Created by SinjinSong on 2017/7/29.

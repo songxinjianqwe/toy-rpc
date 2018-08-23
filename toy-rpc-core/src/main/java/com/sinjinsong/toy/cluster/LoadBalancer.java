@@ -2,7 +2,7 @@ package com.sinjinsong.toy.cluster;
 
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.protocol.api.Invoker;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCRequest;
 
 import java.util.List;
 

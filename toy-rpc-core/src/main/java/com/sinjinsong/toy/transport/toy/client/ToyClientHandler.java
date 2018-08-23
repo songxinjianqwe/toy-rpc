@@ -3,7 +3,7 @@ package com.sinjinsong.toy.transport.toy.client;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.transport.api.Client;
-import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.common.domain.Message;
 import com.sinjinsong.toy.transport.toy.constant.ToyConstant;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

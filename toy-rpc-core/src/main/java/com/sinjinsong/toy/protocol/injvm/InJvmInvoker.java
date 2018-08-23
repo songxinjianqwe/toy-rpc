@@ -4,8 +4,8 @@ import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.common.util.InvokeParamUtil;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
-import com.sinjinsong.toy.transport.api.domain.GlobalRecycler;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.GlobalRecycler;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 
 import java.lang.reflect.Method;
 

@@ -2,7 +2,7 @@ package com.sinjinsong.toy.transport.http.conveter;
 
 import com.sinjinsong.toy.serialize.api.Serializer;
 import com.sinjinsong.toy.transport.api.converter.ClientMessageConverter;
-import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.common.domain.Message;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.*;
 import lombok.extern.slf4j.Slf4j;

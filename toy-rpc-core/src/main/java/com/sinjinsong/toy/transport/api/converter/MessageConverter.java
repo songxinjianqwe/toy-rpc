@@ -1,6 +1,6 @@
 package com.sinjinsong.toy.transport.api.converter;
 
-import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.common.domain.Message;
 
 /**
  * @author sinjinsong

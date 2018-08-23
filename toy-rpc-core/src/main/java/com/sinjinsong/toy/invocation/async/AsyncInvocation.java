@@ -2,7 +2,7 @@ package com.sinjinsong.toy.invocation.async;
 
 import com.sinjinsong.toy.common.context.RPCThreadLocalContext;
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

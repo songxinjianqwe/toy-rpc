@@ -2,7 +2,7 @@ package com.sinjinsong.toy.transport.http.client;
 
 import com.sinjinsong.toy.transport.api.Client;
 import com.sinjinsong.toy.transport.api.converter.ClientMessageConverter;
-import com.sinjinsong.toy.transport.api.domain.Message;
+import com.sinjinsong.toy.common.domain.Message;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

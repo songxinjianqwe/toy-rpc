@@ -3,7 +3,7 @@ package com.sinjinsong.toy.common.util;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCRequest;
 
 /**
  * @author sinjinsong

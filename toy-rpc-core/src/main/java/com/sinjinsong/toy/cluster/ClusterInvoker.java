@@ -10,7 +10,7 @@ import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteProtocol;
 import com.sinjinsong.toy.protocol.injvm.InJvmProtocol;
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;

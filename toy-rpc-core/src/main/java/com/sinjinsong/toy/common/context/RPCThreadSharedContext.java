@@ -2,7 +2,7 @@ package com.sinjinsong.toy.common.context;
 
 
 import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;

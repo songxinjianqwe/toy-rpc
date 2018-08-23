@@ -3,7 +3,7 @@ package com.sinjinsong.toy.serialize.api.support;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.serialize.api.Serializer;
-import com.sinjinsong.toy.transport.api.domain.GlobalRecycler;
+import com.sinjinsong.toy.common.domain.GlobalRecycler;
 
 /**
  * @author sinjinsong

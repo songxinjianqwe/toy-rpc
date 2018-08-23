@@ -7,9 +7,9 @@ import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
 import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
 import com.sinjinsong.toy.proxy.api.RPCProxyFactory;
-import com.sinjinsong.toy.transport.api.domain.GlobalRecycler;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.GlobalRecycler;
+import com.sinjinsong.toy.common.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;

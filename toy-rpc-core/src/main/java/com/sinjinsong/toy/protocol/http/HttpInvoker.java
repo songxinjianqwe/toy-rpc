@@ -1,8 +1,8 @@
 package com.sinjinsong.toy.protocol.http;
 
 import com.sinjinsong.toy.protocol.api.support.AbstractRemoteInvoker;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Future;

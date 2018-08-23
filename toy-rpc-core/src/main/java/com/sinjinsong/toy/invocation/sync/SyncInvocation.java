@@ -1,7 +1,7 @@
 package com.sinjinsong.toy.invocation.sync;
 
 import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
-import com.sinjinsong.toy.transport.api.domain.RPCResponse;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Future;

@@ -3,7 +3,7 @@ package com.sinjinsong.toy.cluster.loadbalance;
 import com.sinjinsong.toy.cluster.support.AbstractLoadBalancer;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.transport.api.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
