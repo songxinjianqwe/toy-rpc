@@ -5,6 +5,7 @@ import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.filter.Filter;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
+import com.sinjinsong.toy.transport.api.domain.GlobalRecycler;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.Builder;
@@ -131,7 +132,7 @@ public class ReferenceConfig<T> extends AbstractConfig {
             init();
         }
         if (isGeneric) {
-            RPCRequest request = new RPCRequest();
+            RPCRequest request = GlobalRecycler.reuse(RPCRequest.class);
             log.info("调用泛化服务：{} {}", interfaceName, methodName);
             request.setRequestId(UUID.randomUUID().toString());
             request.setInterfaceName(interfaceName);
@@ -167,11 +168,6 @@ public class ReferenceConfig<T> extends AbstractConfig {
             init();
         }
         return ref;
-    }
-    
-    public T getForBenchmark() {
-        Invoker<T> invoker = getClusterConfig().getLoadBalanceInstance().referCluster(this);
-        return getApplicationConfig().getProxyFactoryInstance().createProxy(invoker);
     }
 
     public static ReferenceConfig getReferenceConfigByInterfaceName(String interfaceName) {

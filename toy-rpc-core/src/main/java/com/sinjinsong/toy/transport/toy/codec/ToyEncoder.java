@@ -23,9 +23,10 @@ public class ToyEncoder extends MessageToByteEncoder {
         out.writeByte((message.getType()));
         if (message.getType() == Message.REQUEST) {
             out.writeBytes(serializer.serialize(message.getRequest()));
-        }
-        if (message.getType() == Message.RESPONSE) {
+            message.getRequest().recycle();
+        } else if (message.getType() == Message.RESPONSE) {
             out.writeBytes(serializer.serialize(message.getResponse()));
+            message.getResponse().recycle();
         }
     }
 }

@@ -2,6 +2,7 @@ package com.sinjinsong.toy.transport.api.support;
 
 import com.sinjinsong.toy.config.ServiceConfig;
 import com.sinjinsong.toy.transport.api.converter.MessageConverter;
+import com.sinjinsong.toy.transport.api.domain.GlobalRecycler;
 import com.sinjinsong.toy.transport.api.domain.Message;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
@@ -36,12 +37,14 @@ public class RPCTaskRunner implements Runnable {
         if (serviceConfig.isCallback()) {
             try {
                 handle(request);
+                // 回收request
+                request.recycle();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
             return;
         }
-        RPCResponse response = new RPCResponse();
+        RPCResponse response = GlobalRecycler.reuse(RPCResponse.class);
         response.setRequestId(request.getRequestId());
         try {
             Object result = handle(request);
@@ -88,7 +91,8 @@ public class RPCTaskRunner implements Runnable {
                         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                             if (method.getName().equals(serviceConfig.getCallbackMethod())) {
                                 // 创建并初始化 RPC 请求
-                                RPCRequest callbackRequest = new RPCRequest();
+                                // 复用request
+                                RPCRequest callbackRequest = GlobalRecycler.reuse(RPCRequest.class);
                                 log.info("调用callback：{} {}", method.getDeclaringClass().getName(), method.getName());
                                 log.info("requestId: {}", request.getRequestId());
                                 // 这里requestId是一样的

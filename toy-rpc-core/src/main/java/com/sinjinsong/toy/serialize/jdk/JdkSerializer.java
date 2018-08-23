@@ -2,7 +2,7 @@ package com.sinjinsong.toy.serialize.jdk;
 
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.serialize.api.Serializer;
+import com.sinjinsong.toy.serialize.api.support.AbstractSerializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +13,7 @@ import java.io.ObjectOutputStream;
  * @author sinjinsong
  * @date 2018/7/22
  */
-public class JdkSerializer implements Serializer {
+public class JdkSerializer extends AbstractSerializer {
 
     @Override
     public <T> byte[] serialize(T obj) throws RPCException {

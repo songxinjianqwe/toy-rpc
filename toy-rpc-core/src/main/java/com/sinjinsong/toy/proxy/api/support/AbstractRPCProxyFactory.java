@@ -7,6 +7,7 @@ import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
 import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
 import com.sinjinsong.toy.proxy.api.RPCProxyFactory;
+import com.sinjinsong.toy.transport.api.domain.GlobalRecycler;
 import com.sinjinsong.toy.transport.api.domain.RPCRequest;
 import com.sinjinsong.toy.transport.api.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
     protected Map<Class<?>, Object> cache = new ConcurrentHashMap<>();
+    
 
     @Override
     public <T> T createProxy(Invoker<T> invoker) {
@@ -36,8 +38,8 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
 
     protected abstract <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker);
 
-    
-    protected Object invokeProxyMethod(Invoker invoker,Method method, Object[] args) {
+
+    protected Object invokeProxyMethod(Invoker invoker, Method method, Object[] args) {
         // 创建并初始化 RPC 请求
         if ("toString".equals(method.getName()) && method.getParameterTypes().length == 0) {
             return invoker.toString();
@@ -48,7 +50,8 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
         if ("equals".equals(method.getName()) && method.getParameterTypes().length == 1) {
             return invoker.equals(args[0]);
         }
-        RPCRequest request = new RPCRequest();
+        // 复用request
+        RPCRequest request = GlobalRecycler.reuse(RPCRequest.class);
         log.info("调用服务：{} {}", method.getDeclaringClass().getName(), method.getName());
         request.setRequestId(UUID.randomUUID().toString());
         request.setInterfaceName(method.getDeclaringClass().getName());
@@ -62,12 +65,14 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
                 .referenceConfig(ReferenceConfig.getReferenceConfigByInterfaceName(method.getDeclaringClass().getName()))
                 .build();
         RPCResponse response = invoker.invoke(invokeParam);
-        if (response == null) {
-            // callback,oneway,async
-            return null;
-        } else {
-            return response.getResult();
+        Object result = null;
+        // result == null when callback,oneway,async
+        if (response != null) {
+            result = response.getResult();
         }
+        // 回收response
+        response.recycle();
+        return result;
     }
 
     @Override
@@ -85,7 +90,7 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
 
             @Override
             public RPCResponse invoke(InvokeParam invokeParam) throws RPCException {
-                RPCResponse response = new RPCResponse();
+                RPCResponse response = GlobalRecycler.reuse(RPCResponse.class);
                 try {
                     Method method = proxy.getClass().getMethod(invokeParam.getMethodName(), invokeParam.getParameterTypes());
                     response.setRequestId(invokeParam.getRequestId());

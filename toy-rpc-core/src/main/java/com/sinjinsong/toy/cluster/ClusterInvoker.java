@@ -175,7 +175,10 @@ public class ClusterInvoker<T> implements Invoker<T> {
             }
             // 不管是传输时候抛异常，还是服务端抛出异常，都算异常
             if (response.hasError()) {
-                throw new RPCException(response.getCause(), ErrorEnum.SERVICE_INVOCATION_FAILURE, "invocation failed");
+                // 回收response
+                Throwable cause = response.getCause();
+                response.recycle();
+                throw new RPCException(cause, ErrorEnum.SERVICE_INVOCATION_FAILURE, "invocation failed");
             }
             // 第一次就OK
             return response;
