@@ -12,6 +12,7 @@
         <module>toy-rpc-core</module>
         <module>toy-rpc-spring-boot-starter</module>
         <module>sample-spring</module>
+        <module>benchmark</module>
     </modules>
     
     <properties>

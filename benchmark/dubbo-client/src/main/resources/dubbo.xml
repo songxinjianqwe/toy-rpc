@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+       http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+    
+
+    <!-- 消费者应用信息，用于提供依赖关系 -->
+    <dubbo:application name="benchmark_consumer"/>
+    <!-- 注册地址，用于消费者寻找服务 -->
+    <!--<dubbo:registry protocol="zookeeper" address="127.0.0.1:2181"/>-->
+    <dubbo:registry protocol="zookeeper" address="192.168.1.117:2181"/>
+    <dubbo:protocol name="dubbo" port="20881" serialization="java"/>
+    <dubbo:reference id="userService" interface="com.sinjinsong.benchmark.base.service.UserService" version="1.0.0"/>
+</beans>
