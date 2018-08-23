@@ -2,6 +2,7 @@ package com.sinjinsong.toy.common.enumeration;
 
 import com.sinjinsong.toy.common.enumeration.support.ExtensionBaseType;
 import com.sinjinsong.toy.serialize.api.Serializer;
+import com.sinjinsong.toy.serialize.hessian.HessianSerializer;
 import com.sinjinsong.toy.serialize.jdk.JdkSerializer;
 import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
 
@@ -11,7 +12,8 @@ import com.sinjinsong.toy.serialize.protostuff.ProtostuffSerializer;
  */
 public enum SerializerType implements ExtensionBaseType<Serializer> {
     PROTOSTUFF(new ProtostuffSerializer()),
-    JDK(new JdkSerializer());
+    JDK(new JdkSerializer()),
+    HESSIAN(new HessianSerializer());
     
     private Serializer serializer;
 
