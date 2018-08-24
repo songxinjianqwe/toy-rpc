@@ -39,32 +39,6 @@ public abstract class AbstractClient {
 
     protected abstract UserService getUserService();
 
-//      ReferenceConfig<BenchmarkService> config = ReferenceConfig.createReferenceConfig(
-//                BenchmarkService.class.getName(),
-//                BenchmarkService.class,
-//                false,
-//                false,
-//                false,
-//                3000,
-//                "",
-//                1,
-//                false,
-//                null
-//        );
-//        AbstractRPCBeanPostProcessor.initConfig(ctx, config);
-//        List<BenchmarkService> clients = new ArrayList<>(threads);
-//        for (int i = 0; i < threads; i++) {
-//            clients.add(config.getForBenchmark());
-//        }
-//        List<Runnable> tasks = new ArrayList<>();
-//        TestObject testObject = new TestObject();
-//        for (int i = 0; i < threads; i++) {
-//            BenchmarkService client = clients.get(i);
-//
-//
-//            tasks.add(r);
-//        }
-
     public void run(int threads, int requestsTotal, int measurementIterations) {
         this.threads = threads;
         this.requestsTotal = requestsTotal;
@@ -72,10 +46,10 @@ public abstract class AbstractClient {
         this.userService = getUserService();
         this.executorService = Executors.newFixedThreadPool(threads);
         this.measurementIterations = measurementIterations;
-        createUser();
+//        createUser();
 //        existUser();
 //        getUser();
-//        listUser();
+        listUser();
     }
 
     @Data

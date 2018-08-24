@@ -19,14 +19,15 @@ public class JdkRPCProxyFactory extends AbstractRPCProxyFactory {
     protected <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker) {
         return (T) Proxy.newProxyInstance(
                 invoker.getInterface().getClassLoader(),
-                new Class<?>[]{invoker.getInterface()},
+                new Class<?>[]{interfaceClass},
                 new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                       return JdkRPCProxyFactory.this.invokeProxyMethod(invoker,method,args);
+                        return JdkRPCProxyFactory.this.invokeProxyMethod(invoker, method, args);
                     }
                 }
         );
     }
+
 }
 

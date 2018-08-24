@@ -28,7 +28,7 @@ public enum ErrorEnum {
     PROTOCOL_CANNOT_FIND_THE_SERVER_ADDRESS("协议找不到该服务器地址"),
     HEART_BEAT_TIME_OUT_EXCEED("超过心跳超时时间"),
     CREATE_PROXY_ERROR("生成代理失败"),
-    RECYCLER_ERROR("对象复用失败")
+    RECYCLER_ERROR("对象复用失败"),
     ;
     private String errorCode;
 

@@ -1,21 +1,15 @@
 package com.sinjinsong.toy.protocol.api.support;
 
+import com.sinjinsong.toy.common.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import com.sinjinsong.toy.common.enumeration.ErrorEnum;
+import com.sinjinsong.toy.common.enumeration.InvocationType;
 import com.sinjinsong.toy.common.exception.RPCException;
-import com.sinjinsong.toy.common.util.InvokeParamUtil;
 import com.sinjinsong.toy.config.GlobalConfig;
-import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.filter.Filter;
-import com.sinjinsong.toy.invocation.api.support.AbstractInvocation;
-import com.sinjinsong.toy.invocation.async.AsyncInvocation;
-import com.sinjinsong.toy.invocation.callback.CallbackInvocation;
-import com.sinjinsong.toy.invocation.oneway.OneWayInvocation;
-import com.sinjinsong.toy.invocation.sync.SyncInvocation;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
 import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.registry.api.ServiceURL;
-import com.sinjinsong.toy.common.domain.RPCRequest;
-import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -40,23 +34,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             // TODO 想办法在编译时检查
             throw new RPCException(ErrorEnum.GET_PROCESSOR_MUST_BE_OVERRIDE_WHEN_INVOKE_DID_NOT_OVERRIDE, "没有重写AbstractInvoker#invoke方法的时候，必须重写getProcessor方法");
         }
-        // 如果提交任务失败，则删掉该Endpoint，再次提交的话必须重新创建Endpoint
-        AbstractInvocation invocation;
-        ReferenceConfig referenceConfig = InvokeParamUtil.extractReferenceConfigFromInvokeParam(invokeParam);
-        RPCRequest rpcRequest = InvokeParamUtil.extractRequestFromInvokeParam(invokeParam);
-        if (referenceConfig.isAsync()) {
-            invocation = new AsyncInvocation();
-        } else if (referenceConfig.isCallback()) {
-            invocation = new CallbackInvocation();
-        } else if (referenceConfig.isOneWay()) {
-            invocation = new OneWayInvocation();
-        } else {
-            invocation = new SyncInvocation();
-        }
-        invocation.setReferenceConfig(referenceConfig);
-        invocation.setRpcRequest(rpcRequest);
-        invocation.setProcessor(logic);
-        return invocation.invoke();
+        return InvocationType.get(invokeParam).invoke(invokeParam,logic);
     }
 
     /**

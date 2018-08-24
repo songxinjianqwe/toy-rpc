@@ -1,5 +1,8 @@
 package com.sinjinsong.toy.proxy.api.support;
 
+import com.sinjinsong.toy.common.domain.GlobalRecycler;
+import com.sinjinsong.toy.common.domain.RPCRequest;
+import com.sinjinsong.toy.common.domain.RPCResponse;
 import com.sinjinsong.toy.common.exception.RPCException;
 import com.sinjinsong.toy.config.ReferenceConfig;
 import com.sinjinsong.toy.protocol.api.InvokeParam;
@@ -7,9 +10,6 @@ import com.sinjinsong.toy.protocol.api.Invoker;
 import com.sinjinsong.toy.protocol.api.support.AbstractInvoker;
 import com.sinjinsong.toy.protocol.api.support.RPCInvokeParam;
 import com.sinjinsong.toy.proxy.api.RPCProxyFactory;
-import com.sinjinsong.toy.common.domain.GlobalRecycler;
-import com.sinjinsong.toy.common.domain.RPCRequest;
-import com.sinjinsong.toy.common.domain.RPCResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
@@ -25,6 +25,50 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
     protected Map<Class<?>, Object> cache = new ConcurrentHashMap<>();
     
+    public Object invokeProxyMethod(Invoker invoker, String interfaceName, String methodName, String[] parameterTypes, Object[] args) {
+        // 创建并初始化 RPC 请求
+        if ("toString".equals(methodName) && parameterTypes.length == 0) {
+            return invoker.toString();
+        }
+        if ("hashCode".equals(methodName) && parameterTypes.length == 0) {
+            return invoker.hashCode();
+        }
+        if ("equals".equals(methodName) && parameterTypes.length == 1) {
+            return invoker.equals(args[0]);
+        }
+        // 复用request
+        RPCRequest request = GlobalRecycler.reuse(RPCRequest.class);
+        log.info("调用服务：{}#{},parameterTypes:{},args:{}", interfaceName, methodName,parameterTypes,args);
+        request.setRequestId(UUID.randomUUID().toString());
+        request.setInterfaceName(interfaceName);
+        request.setMethodName(methodName);
+        request.setParameterTypes(parameterTypes);
+        request.setParameters(args);
+        // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
+        // ClusterInvoker
+        RPCInvokeParam invokeParam = RPCInvokeParam.builder()
+                .rpcRequest(request)
+                .referenceConfig(ReferenceConfig.getReferenceConfigByInterfaceName(interfaceName))
+                .build();
+        RPCResponse response = invoker.invoke(invokeParam);
+        Object result = null;
+        // result == null when callback,oneway,async
+        if (response != null) {
+            result = response.getResult();
+        }
+        // 回收response
+        response.recycle();
+        return result;
+    }
+
+    protected Object invokeProxyMethod(Invoker invoker, Method method, Object[] args) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        String[] paramTypes = new String[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            paramTypes[i] = parameterTypes[i].getName();
+        };
+        return invokeProxyMethod(invoker,method.getDeclaringClass().getName(),method.getName(),paramTypes,args);
+    }
 
     @Override
     public <T> T createProxy(Invoker<T> invoker) {
@@ -38,42 +82,6 @@ public abstract class AbstractRPCProxyFactory implements RPCProxyFactory {
 
     protected abstract <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker);
 
-
-    protected Object invokeProxyMethod(Invoker invoker, Method method, Object[] args) {
-        // 创建并初始化 RPC 请求
-        if ("toString".equals(method.getName()) && method.getParameterTypes().length == 0) {
-            return invoker.toString();
-        }
-        if ("hashCode".equals(method.getName()) && method.getParameterTypes().length == 0) {
-            return invoker.hashCode();
-        }
-        if ("equals".equals(method.getName()) && method.getParameterTypes().length == 1) {
-            return invoker.equals(args[0]);
-        }
-        // 复用request
-        RPCRequest request = GlobalRecycler.reuse(RPCRequest.class);
-        log.info("调用服务：{} {}", method.getDeclaringClass().getName(), method.getName());
-        request.setRequestId(UUID.randomUUID().toString());
-        request.setInterfaceName(method.getDeclaringClass().getName());
-        request.setMethodName(method.getName());
-        request.setParameterTypes(method.getParameterTypes());
-        request.setParameters(args);
-        // 通过 RPC 客户端发送 RPC 请求并获取 RPC 响应
-        // ClusterInvoker
-        RPCInvokeParam invokeParam = RPCInvokeParam.builder()
-                .rpcRequest(request)
-                .referenceConfig(ReferenceConfig.getReferenceConfigByInterfaceName(method.getDeclaringClass().getName()))
-                .build();
-        RPCResponse response = invoker.invoke(invokeParam);
-        Object result = null;
-        // result == null when callback,oneway,async
-        if (response != null) {
-            result = response.getResult();
-        }
-        // 回收response
-        response.recycle();
-        return result;
-    }
 
     @Override
     public <T> Invoker<T> getInvoker(T proxy, Class<T> type) {

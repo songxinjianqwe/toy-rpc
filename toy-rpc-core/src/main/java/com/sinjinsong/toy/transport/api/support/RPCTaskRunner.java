@@ -1,16 +1,15 @@
 package com.sinjinsong.toy.transport.api.support;
 
-import com.sinjinsong.toy.config.ServiceConfig;
-import com.sinjinsong.toy.transport.api.converter.MessageConverter;
 import com.sinjinsong.toy.common.domain.GlobalRecycler;
 import com.sinjinsong.toy.common.domain.Message;
 import com.sinjinsong.toy.common.domain.RPCRequest;
 import com.sinjinsong.toy.common.domain.RPCResponse;
+import com.sinjinsong.toy.config.ServiceConfig;
+import com.sinjinsong.toy.transport.api.converter.MessageConverter;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -112,15 +111,6 @@ public class RPCTaskRunner implements Runnable {
                     }
             );
         }
-        try {
-            return method.invoke(serviceBean, parameters);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
-        return null;
+        return method.invoke(serviceBean, parameters);
     }
 }
