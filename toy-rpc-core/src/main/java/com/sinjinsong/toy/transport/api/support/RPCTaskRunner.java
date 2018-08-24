@@ -79,7 +79,7 @@ public class RPCTaskRunner implements Runnable {
 
         Method method = serviceClass.getMethod(methodName, parameterTypes);
         method.setAccessible(true);
-
+        
         // 针对callback参数，要将其设置为代理对象
         if (serviceConfig.isCallback()) {
             Class<?> interfaceClass = parameterTypes[serviceConfig.getCallbackParamIndex()];

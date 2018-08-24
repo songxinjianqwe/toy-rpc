@@ -73,9 +73,9 @@ public abstract class AbstractClient {
         this.executorService = Executors.newFixedThreadPool(threads);
         this.measurementIterations = measurementIterations;
         createUser();
-        existUser();
-        getUser();
-        listUser();
+//        existUser();
+//        getUser();
+//        listUser();
     }
 
     @Data
