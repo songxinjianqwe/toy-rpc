@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
  * @date 2018/6/10
  * 线程私有！
  */
-public class RPCThreadLocalContext<T> {
+public class RPCThreadLocalContext {
     private static final ThreadLocal<RPCThreadLocalContext> RPC_CONTEXT = new ThreadLocal() {
         @Override
         protected Object initialValue() {
@@ -20,7 +20,7 @@ public class RPCThreadLocalContext<T> {
     private RPCThreadLocalContext() {
     }
 
-    private Future<T> future;
+    private Future future;
     private Invoker invoker;
 
 
@@ -28,7 +28,7 @@ public class RPCThreadLocalContext<T> {
         return RPC_CONTEXT.get();
     }
 
-    public Future<T> getFuture() {
+    public Future getFuture() {
         return future;
     }
 
@@ -40,7 +40,7 @@ public class RPCThreadLocalContext<T> {
         this.invoker = invoker;
     }
 
-    public void setFuture(Future<T> future) {
+    public void setFuture(Future future) {
         this.future = future;
     }
 
