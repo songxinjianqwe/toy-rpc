@@ -26,10 +26,8 @@ public class RPCRequest implements Serializable {
     private String methodName;
     private String[] parameterTypes;
     private Object[] parameters;
-    private transient Class[] parameterTypeClasses;
-
+    
     public void setParameterTypes(Class[] parameterTypes) {
-        this.parameterTypeClasses = parameterTypes;
         String[] paramTypes = new String[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             paramTypes[i] = parameterTypes[i].getName();
@@ -42,19 +40,17 @@ public class RPCRequest implements Serializable {
     }
 
     public Class[] getParameterTypes() {
-        if (parameterTypeClasses == null) {
-            parameterTypeClasses = new Class[parameterTypes.length];
+        Class[] parameterTypeClasses = new Class[parameterTypes.length];
+        try {
             for (int i = 0; i < parameterTypes.length; i++) {
                 if (TypeUtil.isPrimitive(parameterTypes[i])) {
                     parameterTypeClasses[i] = TypeUtil.map(parameterTypes[i]);
-                }else {
-                    try {
-                        parameterTypeClasses[i] = Class.forName(parameterTypes[i]);
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
+                } else {
+                    parameterTypeClasses[i] = Class.forName(parameterTypes[i]);
                 }
             }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
         return parameterTypeClasses;
     }

@@ -13,19 +13,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ToyEncoder extends MessageToByteEncoder {
     private Serializer serializer;
+
     public ToyEncoder(Serializer serializer) {
         this.serializer = serializer;
     }
-    
+
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         Message message = (Message) msg;
         out.writeByte((message.getType()));
         if (message.getType() == Message.REQUEST) {
-            out.writeBytes(serializer.serialize(message.getRequest()));
+            byte[] bytes = serializer.serialize(message.getRequest());
+            log.info("Message:{},序列化大小为:{}", message,bytes.length);
+            out.writeBytes(bytes);
             message.getRequest().recycle();
         } else if (message.getType() == Message.RESPONSE) {
-            out.writeBytes(serializer.serialize(message.getResponse()));
+            byte[] bytes = serializer.serialize(message.getResponse());
+            log.info("Message:{},序列化大小为:{}", message,bytes.length);
+            out.writeBytes(bytes);
             message.getResponse().recycle();
         }
     }

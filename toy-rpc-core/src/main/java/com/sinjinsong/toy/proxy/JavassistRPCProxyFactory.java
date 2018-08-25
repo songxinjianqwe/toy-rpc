@@ -30,7 +30,7 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
             ClassPool pool = ClassPool.getDefault();
             // 传入类名，最后生成某种Interface
             // 我们保证某个interface只会生成一个代理类
-            CtClass proxyClass = pool.makeClass(interfaceName + "$proxyInvoker");
+            CtClass proxyClass = pool.makeClass(interfaceName + "$ProxyInvoker");
             // 设置接口类型
             proxyClass.setInterfaces(new CtClass[]{pool.getCtClass(interfaceName)});
             CtField invokerField = new CtField(this.invokerCtClass, "invoker", proxyClass);
@@ -50,6 +50,8 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
                 addInterfaceMethod(interfaceName, proxyClass, method);
             }
             addCommonMethods(interfaceName, proxyClass);
+            String source = proxyClass.toString();
+            log.info("source:{}",source);
             t = interfaceClass.cast(proxyClass.toClass().getConstructor(Invoker.class, AbstractRPCProxyFactory.class).newInstance(invoker, this));
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,7 +109,7 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
         //方法声明，由于是实现接口的方法，所以是public  
         StringBuilder methodDeclare = new StringBuilder();
         methodDeclare.append("public ").append(methodReturnType).append(" ").append(methodName).append("(").append(parameterBuffer).append(")").append(exceptionBuffer).append(" {");
-//        methodDeclare.append("System.out.println(a0);");     
+        // methodDeclare.append("System.out.println(a0);");     
 //        methodDeclare.append("System.out.println(new Object[]{a0});");
         // 方法体
         methodDeclare.append("return interceptor.invokeProxyMethod(")
@@ -126,7 +128,7 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
         //传递方法里的参数  
         methodDeclare.append("new Object[]{");
         for (int i = 0; i < parameterTypes.length; i++) {
-            methodDeclare.append("a").append(i);
+            methodDeclare.append("($w)a").append(i);
             if (i != parameterTypes.length - 1) {
                 methodDeclare.append(",");
             }

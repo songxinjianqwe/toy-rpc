@@ -46,9 +46,9 @@ public abstract class AbstractClient {
         this.userService = getUserService();
         this.executorService = Executors.newFixedThreadPool(threads);
         this.measurementIterations = measurementIterations;
-//        createUser();
-//        existUser();
-//        getUser();
+        createUser();
+        existUser();
+        getUser();
         listUser();
     }
 
@@ -164,6 +164,7 @@ public abstract class AbstractClient {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
+                            log.info("request:{},createUser",j);
                             userService.createUser(user);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -224,6 +225,7 @@ public abstract class AbstractClient {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
+                            log.info("request:{},existUser",j);
                             userService.existUser(j + "@gmail.com");
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -281,6 +283,7 @@ public abstract class AbstractClient {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
+                            log.info("request:{},getUser",j);
                             userService.getUser(j);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -339,6 +342,7 @@ public abstract class AbstractClient {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
+                            log.info("request:{},listUser",j);
                             userService.listUser(j);
                         } catch (Exception e) {
                             e.printStackTrace();
