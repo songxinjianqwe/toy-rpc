@@ -23,7 +23,7 @@
     </appender>
 
     
-    <logger name="com.sinjinsong" level="INFO" additivity="false">
+    <logger name="com.sinjinsong.benchmark" level="INFO" additivity="false">
         <appender-ref ref="consoleAppender"/>
         <appender-ref ref="fileAppender"/>
     </logger>

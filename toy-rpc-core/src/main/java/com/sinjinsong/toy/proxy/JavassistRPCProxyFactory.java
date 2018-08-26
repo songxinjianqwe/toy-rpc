@@ -17,10 +17,10 @@ import java.lang.reflect.Method;
 public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
     private CtClass invokerCtClass = new CtClass(Invoker.class.getName()) {
     };
-    
+
     private CtClass interceptorCtClass = new CtClass(AbstractRPCProxyFactory.class.getName()) {
     };
-    
+
 
     @Override
     protected <T> T doCreateProxy(Class<T> interfaceClass, Invoker<T> invoker) {
@@ -51,7 +51,7 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
             }
             addCommonMethods(interfaceName, proxyClass);
             String source = proxyClass.toString();
-            log.info("source:{}",source);
+            log.info("source:{}", source);
             t = interfaceClass.cast(proxyClass.toClass().getConstructor(Invoker.class, AbstractRPCProxyFactory.class).newInstance(invoker, this));
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,7 +112,7 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
         // methodDeclare.append("System.out.println(a0);");     
 //        methodDeclare.append("System.out.println(new Object[]{a0});");
         // 方法体
-        methodDeclare.append("return interceptor.invokeProxyMethod(")
+        methodDeclare.append("Object returnObj = interceptor.invokeProxyMethod(")
                 .append("invoker").append(",")
                 .append("\"")
                 .append(interfaceName).append("\"")
@@ -133,8 +133,29 @@ public class JavassistRPCProxyFactory extends AbstractRPCProxyFactory {
                 methodDeclare.append(",");
             }
         }
-        methodDeclare.append("});}");
-        System.out.println(methodDeclare.toString());
+        methodDeclare.append("});");
+        if (method.getReturnType().isPrimitive()) {
+            if (method.getReturnType().equals(Boolean.TYPE))
+                methodDeclare.append("return ((Boolean)returnObj).booleanValue();\n");
+            else if (method.getReturnType().equals(Integer.TYPE))
+                methodDeclare.append("return ((Integer)returnObj).intValue();\n");
+            else if (method.getReturnType().equals(Long.TYPE))
+                methodDeclare.append("return ((Long)returnObj).longValue();\n");
+            else if (method.getReturnType().equals(Float.TYPE))
+                methodDeclare.append("return ((Float)returnObj).floatValue();\n");
+            else if (method.getReturnType().equals(Double.TYPE))
+                methodDeclare.append("return ((Double)returnObj).doubleValue();\n");
+            else if (method.getReturnType().equals(Character.TYPE))
+                methodDeclare.append("return ((Character)returnObj).charValue();\n");
+            else if (method.getReturnType().equals(Byte.TYPE))
+                methodDeclare.append("return ((Byte)returnObj).byteValue();\n");
+            else if (method.getReturnType().equals(Short.TYPE))
+                methodDeclare.append("return ((Short)returnObj).shortValue();\n");
+        } else {
+            methodDeclare.append("return (" + methodReturnType + ")returnObj;\n");
+        }
+        methodDeclare.append("}");  
+//        System.out.println(methodDeclare.toString());
         return methodDeclare.toString();
     }
 }

@@ -36,15 +36,25 @@ public abstract class AbstractClient {
     private ExecutorService executorService;
     private UserService userService;
     private int measurementIterations;
+    private int warmupIterations;
 
     protected abstract UserService getUserService();
-
-    public void run(int threads, int requestsTotal, int measurementIterations) {
+    
+    public void run(String ...strings){
+        int threads = Integer.parseInt(strings[0]);
+        int requestTotal = Integer.parseInt(strings[1]);
+        int warmupIterations = Integer.parseInt(strings[2]);
+        int measurementIterations = Integer.parseInt(strings[3]);
+        run(threads, requestTotal,warmupIterations,measurementIterations);
+    }
+    
+    public void run(int threads, int requestsTotal, int warmupIterations, int measurementIterations) {
         this.threads = threads;
         this.requestsTotal = requestsTotal;
         this.requestsPerThread = requestsTotal / threads;
         this.userService = getUserService();
         this.executorService = Executors.newFixedThreadPool(threads);
+        this.warmupIterations = warmupIterations;
         this.measurementIterations = measurementIterations;
         createUser();
         existUser();
@@ -68,7 +78,7 @@ public abstract class AbstractClient {
         private String p999;
         @CsvBindByName(column = "Type")
         private String index;
-        
+
         private double _mills;
         private double _qps;
         private double _avgRt;
@@ -79,7 +89,7 @@ public abstract class AbstractClient {
         public BenchmarkResult() {
         }
 
-        public BenchmarkResult(int index,long nanos, List<Long> rts) {
+        public BenchmarkResult(int index, long nanos, List<Long> rts) {
             this.index = "NORMAL-" + index;
             double mills = 1.0 * nanos / 1000000;
             // 每毫秒的处理请求数
@@ -119,7 +129,7 @@ public abstract class AbstractClient {
         return result;
     }
 
-    
+
     private void createUser() {
         try {
             Path benchmark = Paths.get(System.getProperty("user.home"), "benchmark", "createUser.csv");
@@ -138,7 +148,7 @@ public abstract class AbstractClient {
             log.info("----------------------------------------------------------------------------");
             log.info("createUser started");
             List<BenchmarkResult> results = new ArrayList<>();
-            for (int i = 0; i < measurementIterations; i++) {
+            for (int i = 0; i < warmupIterations + measurementIterations; i++) {
                 CountDownLatch countDownLatch = new CountDownLatch(threads);
 
                 User user = new User();
@@ -164,7 +174,6 @@ public abstract class AbstractClient {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
-                            log.info("request:{},createUser",j);
                             userService.createUser(user);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -181,7 +190,9 @@ public abstract class AbstractClient {
                 long benchmarkStart = System.nanoTime();
                 countDownLatch.await();
                 long nanos = System.nanoTime() - benchmarkStart;
-                results.add(new BenchmarkResult(i,nanos, rts));
+                if (i >= warmupIterations) {
+                    results.add(new BenchmarkResult(i - warmupIterations, nanos, rts));
+                }
             }
             results.add(avgBenchmarkResult(results));
             beanToCsv.write(results);
@@ -218,14 +229,13 @@ public abstract class AbstractClient {
             log.info("----------------------------------------------------------------------------");
             log.info("existUser started");
             List<BenchmarkResult> results = new ArrayList<>();
-            for (int i = 0; i < measurementIterations; i++) {
+            for (int i = 0; i < warmupIterations + measurementIterations; i++) {
                 CountDownLatch countDownLatch = new CountDownLatch(threads);
                 List<Long> rts = new Vector<>(requestsTotal);
                 Runnable r = () -> {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
-                            log.info("request:{},existUser",j);
                             userService.existUser(j + "@gmail.com");
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -240,7 +250,9 @@ public abstract class AbstractClient {
                 long benchmarkStart = System.nanoTime();
                 countDownLatch.await();
                 long nanos = System.nanoTime() - benchmarkStart;
-                results.add(new BenchmarkResult(i,nanos, rts));
+                if (i >= warmupIterations) {
+                    results.add(new BenchmarkResult(i - warmupIterations, nanos, rts));
+                }
             }
             results.add(avgBenchmarkResult(results));
             beanToCsv.write(results);
@@ -276,14 +288,13 @@ public abstract class AbstractClient {
             log.info("----------------------------------------------------------------------------");
             log.info("getUser started");
             List<BenchmarkResult> results = new ArrayList<>();
-            for (int i = 0; i < measurementIterations; i++) {
+            for (int i = 0; i < warmupIterations + measurementIterations; i++) {
                 CountDownLatch countDownLatch = new CountDownLatch(threads);
                 List<Long> rts = new Vector<>(requestsTotal);
                 Runnable r = () -> {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
-                            log.info("request:{},getUser",j);
                             userService.getUser(j);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -299,7 +310,9 @@ public abstract class AbstractClient {
                 long benchmarkStart = System.nanoTime();
                 countDownLatch.await();
                 long nanos = System.nanoTime() - benchmarkStart;
-                results.add(new BenchmarkResult(i,nanos, rts));
+                if (i >= warmupIterations) {
+                    results.add(new BenchmarkResult(i - warmupIterations, nanos, rts));
+                }
             }
             results.add(avgBenchmarkResult(results));
             beanToCsv.write(results);
@@ -335,14 +348,13 @@ public abstract class AbstractClient {
             log.info("----------------------------------------------------------------------------");
             log.info("listUser started");
             List<BenchmarkResult> results = new ArrayList<>();
-            for (int i = 0; i < measurementIterations; i++) {
+            for (int i = 0; i < warmupIterations + measurementIterations; i++) {
                 CountDownLatch countDownLatch = new CountDownLatch(threads);
                 List<Long> rts = new Vector<>(requestsTotal);
                 Runnable r = () -> {
                     for (int j = 0; j < requestsPerThread; j++) {
                         long begin = System.nanoTime();
                         try {
-                            log.info("request:{},listUser",j);
                             userService.listUser(j);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -358,7 +370,9 @@ public abstract class AbstractClient {
                 long benchmarkStart = System.nanoTime();
                 countDownLatch.await();
                 long nanos = System.nanoTime() - benchmarkStart;
-                results.add(new BenchmarkResult(i,nanos, rts));
+                if (i >= warmupIterations) {
+                    results.add(new BenchmarkResult(i - warmupIterations, nanos, rts));
+                }
             }
             results.add(avgBenchmarkResult(results));
             beanToCsv.write(results);
